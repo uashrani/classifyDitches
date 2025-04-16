@@ -1,12 +1,12 @@
 #!/bin/bash
 
-vecLines = 'drainage_centerlines'   # name of ditch layer in Grass, already imported
-vecPoints = 'ditch_nodes'            # name of start/end points, will be created from line data
+vecLines='drainage_centerlines'   # name of ditch layer in Grass, already imported
+vecPoints='ditch_nodes'            # name of start/end points, will be created from line data
 
-combTable = 'ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
+combTable='ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
 
-combFile = 'ditchCombinations.txt'
-ptFile = 'ditchNodes.txt'
+combFile='ditchCombinations.txt'
+ptFile='ditchNodes.txt'
 
 v.to.points input=$vecLines output=$vecPoints use='node' --overwrite
 v.to.db map=$vecPoints layer=2 option='coor' columns='x','y' --overwrite
