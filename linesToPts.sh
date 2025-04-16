@@ -18,8 +18,8 @@ v.to.db map=$vecPoints layer=2 option='coor' columns='x','y' --overwrite
 # Get distances from nodes to all nearby lines, and save in table
 v.distance -a from=$vecPoints from_layer=2 to=$vecLines dmax=1 upload='dist','cat' table=$combTable --overwrite
 # Export the table to a text file, and do the same for the ditch node attribute table
-db.select table=$combTable output=$combFile --overwrite
-v.db.select map=$vecPoints format='csv' file=$ptFile --overwrite
+db.select table=$combTable output=$combFile separator='comma' --overwrite
+v.db.select map=$vecPoints layer=2 format='csv' file=$ptFile --overwrite
 
 # Now the Python script will deal with these text files
 python3 classifyDitches.py

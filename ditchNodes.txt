@@ -1,133 +1,445 @@
-cat,system_cod,type,segment_na,map_label,bottom_wid,tile_dim,tile_mater,source,side_slope,grade,buffer_rig,buffer_lef,buffer_req,easement,easement_w,easement_1,constructi,construc_1,construc_2,notes,SHAPE_Leng
-1,"CCD30","Open","Clay Co. Ditch No. 30","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1579.55331408
-2,"CCD10","Open","Clay Co. Ditch No. 10","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,22084.8991405
-3,"CCD12","Open","Clay Co. Ditch No. 12","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10301.4033454
-4,"CCD16","Open","Clay Co. Ditch No. 16","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3662.50370393
-5,"CCD17","Open","Clay Co. Ditch No. 17","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,5239.0363512
-6,"CCD22","Open","Clay Co. Ditch No. 22","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2131.31045303
-7,"CCD33","Open","Clay Co. Ditch No. 33","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4991.73324434
-8,"CCD35","Open","Clay Co. Ditch No. 35","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10135.416001
-9,"CCD36","Open","Clay Co. Ditch No. 36","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4782.12534696
-10,"CCD5","Open","Clay Co. Ditch No. 5","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,12153.0560755
-11,"CCD53","Open","Clay Co. Ditch No. 53","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6488.77570256
-12,"CCD58","Open","Clay Co. Ditch No. 58","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10839.122367
-13,"CCD59","Open","Clay Co. Ditch No. 59","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,13862.4078632
-14,"CCD60","Open","Clay Co. Ditch No. 60","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3055.94213277
-15,"CCD63","Open","Clay Co. Ditch No. 63","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4557.57811997
-16,"CCD68","Open","Clay Co. Ditch No. 68","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,5852.59712053
-17,"CCD69","Open","Clay Co. Ditch No. 69","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4824.70786949
-18,"WCD40","Open","Wilkin Co. Ditch No. 40","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,7102.89533096
-19,"WCD42","Open","Wilkin Co. Ditch No. 42","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,7263.80598345
-20,"CCD47","Open","Clay Co. Ditch No. 47","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,7600.24713701
-21,"CCD49","Open","Clay Co. Ditch No. 49","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,7225.20060872
-22,"CCD50","Open","Clay Co. Ditch No. 50","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3635.11728785
-23,"CCD57","Open","Clay Co. Ditch No. 57","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3469.3945388
-24,"CCD54","Open","Clay Co. Ditch No. 54","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3445.15258695
-25,"CCD67","Open","Clay Co. Ditch No. 67","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1121.2909207
-26,"CCD9","Open","Clay Co. Ditch No. 9","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10964.8406994
-27,"WCD15","Open","Wilkin Co. Ditch No. 15","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4546.82389305
-28,"WCD1B","Open","Wilkin Co. Ditch No. 1B","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,11622.1767476
-29,"WCD26","Open","Wilkin Co. Ditch No. 26","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3635.14521831
-30,"WCD27","Open","Wilkin Co. Ditch No. 27","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8061.54336533
-31,"WCD34","Open","Wilkin Co. Ditch No. 33","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4312.22601522
-32,"WCD37","Open","Wilkin Co. Ditch No. 37","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10549.3436978
-33,"WCD3","Open","Wilkin Co. Ditch No. 3","Lat. 3",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6382.63745049
-34,"WCD3","Open","Wilkin Co. Ditch No. 3","Lat. 2",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8049.44801874
-35,"WCD4","Open","Wilkin Co. Ditch No. 4A","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,7674.83672039
-36,"WCD41","Open","Wilkin Co. Ditch No. 41","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4581.26833764
-37,"WCD41","Open","Wilkin Co. Ditch No. 41","Br. 2",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1867.46688579
-38,"WCD41","Open","Wilkin Co. Ditch No. 41","Br. 4",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2968.70936654
-39,"WCD41","Open","Wilkin Co. Ditch No. 41","Br. 3",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6869.19463553
-40,"WCD41","Open","Wilkin Co. Ditch No. 41","Br. 5",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1614.06169862
-41,"WCD43","Open","Wilkin Co. Ditch No. 43","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8026.45459784
-42,"CCD41L1","Open","Clay Co. Ditch No. 41","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8654.59015769
-43,"CCD41L2","Open","Clay Co. Ditch No. 41","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2496.73285611
-44,"CCD51","Open","Clay Co. Ditch No. 51","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,978.513189872
-45,"CCD51","Open","Clay Co. Ditch No. 51","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6357.08245201
-46,"C-WJD1","Open","Judicial Ditch No. 1","Br. 2",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1616.19003626
-47,"C-WJD1","Open","Judicial Ditch No. 1","Br. 4",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2053.4568019
-48,"C-WJD2","Open","Judicial Ditch No. 2","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,18751.7364214
-49,"C-WJD2","Open","Judicial Ditch No. 2","Br. 2",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2522.10257616
-50,"C-WJD2","Open","Judicial Ditch No. 2","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1967.91228665
-51,"WCD1C","Open","Wilkin Co. Ditch No. 1C","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2313.40489437
-52,"WCD1C","Open","Wilkin Co. Ditch No. 1C","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,9348.24341088
-53,"WCD2","Open","Wilkin Co. Ditch No. 2","Lat. A",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2680.77715916
-54,"WCD22","Open","Wilkin Co. Ditch No. 22","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,9805.92885098
-55,"WCD22","Open","Wilkin Co. Ditch No. 22","Lat. 3",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4722.16688444
-56,"WCD22","Open","Wilkin Co. Ditch No. 22","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4507.13325871
-57,"WCD22","Open","Wilkin Co. Ditch No. 22","Lat. 2",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2353.90821339
-58,"WCD2","Open","Wilkin Co. Ditch No. 2","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1782.3292267
-59,"WCD13","Open","Wilkin Co. Ditch No. 13","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6950.59452502
-60,"WCD44","Open","Wilkin Co. Ditch No. 44","Lat. A",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8072.71901171
-61,"WCD44","Open","Wilkin Co. Ditch No. 44","Lat. B",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,9098.64896482
-62,"CCD2","Open","Clay Co. Ditch No. 2","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,12098.0351199
-63,"CCD2","Open","Clay Co. Ditch No. 2","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2372.0779499
-64,"CCD23","Open","Clay Co. Ditch No. 23","North",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2360.33216886
-65,"CCD39","Open","Clay Co. Ditch No. 39","Br. 2",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,819.261596478
-66,"CCD55","Open","Clay Co. Ditch No. 55","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8387.37189953
-67,"CCD55","Open","Clay Co. Ditch No. 55","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2046.89101353
-68,"CCD65","Open","Clay Co. Ditch No. 65","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,9471.5605061
-69,"CCD65","Open","Clay Co. Ditch No. 65","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,14800.5792639
-70,"BCD9","Open","Becker Co. Ditch No. 9","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8048.01659844
-71,"CCD21","Open","Clay Co. Ditch No. 21","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1594.02948657
-72,"CCD21","Open","Clay Co. Ditch No. 21","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10681.6784551
-73,"CCD39","Open","Clay Co. Ditch No. 39","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1713.65013348
-74,"CCD39","Open","Clay Co. Ditch No. 39","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,15617.4501241
-75,"WCD5A","Open","Wilkin Co. Ditch No. 5A","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4092.12115744
-76,"WCD5A","Open","Wilkin Co. Ditch No. 5A","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1439.82946214
-77,"WCD6A","Open","Wilkin Co. Ditch No. 6A","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,25447.866073
-78,"WCD6A","Open","Wilkin Co. Ditch No. 6A","Lat. 2",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3250.44115368
-79,"WCD6A","Open","Wilkin Co. Ditch No. 6A","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4025.91378875
-80,"WCD28","Open","Wilkin Co. Ditch No. 28","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8610.06462102
-81,"WCD28","Open","Wilkin Co. Ditch No. 28","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1464.48814407
-82,"WCD29","Open","Wilkin Co. Ditch No. 29","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6221.23314623
-83,"BCD15","Open","Becker Co. Ditch No. 15","Br. 5A",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1804.65860224
-84,"BCD15","Open","Becker Co. Ditch No. 15","Br. 6",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,5287.50106836
-85,"BCD15","Open","Becker Co. Ditch No. 15","Br. 1A",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,379.911383166
-86,"BCD15","Open","Becker Co. Ditch No. 15","Br. 1B",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,684.617654116
-87,"BCD15","Open","Becker Co. Ditch No. 15","Br. 3",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1562.47548966
-88,"BCD19","Open","Becker Co. Ditch No. 19","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1411.47655114
-89,"BCD19","Open","Becker Co. Ditch No. 19","Br. 3",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4948.53476103
-90,"BCD19","Open","Becker Co. Ditch No. 19","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,474.881342265
-91,"BCD19","Open","Becker Co. Ditch No. 19","Br. 2",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,258.47982166
-92,"BCD21","Open","Becker Co. Ditch No. 21","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4323.0183823
-93,"BCD21","Open","Becker Co. Ditch No. 21","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1047.93942379
-94,"BCD21","Open","Becker Co. Ditch No. 21","Br. 2",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2025.7759081
-95,"BCD5","Open","Becker Co. Ditch No. 5","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8994.15352764
-96,"BCD5","Open","Becker Co. Ditch No. 5","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,542.121307612
-97,"BCD5","Open","Becker Co. Ditch No. 5","Br. 2",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4200.94613282
-98,"BCD5","Open","Becker Co. Ditch No. 5","Br. 3",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2089.03555269
-99,"WCD31","Open","Wilkin Co. Ditch No. 31","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,23091.2465826
-100,"WCD31","Open","Wilkin Co. Ditch No. 31","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3283.26195928
-101,"WCD31","Open","Wilkin Co. Ditch No. 31","Lat. 4",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1511.79369579
-102,"WCD7","Open","Wilkin Co. Ditch No. 7","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3047.28599772
-103,"WCD7","Open","Wilkin Co. Ditch No. 7","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6409.10942708
-104,"WCD23","Open","Wilkin Co. Ditch No. 23","Lat. 1",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,5993.27230877
-105,"WCD23","Open","Wilkin Co. Ditch No. 23","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,12411.1348996
-106,"BCD15","Open","Becker Co. Ditch No. 15","Br. 5",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4042.17399166
-107,"CCD11","Open","Clay Co. Ditch No. 11","North",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8082.63996551
-108,"CCD11","Open","Clay Co. Ditch No. 11","South",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6907.89954747
-109,"CCD32","Open","Clay Co. Ditch No. 32","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,9948.69083522
-110,"CCD28","Open","Clay Co. Ditch No. 28","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3282.89338104
-111,"WCD12","Open","Wilkin Co. Ditch No. 12","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,6801.34082529
-112,"CCD23","Open","Clay Co. Ditch No. 23","South",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,2841.79855502
-113,"CCD3","Open","Clay Co. Ditch No. 3","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,13976.7151954
-114,"BCD10","Open","Becker Co. Ditch No. 10","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,4176.50036542
-115,"BCD19","Open","Becker Co. Ditch No. 19","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8043.53079776
-116,"BCD6","Open","Becker Co. Ditch No. 6","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,1199.99733264
-117,"BCD15","Open","Becker Co. Ditch No. 15","Br. 7",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8136.35733936
-118,"BCD15","Open","Becker Co. Ditch No. 15","Br. 4",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,12952.2018458
-119,"BCD15","Open","Becker Co. Ditch No. 15","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,12954.3555712
-120,"CCD34","Open","Clay Co. Ditch No. 34","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,25820.6629207
-121,"WCD13L1","Open","Wilkin Co. Ditch No. 13 L1","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,61190.7869044
-122,"WCD1A","Open","Wilkin Co. Ditch No. 1A","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10901.665129
-123,"WCD2","Open","Wilkin Co. Ditch No. 2","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,5850.33409361
-124,"WCD3","Open","Wilkin Co. Ditch No. 3","Main",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,24884.6759048
-125,"WCD3","Open","Wilkin Co. Ditch No. 3","Willow Creek",-9998,-9998,"Not Applicable","Ditch CL from GIS Update 2007","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,3648.50050041
-126,"CCD31","Open","Clay Co. Ditch No. 31","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,8182.87662232
-127,"CCD20","Open","Clay Co. Ditch No. 20","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,13894.8656359
-128,"CCD40","Open","Clay Co. Ditch No. 40","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,10205.6322379
-129,"C-WJD1","Open","Judicial Ditch No. 1","Br. 1",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,7845.18735745
-130,"C-WJD1","Open","Judicial Ditch No. 1","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,7643.64197373
-131,"WCD4","Open","Wilkin Co. Ditch No. 4A","Lat. A",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,15558.8436661
-132,"CCD41","Open","Clay Co. Ditch No. 41","Main",-9998,-9998,"Not Applicable","Ditch CL from CAD ROW Work","Unknown",-9999,"Unknown","Unknown",,"Unknown",-9999,-9999,"Unknown",-9999,-9999,,17777.2521024
+cat,lcat,along,x,y
+1,1,0,214068.2833,5195067.5848
+2,1,1579.55331408192,212771.963,5195519.9714
+3,2,0,235624.2037,5213322.9157
+4,2,22084.8991405171,215207.5108,5215892.7807
+5,3,0,224260.2108,5193246.565
+6,3,10301.403345434,234309.0609,5192545.1955
+7,4,0,251912.263,5201949.3563
+8,4,3662.50370392505,250325.2767,5200001.3592
+9,5,0,231561.3573,5180589.24
+10,5,5239.03635119847,235562.6064,5181208.3572
+11,6,0,210968.1306,5212830.2126
+12,6,2131.31045302937,213095.5212,5212747.5032
+13,7,0,211764.5807,5185401.9348
+14,7,4991.73324434362,216748.6859,5185260.3868
+15,8,0,219111.6121,5208174.2514
+16,8,10135.4160009715,220229.2509,5199615.9633
+17,9,0,211959.4972,5179012.138
+18,9,4782.12534695718,216736.4287,5178813.352
+19,10,0,216570.9156,5219061.7016
+20,10,851.209879717778,215731.1161,5219174.5921
+21,10,0,219804.8852,5218910.6658
+22,10,317.873050383737,219487.3216,5218924.6885
+23,10,0,217336.8917,5219024.5413
+24,10,606.070622645623,216731.6216,5219055.6092
+25,10,0,221357.8241,5218848.0274
+26,10,617.379287215602,220741.0516,5218875.373
+27,10,0,221388.261,5218848.3682
+28,10,1570.01966432528,222956.8153,5218780.5934
+29,10,0,223778.7177,5218742.1657
+30,10,787.359785693716,224565.3259,5218707.7898
+31,10,0,224588.611,5218706.7621
+32,10,507.125552853724,225095.1008,5218681.4023
+33,10,0,227430.2383,5218571.2618
+34,10,305.954219136747,227735.6732,5218553.4431
+35,10,0,216731.6216,5219055.6092
+36,10,160.821440653386,216570.9156,5219061.7016
+37,10,0,217336.8917,5219024.5413
+38,10,2152.75234590813,219487.3216,5218924.6885
+39,10,0,219804.8852,5218910.6658
+40,10,936.831420384639,220741.0516,5218875.373
+41,10,0,221357.8241,5218848.0274
+42,10,30.4388078980698,221388.261,5218848.3682
+43,10,0,222956.8153,5218780.5934
+44,10,822.800245049231,223778.7177,5218742.1657
+45,10,0,224565.3259,5218707.7898
+46,10,23.3077680033508,224588.611,5218706.7621
+47,10,0,225095.1008,5218681.4023
+48,10,2337.74274024895,227430.2383,5218571.2618
+49,10,0,225390.2259,5218678.6799
+50,10,1.82974575856127,225392.0536,5218678.5934
+51,10,0,225391.0965,5218677.7228
+52,10,1.82964114558652,225391.1829,5218679.5504
+53,10,0,215731.1161,5219174.5921
+54,10,121.709858514451,215621.9812,5219218.5691
+55,11,0,218965.8056,5174687.7148
+56,11,785.566310073165,218942.7955,5173902.4927
+57,11,0,214082.277,5175669.2263
+58,11,5703.20939248819,218965.8056,5174687.7148
+59,12,0,223828.6045,5189805.761
+60,12,7.31303201475334,223832.4591,5189799.5463
+61,12,0,229315.938,5187975.5232
+62,12,4330.16787700699,232183.6928,5186206.8873
+63,12,0,229315.938,5187975.5232
+64,12,6501.64145795087,223832.4591,5189799.5463
+65,13,0,231385.0752,5211894.2473
+66,13,13862.4078631919,217551.2701,5212470.8243
+67,14,0,213815.8868,5177148.9455
+68,14,3055.94213276688,216657.2727,5177205.0492
+69,15,0,231414.2124,5200743.3818
+70,15,4557.57811996709,227568.0694,5199926.8319
+71,16,0,224741.0682,5200064.0334
+72,16,5852.59712053013,227600.0386,5196110.175
+73,17,0,223833.9879,5191415.5667
+74,17,1157.9884268949,224991.0219,5191370.8795
+75,17,0,224991.0219,5191370.8795
+76,17,3666.71944259262,228654.6992,5191226.0586
+77,18,0,240364.6703,5159576.0912
+78,18,7102.89533096077,234993.8221,5161858.9143
+79,19,0,239231.4677,5164932.0479
+80,19,1612.59152350062,237622.8092,5164979.7154
+81,19,0,237611.4111,5164980.7583
+82,19,410.302617882974,237201.3522,5164994.8982
+83,19,0,239239.3363,5164932.008
+84,19,702.230614177229,239939.1081,5164911.3059
+85,19,0,240109.6169,5165003.2134
+86,19,121.875502792039,240159.4088,5164904.0231
+87,19,0,240159.4088,5164904.0231
+88,19,2024.7188936591,242180.9567,5164824.929
+89,19,0,242180.8773,5164824.9325
+90,19,592.229677405244,242772.4476,5164796.9938
+91,19,0,242772.4476,5164796.9938
+92,19,293.328051573404,243065.4746,5164783.7076
+93,19,0,235991.8313,5164926.5626
+94,19,1275.0601220629,237201.3522,5164994.8982
+95,19,0,239939.1081,5164911.3059
+96,19,231.468980394119,240109.6169,5165003.2134
+97,20,0,215313.2854,5197945.2672
+98,20,7600.24713700665,218379.0692,5191656.1692
+99,21,0,215576.788,5214214.5824
+100,21,7225.20060871914,222792.773,5213867.9793
+101,22,0,215293.3164,5198613.2001
+102,22,3635.11728785482,218557.6307,5198086.3936
+103,23,0,234496.2162,5196825.1874
+104,23,3469.3945387958,234352.0875,5193362.4964
+105,24,0,228399.3308,5172661.0405
+106,24,3445.15258695305,231839.7202,5172495.5232
+107,25,0,213710.1556,5204715.6302
+108,25,1121.2909206992,214829.1889,5204648.3235
+109,26,0,210410.8699,5190295.1483
+110,26,10964.8406993613,221352.678,5189891.0619
+111,27,0,236590.3975,5139200.9998
+112,27,4546.82389305088,241119.1017,5139003.1458
+113,28,0,223925.6394,5143111.2199
+114,28,11622.1767475609,233425.7215,5141732.311
+115,29,0,218203.0493,5159391.771
+116,29,3635.14521830846,221833.9718,5159221.3245
+117,30,0,244987.4555,5123069.8775
+118,30,3683.67557764179,245085.2295,5126733.9824
+119,30,0,243495.8025,5127205.5871
+120,30,4377.8677876893,243648.8732,5123130.5824
+121,31,0,231720.8473,5139428.7709
+122,31,4312.22601521512,227413.7932,5139623.4941
+123,32,0,238561.2916,5131016.6919
+124,32,10549.343697762,228023.6236,5131504.2438
+125,33,0,231589.0598,5134593.5164
+126,33,6382.63745048734,237963.0731,5134272.4615
+127,34,0,229879.8931,5133035.0064
+128,34,8049.44801873749,237912.3431,5132661.4209
+129,35,0,238978.9156,5127794.8309
+130,35,7674.83672038783,246645.5446,5127448.6017
+131,36,0,235223.781,5166290.4729
+132,36,4581.26833763708,230944.4579,5166085.7098
+133,37,0,235249.5367,5166279.7497
+134,37,1867.46688579009,234720.2622,5164488.9649
+135,38,0,239293.4367,5167970.2613
+136,38,2968.70936653857,237472.9315,5166596.3906
+137,39,0,243132.4255,5166393.9986
+138,39,6869.19463553472,236292.5931,5166650.4234
+139,40,0,242171.7103,5168038.7821
+140,40,1614.0616986238,240559.3163,5168111.8153
+141,41,0,234993.4968,5161871.9453
+142,41,8026.45459783893,243013.636,5161566.9449
+143,42,0,214321.1748,5199811.6051
+144,42,5923.3241287502,220238.4112,5199577.3877
+145,42,0,220113.4685,5197596.1364
+146,42,2731.266028941,220967.4243,5199566.0604
+147,43,0,215310.4537,5198010.9102
+148,43,2496.73285611098,217801.8187,5197899.2844
+149,44,0,214503.8453,5210254.2733
+150,44,978.51318987154,214618.5072,5211169.6817
+151,45,0,64102.2555999998,5148911.4011
+152,45,2133.30475860774,66231.8679999998,5148829.5237
+153,45,0,214658.1793,5211062.9817
+154,45,4223.77769340599,214634.981,5215111.8259
+155,46,0,219562.3655,5169048.0501
+156,46,1616.19003626031,219480.2282,5167433.9703
+157,47,0,219561.8572,5169038.0603
+158,47,2053.45680189603,221613.4802,5168953.7498
+159,48,0,246607.0793,5140399.7834
+160,48,18751.736421385,248725.2115,5122841.6143
+161,49,0,248004.2957,5130611.0191
+162,49,2522.10257616257,250218.3219,5130976.4359
+163,50,0,247517.092,5135490.6422
+164,50,1967.91228664798,249481.5761,5135413.78
+165,51,0,226585.4848,5137465.5517
+166,51,2313.40489436928,227409.9896,5139623.2928
+167,52,0,226803.7471,5138034.7875
+168,52,9348.24341087936,235267.2203,5138758.9333
+169,53,0,230939.8379,5130546.3743
+170,53,2680.77715916379,230821.2786,5127870.2286
+171,54,0,217469.7036,5162686.5414
+172,54,9805.92885097637,223596.9967,5157537.2617
+173,55,0,227696.6583,5158958.687
+174,55,4722.16688443567,222979.3694,5159171.2764
+175,56,0,222011.2163,5161160.866
+176,56,4507.13325870599,226175.5845,5161465.5443
+177,57,0,222167.1606,5160832.2022
+178,57,2353.90821338842,224518.7827,5160728.616
+179,58,0,234130.0261,5129572.2187
+180,58,1782.32922670015,235893.0446,5129569.7557
+181,59,0,229992.2343,5155938.0062
+182,59,13.3504986066503,229981.8548,5155946.0875
+183,59,0,227371.7661,5163521.8754
+184,59,11.4648100061867,227360.4359,5163521.4842
+185,59,0,227082.2084,5170276.5456
+186,59,6925.77921640812,226282.1779,5163900.2068
+187,60,0,234114.7959,5158665.3432
+188,60,8072.71901170669,242148.0929,5158396.159
+189,61,0,235739.37,5158590.8278
+190,61,9098.64896482321,243367.2234,5156714.6719
+191,62,0,236293.0567,5202073.032
+192,62,12098.035119863,224213.9285,5202626.2218
+193,63,0,233103.7145,5202242.3731
+194,63,2196.8713798748,234468.2138,5200585.1974
+195,63,0,234485.355,5200551.3612
+196,63,175.206570020302,234621.1593,5200440.661
+197,64,0,209864.5586,5219362.1934
+198,64,2360.3321688553,212221.0592,5219238.7821
+199,65,0,234635.9039,5210168.0955
+200,65,819.261596477952,235453.9166,5210148.9314
+201,66,0,224648.0574,5184921.2238
+202,66,6770.40534833347,230717.4459,5183863.3123
+203,66,0,230717.4459,5183863.3123
+204,66,1616.96655119219,232330.3179,5183800.4515
+205,67,0,228307.3602,5184782.6236
+206,67,2046.89101353371,229044.031,5183165.8394
+207,68,0,234879.6771,5206148.9798
+208,68,792.219493564781,234942.482,5206938.6647
+209,68,0,234942.4821,5206938.6698
+210,68,29.1631208809037,234942.9132,5206967.0148
+211,68,0,234942.9132,5206967.0098
+212,68,39.886746411291,234903.2831,5206969.9942
+213,68,0,234903.2831,5206969.9942
+214,68,307.012861175882,234596.8404,5206988.6963
+215,68,0,234596.8404,5206988.6963
+216,68,305.873891553107,234292.2166,5207015.4949
+217,68,0,234292.2166,5207015.4949
+218,68,2556.90109257611,231739.3074,5207156.1699
+219,68,0,231739.3074,5207156.1699
+220,68,355.457433252273,231383.931,5207163.6041
+221,68,0,231383.931,5207163.6041
+222,68,608.897614894973,230775.2645,5207180.3691
+223,68,0,230775.2645,5207180.3691
+224,68,978.887426767386,229798.0926,5207213.9763
+225,68,0,229798.0926,5207213.9763
+226,68,612.238207587993,229186.9201,5207248.1234
+227,68,0,229186.9201,5207248.1234
+228,68,646.447834139012,228543.2594,5207308.0757
+229,68,0,228543.2594,5207308.0757
+230,68,2164.89074389151,227036.2616,5208858.3943
+231,68,0,227036.2616,5208858.3943
+232,68,73.6840394076582,226962.6661,5208862.0054
+233,69,0,227036.4374,5208858.8153
+234,69,1574.57056933391,228609.4364,5208788.6593
+235,69,0,228609.4364,5208788.6593
+236,69,3192.85428000914,231799.0604,5208647.5466
+237,69,0,231799.0604,5208647.5466
+238,69,1966.69969187675,233763.1737,5208572.6836
+239,69,0,233763.1737,5208572.6836
+240,69,425.658284739966,234188.2858,5208558.6456
+241,69,0,226962.6661,5208862.0054
+242,69,1549.40663684273,225414.8697,5208932.5667
+243,69,0,225391.0214,5208933.8163
+244,69,1565.22871858638,223827.2788,5209001.9797
+245,69,0,223827.2788,5209001.9797
+246,69,1224.99107987111,222603.5408,5209057.3484
+247,69,0,222563.9881,5209058.9357
+248,69,2416.21407961012,220150.3449,5209169.9107
+249,69,0,220150.3449,5209169.9107
+250,69,821.490369926856,219335.6016,5209208.9814
+251,69,0,222603.5408,5209057.3484
+252,69,39.5845373670977,222563.9881,5209058.9357
+253,69,0,225414.8697,5208932.5667
+254,69,23.8810157454358,225391.0214,5208933.8163
+255,70,0,266086.391,5204654.3137
+256,70,830.833480578681,266468.5461,5204190.3281
+257,70,0,266513.5378,5204066.1949
+258,70,7001.93199244563,268458.6588,5199128.0899
+259,70,0,266468.5461,5204190.3281
+260,70,215.251125418285,266516.4249,5204124.9459
+261,71,0,229404.4093,5189588.9555
+262,71,1594.02948656908,229315.954,5187997.3922
+263,72,0,227803.6573,5189651.5019
+264,72,1372.44838320102,226433.0936,5189704.967
+265,72,0,226433.0936,5189704.967
+266,72,237.395676459745,226195.7928,5189711.678
+267,72,0,226195.7928,5189711.678
+268,72,1609.79594214419,224587.7141,5189766.609
+269,72,0,234173.9675,5189327.9471
+270,72,1591.06150449742,232585.1494,5189412.0783
+271,72,0,232585.1494,5189412.0783
+272,72,1614.65784224264,230973.0288,5189500.5464
+273,72,0,230973.0288,5189500.5464
+274,72,1570.3857519517,229405.6911,5189589.398
+275,72,0,229405.6911,5189589.398
+276,72,1603.25651069835,227803.6573,5189651.5019
+277,72,0,223641.1139,5189972.0849
+278,72,318.312884727887,223834.6703,5189798.479
+279,72,0,224587.8313,5189766.5637
+280,72,764.36395916435,223834.6703,5189798.479
+281,73,0,234643.3778,5210166.3436
+282,73,1713.65013347645,234763.4998,5208551.853
+283,74,0,219496.0099,5210808.2728
+284,74,423.487907968546,219436.9328,5210478.4806
+285,74,0,219496.0099,5210808.2728
+286,74,15193.9622161488,234635.9039,5210168.0955
+287,75,0,217390.1182,5165906.7015
+288,75,4092.1211574424,221475.3224,5165724.826
+289,76,0,219948.9326,5165783.6968
+290,76,1439.82946214129,219881.6752,5164345.465
+291,77,0,221645.8956,5148023.5328
+292,77,25447.8660729882,242982.3773,5154081.2742
+293,78,0,242078.8783,5148676.6063
+294,78,3250.44115367537,243110.5476,5150252.8377
+295,79,0,243232.1261,5150195.9461
+296,79,4025.91378875195,243079.2264,5146178.4791
+297,80,0,222980.034,5135046.3398
+298,80,8610.06462101849,231493.4647,5134576.6573
+299,81,0,226726.5068,5134779.9669
+300,81,1464.48814406921,226782.3794,5136243.3663
+301,82,0,214333.7803,5153286.4685
+302,82,6221.23314623281,219025.6908,5154533.2591
+303,83,0,273802.8824,5201508.0287
+304,83,1804.6586022418,275249.2932,5202109.0482
+305,84,0,274401,5197264.6322
+306,84,5287.50106836453,275661.0471,5193448.4536
+307,85,0,273277.2838,5208748.795
+308,85,379.91138316622,273656.1964,5208753.8249
+309,86,0,273280.2162,5208794.3283
+310,86,684.617654115992,272596.8621,5208835.0419
+311,87,0,272865.29,5205443.3105
+312,87,1562.47548966065,273704.69,5206168.6852
+313,88,0,295905.3076,5202872.8211
+314,88,1411.47655114332,295898.3232,5203914.9609
+315,89,0,291723.4715,5201236.8803
+316,89,4948.53476102757,292045.1296,5204639.1447
+317,90,0,289487.9186,5204833.0328
+318,90,414.487590255661,289595.0669,5204478.8339
+319,90,0,289778.0151,5202427.8916
+320,90,60.3937520098186,289816.715,5202474.2567
+321,91,0,297044.4761,5197332.8258
+322,91,258.479821659616,297095.7218,5197097.3276
+323,92,0,273983.2191,5216506.8542
+324,92,2792.13056520937,272680.7727,5214293.9852
+325,92,0,272680.7727,5214293.9852
+326,92,1530.88781709096,272981.073,5213234.139
+327,93,0,273151.18,5214198.6303
+328,93,1047.93942379096,273921.8159,5214587.384
+329,94,0,272705.855,5214958.1922
+330,94,2025.77590810067,270703.8945,5215146.0928
+331,95,0,271700.7356,5193702.1803
+332,95,8994.15352764314,276361.2391,5187943.2802
+333,96,0,274798.5935,5189229.2953
+334,96,542.121307611655,274455.8915,5188857.095
+335,97,0,270063.8727,5190926.1958
+336,97,1925.09775288958,271415.0168,5190669.9388
+337,97,0,272913.5524,5192267.3192
+338,97,2275.84837992757,271967.4409,5190758.127
+339,98,0,273659.0457,5191793.0241
+340,98,2089.03555269256,273868.3112,5193338.5739
+341,99,0,243680.3902,5138081.0748
+342,99,23091.2465825926,222927.3794,5136552.0844
+343,100,0,241075.7838,5135781.464
+344,100,3283.26195928419,241183.6968,5139062.5152
+345,101,0,241183.6968,5139062.5152
+346,101,1511.79369578891,241231.5048,5140572.1331
+347,102,0,237918.9267,5132660.232
+348,102,3047.28599771822,240963.0374,5132533.4569
+349,103,0,240903.5069,5130931.525
+350,103,6409.10942708155,242682.5322,5135691.2465
+351,104,0,233683.7962,5147608.0241
+352,104,5993.27230877031,230966.466,5144287.2987
+353,105,0,222271.5724,5144733.8469
+354,105,12411.1348996176,231219.6883,5147458.6152
+355,106,0,273343.6413,5201878.335
+356,106,3352.37692590485,272674.9353,5199668.5465
+357,106,0,273126.617,5201253.1824
+358,106,689.797065751768,273586.6919,5200739.2261
+359,107,0,211239.2034,5182058.1524
+360,107,8082.63996550704,219270.3259,5181954.3941
+361,108,0,213382.3927,5180520.5943
+362,108,2679.09529386635,211190.9205,5181319.7739
+363,108,0,217608.7371,5180396.814
+364,108,4228.80425360279,213381.87,5180520.7515
+365,109,0,221117.8969,5186710.919
+366,109,9948.69083521595,211182.0917,5187088.2325
+367,110,0,210264.8701,5216071.0327
+368,110,1335.10946477096,211599.7929,5216049.2333
+369,110,0,211599.7929,5216049.2333
+370,110,1548.2708259835,213146.88,5215989.3308
+371,110,0,213146.88,5215989.3308
+372,110,301.109892713538,213447.23,5215968.9341
+373,110,0,210264.8701,5216071.0327
+374,110,98.403197574096,210169.8299,5216086.1717
+375,111,0,222962.8094,5133369.1786
+376,111,6801.34082529339,229748.9053,5133031.8215
+377,112,0,210233.0163,5217696.3396
+378,112,2451.03168120521,212682.866,5217621.7356
+379,112,0,210121.5835,5217854.4351
+380,112,144.452992082788,210007.205,5217826.2885
+381,112,0,210121.5835,5217854.4351
+382,112,246.313881730206,210233.0163,5217696.3396
+383,113,0,235615.7008,5205361.4827
+384,113,13976.7151953527,222139.4136,5206716.3394
+385,114,0,289563.3332,5204651.1009
+386,114,900.289470491248,290314.3861,5204578.8869
+387,114,0,292619.7601,5207996.6912
+388,114,2289.76769817111,292078.6916,5206088.0408
+389,114,0,293444.1393,5209094.8238
+390,114,986.443196759542,292990.3074,5208423.1566
+391,115,0,295617.2021,5199829.0886
+392,115,8043.5307977551,291008.88,5201681.1204
+393,116,0,270634.3462,5205415.1322
+394,116,1199.99733263888,270416.8994,5204344.6814
+395,117,0,269675.9855,5203807.0043
+396,117,8136.3573393624,271187.7962,5197449.0706
+397,118,0,274399.2878,5197265.5543
+398,118,3136.37959056133,274948.1667,5195409.8011
+399,118,0,272857.8869,5204946.4805
+400,118,9815.82225520713,274399.2878,5197265.5543
+401,119,0,272852.2866,5204946.3093
+402,119,4284.02846842273,273283.7521,5208988.5099
+403,119,0,267005.9967,5204939.0897
+404,119,8670.32710275863,272841.5984,5204945.7532
+405,120,0,228063.7685,5175319.2249
+406,120,44.4392223033168,228073.652,5175276.5756
+407,120,0,228008.1098,5176099.2254
+408,120,45.3977253019357,228045.1029,5176124.7631
+409,120,0,224740.6001,5176937.6039
+410,120,5092.66838836267,227023.2475,5174222.7611
+411,120,0,223733.1165,5177067.0387
+412,120,20638.1575847792,236069.642,5173143.4701
+413,121,0,230690.168,5153995.2125
+414,121,15900.5773627706,226313.1062,5164703.305
+415,121,0,229885.8059,5154038.2303
+416,121,15093.0338099297,226313.1062,5164703.305
+417,121,0,226313.1062,5164703.305
+418,121,30197.1757316594,226313.1062,5164703.305
+419,122,0,223922.5425,5143117.3062
+420,122,10901.6651289893,233503.1001,5143732.11
+421,123,0,232147.8243,5127380.2044
+422,123,5850.33409361316,234187.9754,5131085.9418
+423,124,0,228009.5118,5131504.4138
+424,124,23366.9869660701,243080.3241,5146191.8155
+425,124,0,242972.4365,5142171.2288
+426,124,1517.68893870167,244488.475,5142112.0271
+427,125,0,228009.5118,5131504.4138
+428,125,3648.50050040754,225411.1002,5130674.2408
+429,126,0,231356.9973,5180134.7062
+430,126,8182.87662231884,237284.0456,5176322.9529
+431,127,0,209945.6769,5214853.0584
+432,127,13894.8656358881,211672.4133,5209585.5068
+433,128,0,211510.3919,5185902.2499
+434,128,10205.6322378628,219410.2045,5183559.0663
+435,129,0,219436.7925,5173048.2599
+436,129,4137.02808239252,219562.375,5169048.2616
+437,129,0,219592.0466,5169035.2888
+438,129,3708.15927505703,220693.1557,5166204.5403
+439,130,0,214505.0797,5173293.9156
+440,130,7643.6419737315,222139.9439,5172932.3731
+441,131,0,246803.2505,5129061.83
+442,131,15558.8436661172,234157.2445,5125670.8975
+443,132,0,219783.4501,5189993.7839
+444,132,17777.2521023915,213406.3633,5202223.2775
