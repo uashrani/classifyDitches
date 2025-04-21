@@ -3,8 +3,7 @@ import grass.grassdb.data as gdb
 import pandas as pd
 
 vecLines1='drainage_centerlines'   # name of ditch layer in Grass, already imported
-vecLines='ditch_lines_broken'
-vecPoints1='ditch_nodes_old'            # name of start/end points, will be created from line data
+vecLines='ditch_lines_renamed'
 vecPoints='ditch_nodes'
 
 combTable='ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
@@ -12,29 +11,21 @@ combTable='ditchCombinations'     # distances between points and lines, can find
 # Names of files exported from Grass
 combFile='ditchCombinations.txt'        # has distances from points to lines
 ptFile='ditchNodes.txt'                 # has point attributes like elevation and xy coords
-ptFileTemp='ditchNodesTemp.txt'
 
 # External link to data
 dem='mnDEM'
 
-# Extract start and end points from ditch lines
-gs.run_command('v.to.points', input=vecLines1, output=vecPoints1, use='node', overwrite=True)
-# Get xy coordinates of the points
-gs.run_command('v.to.db', map=vecPoints1, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
-# Export attribute table of these points
-gs.run_command('v.db.select', map=vecPoints1, layer=2, format='csv', file=ptFileTemp, overwrite=True)
+### Lines were split at points when imported, but their category number didn't change (only feature ID did)
+### Create new attribute table so every segment has unique category number
 
-breakPoints = pd.read_csv(ptFileTemp)
+# Delete old category numbers and assign new category number to each segment
+gs.run_command('v.category', input=vecLines1, output=vecLines, option='del', cat=-1, overwrite=True)
+gs.run_command('v.category', input=vecLines, output=vecLines, option='add', overwrite=True)
 
-if not gdb.map_exists(vecLines, 'vector'):
-    gs.run_command('g.copy', vector=[vecLines1, vecLines])
-    # Split up the lines at these points. Some have multiple intermediate points
-    for i in range(len(breakPoints)):
-        breakPt = breakPoints.iloc[i]
-        x,y = breakPt['x'], breakPt['y']
-        gs.run_command('v.edit', map=vecLines, tool='break', coords=[x, y], threshold=1)
-
-gs.run_command('v.to.points', input=vecLines, output=vecPoints, use='node')
+# Disconnect from old attribute table and create new one
+gs.run_command('db.droptable', flags='f', table=vecLines)
+gs.run_command('v.db.connect', flags='d', map=vecLines, layer=1)
+gs.run_command('v.db.addtable', map=vecLines)
  
 ### In addition to start and end points, we also want to know intersections with other ditches
  
