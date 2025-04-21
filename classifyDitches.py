@@ -3,12 +3,13 @@ import grass.grassdb.data as gdb
 import pandas as pd
 
 vecLines1='drainage_centerlines'   # name of ditch layer in Grass, already imported
+vecLines2='ditch_lines_nameless'
 vecLines='ditch_lines_renamed'
 vecPoints='ditch_nodes'
 
 combTable='ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
 
-# Names of files exported from Grass
+# Names of files to export from Grass
 combFile='ditchCombinations.txt'        # has distances from points to lines
 ptFile='ditchNodes.txt'                 # has point attributes like elevation and xy coords
 
@@ -19,8 +20,8 @@ dem='mnDEM'
 ### Create new attribute table so every segment has unique category number
 
 # Delete old category numbers and assign new category number to each segment
-gs.run_command('v.category', input=vecLines1, output=vecLines, option='del', cat=-1, overwrite=True)
-gs.run_command('v.category', input=vecLines, output=vecLines, option='add', overwrite=True)
+gs.run_command('v.category', input=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
+gs.run_command('v.category', input=vecLines2, output=vecLines, option='add', overwrite=True)
 
 # Disconnect from old attribute table and create new one
 gs.run_command('db.droptable', flags='f', table=vecLines)
