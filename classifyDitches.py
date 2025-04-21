@@ -27,6 +27,11 @@ gs.run_command('v.category', input=vecLines2, output=vecLines, option='add', ove
 gs.run_command('db.droptable', flags='f', table=vecLines)
 gs.run_command('v.db.connect', flags='d', map=vecLines, layer=1)
 gs.run_command('v.db.addtable', map=vecLines)
+
+### Extract start and end point numbers, their xy coordinates, and their elevations
+gs.run_command('v.to.points', input=vecLines, output=vecPoints, use='node', overwrite=True)
+gs.run_command('v.to.db', map=vecPoints, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
+gs.run_command('v.what.rast', map=vecPoints, layer=2, raster=dem, column=['elev'])
  
 ### In addition to start and end points, we also want to know intersections with other ditches
  
