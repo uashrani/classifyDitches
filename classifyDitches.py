@@ -5,7 +5,9 @@ import numpy as np
 
 vecLines1='drainage_centerlines'   # name of ditch layer in Grass, already imported
 vecLines2='ditch_lines_nameless'
-vecLines='ditch_lines_renamed'
+vecLines3='ditch_lines_renamed'
+vecLines='ditch_lines_final'
+vecPoints1='ditch_nodes_old'  
 vecPoints='ditch_nodes'
 
 combTable='ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
@@ -13,21 +15,46 @@ combTable='ditchCombinations'     # distances between points and lines, can find
 # Names of files to export from Grass
 combFile='ditchCombinations.txt'        # has distances from points to lines
 ptFile='ditchNodes.txt'                 # has point attributes like elevation and xy coords
+ptFileTemp='ditchNodesTemp.txt'
 
 # External link to data
 dem='mnDEM'
 
-### Lines were split at points when imported, but their category number didn't change (only feature ID did)
+if not gdb.map_exists(vecLines1 + '_backup', 'vector'):
+    gs.run_command('g.copy', vector=[vecLines1, vecLines1 + '_backup'])
+
+    gs.run_command('v.to.points', input=vecLines1, output=vecPoints1, use='node', overwrite=True)
+    gs.run_command('v.to.db', map=vecPoints1, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
+    # Export attribute table of these points
+    gs.run_command('v.db.select', map=vecPoints1, layer=2, format='csv', file=ptFileTemp, overwrite=True)
+    breakPoints = pd.read_csv(ptFileTemp)
+
+    # Split up the lines at these points. Some have multiple intermediate points
+    for i in range(len(breakPoints)):
+        breakPt = breakPoints.iloc[i]
+        x,y = breakPt['x'], breakPt['y']
+        gs.run_command('v.edit', map=vecLines1, tool='break', coords=[x, y], threshold=1)
+
+### When we split lines into segments, their category number didn't change (only feature ID did)
 ### Create new attribute table so every segment has unique category number
 
 # Delete old category numbers and assign new category number to each segment
 gs.run_command('v.category', input=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
-gs.run_command('v.category', input=vecLines2, output=vecLines, option='add', overwrite=True)
+gs.run_command('v.category', input=vecLines2, output=vecLines3, option='add', overwrite=True)
 
 # Disconnect from old attribute table and create new one
-gs.run_command('db.droptable', flags='f', table=vecLines)
-gs.run_command('v.db.connect', flags='d', map=vecLines, layer=1)
-gs.run_command('v.db.addtable', map=vecLines)
+gs.run_command('db.droptable', flags='f', table=vecLines3)
+gs.run_command('v.db.connect', flags='d', map=vecLines3, layer=1)
+gs.run_command('v.db.addtable', map=vecLines3)
+
+# But we still want to keep track of which ditch it originally came from in case we need county info etc.
+# gs.run_command('v.db.addcolumn', map=vecLines, columns=['ditch_orig int'])
+# for i in range(1, 672):        # fix this later
+#     orig_cat = gs.read_command('v.category', input=vecLines1, option='print', ids=i)
+#     gs.run_command('v.db.update', map=vecLines, column='ditch_orig', value=4, where='"cat='+str(i)+'"')
+
+gs.run_command('v.to.db', map=vecLines3, option='length', columns=['len'])
+gs.run_command('v.db.droprow', input=vecLines3, where="len=0", output=vecLines)
 
 ### Extract start and end point numbers, their xy coordinates, and their elevations
 gs.run_command('v.to.points', input=vecLines, output=vecPoints, use='node', overwrite=True)
@@ -66,9 +93,6 @@ for i in range(len(ditchNodes)):
     if thisEntry['elev'] < siblingEntry['elev']:
         ditchNodes.loc[i, 'ds'] = True
 
-# #fromLines = []
-# ditchCombs['junction']=False
-
 ### In ditch combinations csv, find associated line for each point
 ### and determine flow direction between ditches
 
@@ -96,32 +120,6 @@ for i in range(len(ditchCombs)):
             # Enter line numbers into columns
             ditchCombs.loc[i, 'fromLine'] = fromLine
             ditchCombs.loc[i, 'toLine'] = toLine
-        
-
-
-#     #fromLines += [fromLine]
-
-#     if fromLine != ditchCombs['toLine'].iloc[i]:
-#         ditchCombs.loc[i, 'junction'] = True
-
-#         ### Verify that junction is downstream end of ditch
-        
-#         # Get the points that lie along the same line
-#         siblingPts = ditchNodes[ditchNodes['lcat']==fromLine]
-#         minElev = min(siblingPts['elev'])
-#         if nodesEntry['elev'] > minElev:
-#             print(str(fromPt) + '\tJunction is not downstream end of incoming ditch')
-#         else:
-#             print(str(fromPt) + '\tMin elev of line ' + str(fromLine) + ' is ' + str(minElev))
-
-#     #nodesEntry['elev']
-
-# #ditchCombs['fromLine']=fromLines
-# #ditchCombs['junction']=(ditchCombs['fromLine']!=ditchCombs['toLine'])
-
-# ditchJuncs = ditchCombs[ditchCombs['junction']==True]
-
-# #print(ditchJuncs)
 
 ditchNodes.to_csv('final_' + ptFile, index=False, sep='\t', float_format='%.1f')
 ditchCombs.to_csv('final_' + combFile, index=False, sep='\t', float_format='%.3f')
