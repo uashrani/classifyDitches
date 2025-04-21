@@ -1,6 +1,7 @@
 import grass.script as gs
 import grass.grassdb.data as gdb
 import pandas as pd
+import numpy as np
 
 vecLines1='drainage_centerlines'   # name of ditch layer in Grass, already imported
 vecLines2='ditch_lines_nameless'
@@ -33,33 +34,71 @@ gs.run_command('v.to.points', input=vecLines, output=vecPoints, use='node', over
 gs.run_command('v.to.db', map=vecPoints, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
 gs.run_command('v.what.rast', map=vecPoints, layer=2, raster=dem, column=['elev'])
  
-### Find intersections with other ditches
+### Find distances to other ditches (doesn't necessarily mean flow is transferred, will process later)
+
+# Temporary: drop table because overwrite doesn't work
+gs.run_command('db.droptable', flags='f', table=combTable)
 
 # Get distances from nodes to all nearby lines, and save in table
 gs.run_command('v.distance', flags='a', from_=vecPoints, from_layer=2, to=vecPoints, to_layer=2, dmax=1, \
 upload=['dist', 'cat'], table=combTable, overwrite=True)
 # Export to csv
 gs.run_command('db.select', table=combTable, output=combFile, separator='comma', overwrite=True)
-#gs.run_command('v.distance', flags='a', _from=vecPoints, from_layer=2, to=vecLines, dmax=1, upload=['dist', 'cat'], table=combTable)
+gs.run_command('v.db.select', map=vecPoints, layer=2, format='csv', file=ptFile, overwrite=True)
 
-### -------------------------------------------
-# ditchCombs = pd.read_csv(combFile)
-# ditchNodes = pd.read_csv(ptFile)
+###---------- Process these csv's and find where flow is really being transferred
 
-# ditchCombs = ditchCombs.rename(columns={'from_cat': 'fromPt', 'cat': 'toLine'})
+ditchCombs = pd.read_csv(combFile)
+ditchNodes = pd.read_csv(ptFile)
 
-# print(ditchNodes)
+ditchCombs = ditchCombs.rename(columns={'from_cat': 'fromPt', 'cat': 'toPt'})
+
+### First look at the nodes csv, and label each as upstream or downstream
+
+ditchNodes['ds']=False
+for i in range(len(ditchNodes)):
+    thisEntry=ditchNodes.iloc[i]
+    thisPt=thisEntry['cat']
+    thisLine=thisEntry['lcat']
+    siblingEntry=ditchNodes[(ditchNodes['lcat']==thisLine) & \
+        (ditchNodes['cat'] != thisPt)].iloc[0]
+
+    if thisEntry['elev'] < siblingEntry['elev']:
+        ditchNodes.loc[i, 'ds'] = True
 
 # #fromLines = []
 # ditchCombs['junction']=False
 
-# for i in range(len(ditchCombs)):
-#     fromPt = ditchCombs['fromPt'].iloc[i]
+### In ditch combinations csv, find associated line for each point
+### and determine flow direction between ditches
 
-#     # Find the corresponding entry in ditchNodes with that point number
-#     nodesEntry = ditchNodes[ditchNodes['cat']==fromPt].iloc[0]
+ditchCombs['fromLine']=np.nan
+ditchCombs['toLine']=np.nan
 
-#     fromLine = nodesEntry['lcat']
+for i in range(len(ditchCombs)):
+    entry = ditchCombs.iloc[i]
+    fromPt, toPt = entry['fromPt'], entry['toPt']
+
+    # v.distance identified a duplicate for each point (e.g. pt 1 intersects pt 1),
+    # so skip these as they are not real junctions
+    if fromPt != toPt:
+        # Find the corresponding lines with those point numbers
+        fromEntry_nodes = ditchNodes[ditchNodes['cat']==fromPt].iloc[0]
+
+        toEntry_nodes = ditchNodes[ditchNodes['cat']==toPt].iloc[0]
+
+        # Flow transfer happens when the downstream node of the giving segment
+        # intersects the upstream node of the receiving segment
+        if (fromEntry_nodes['ds']==True) and (toEntry_nodes['ds']==False):
+            # This is a real junction, so get info about the line numbers
+            fromLine, toLine = fromEntry_nodes['lcat'], toEntry_nodes['lcat']
+
+            # Enter line numbers into columns
+            ditchCombs.loc[i, 'fromLine'] = fromLine
+            ditchCombs.loc[i, 'toLine'] = toLine
+        
+
+
 #     #fromLines += [fromLine]
 
 #     if fromLine != ditchCombs['toLine'].iloc[i]:
@@ -84,6 +123,5 @@ gs.run_command('db.select', table=combTable, output=combFile, separator='comma',
 
 # #print(ditchJuncs)
 
-
-
-
+ditchNodes.to_csv('final_' + ptFile, index=False, sep='\t', float_format='%.1f')
+ditchCombs.to_csv('final_' + combFile, index=False, sep='\t', float_format='%.3f')
