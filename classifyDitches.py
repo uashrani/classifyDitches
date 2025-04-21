@@ -33,9 +33,13 @@ gs.run_command('v.to.points', input=vecLines, output=vecPoints, use='node', over
 gs.run_command('v.to.db', map=vecPoints, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
 gs.run_command('v.what.rast', map=vecPoints, layer=2, raster=dem, column=['elev'])
  
-### In addition to start and end points, we also want to know intersections with other ditches
- 
+### Find intersections with other ditches
+
 # Get distances from nodes to all nearby lines, and save in table
+gs.run_command('v.distance', flags='a', from_=vecPoints, from_layer=2, to=vecPoints, to_layer=2, dmax=1, \
+upload=['dist', 'cat'], table=combTable, overwrite=True)
+# Export to csv
+gs.run_command('db.select', table=combTable, output=combFile, separator='comma', overwrite=True)
 #gs.run_command('v.distance', flags='a', _from=vecPoints, from_layer=2, to=vecLines, dmax=1, upload=['dist', 'cat'], table=combTable)
 
 ### -------------------------------------------
