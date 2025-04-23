@@ -3,7 +3,8 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import numpy as np
 
-vecLines1='drainage_centerlines'   # name of ditch layer in Grass, already imported
+vecLines0='drainage_centerlines'
+vecLines1='drainage_centerlines_modifiable'   # name of ditch layer in Grass, already imported
 vecLines2='ditch_lines_nameless'
 vecLines3='ditch_lines_renamed'
 vecLines='ditch_lines_final'
@@ -11,29 +12,71 @@ vecPoints1='ditch_nodes_old'
 vecPoints='ditch_nodes'
 
 combTable='ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
+intersectTable='ditchIntersections'
 
 # Names of files to export from Grass
 combFile='ditchCombinations.txt'        # has distances from points to lines
 ptFile='ditchNodes.txt'                 # has point attributes like elevation and xy coords
+
 ptFileTemp='ditchNodesTemp.txt'
+intersectFileTemp='ditchIntersections.txt'
 
 # External link to data
 dem='mnDEM'
+### Function definitions----------------------------------------------------------------------------------
 
-if not gdb.map_exists(vecLines1 + '_backup', 'vector'):
-    gs.run_command('g.copy', vector=[vecLines1, vecLines1 + '_backup'])
+def split_nodesIntersects(ptFile, intersectFile, linesLayer):
+    """ Takes two csv's, one containing nodes and one containing line intersections.
+    Creates a set with the xy coordinates along which to break the line vectors. 
+    Breaks lines along these xy coordinates. """
 
+    pts = pd.read_csv(ptFile)
+    intersects = pd.read_csv(intersectFile)
+    intersects.rename(columns={'to_x': 'x', 'to_y': 'y'}, inplace=True)
+
+    ptsXY=pts[['x', 'y']]
+    intersectsXY=intersects[['x', 'y']]
+    breakDf = pd.concat((ptsXY, intersectsXY))
+
+    for col in ['x', 'y']:
+        breakDf[col] = breakDf[col].round(2)
+
+    breakDf['tuple'] = '(' + breakDf['x'].astype('str') + ',' + breakDf['y'].astype('str') + ')'
+
+    tupleSet = set(breakDf['tuple'])
+
+    for elt in tupleSet:
+        elt = elt.strip('()')
+        x, y = tuple(map(float,elt.split(',')))
+
+        gs.run_command('v.edit', map=linesLayer, tool='break', coords=[x,y], threshold=1)
+
+### ------------------------------------------------------------------------------------------------------
+# Temporary: drop table because overwrite doesn't work
+gs.run_command('db.droptable', flags='f', table=intersectTable)
+
+if not gdb.map_exists(vecLines1, 'vector'):
+    gs.run_command('g.copy', vector=[vecLines0, vecLines1])
+
+    # Get list of all nodes and their xy coordinates, will split lines at these points
     gs.run_command('v.to.points', input=vecLines1, output=vecPoints1, use='node', overwrite=True)
     gs.run_command('v.to.db', map=vecPoints1, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
     # Export attribute table of these points
     gs.run_command('v.db.select', map=vecPoints1, layer=2, format='csv', file=ptFileTemp, overwrite=True)
     breakPoints = pd.read_csv(ptFileTemp)
 
+    # Also get intersections between lines, since there is not always a node at the intersection
+    gs.run_command('v.distance', flags='a', from_=vecLines1, to=vecLines1, dmax=1, \
+        upload=['to_x', 'to_y', 'cat'], table=intersectTable, overwrite=True)
+    gs.run_command('db.select', table=intersectTable, separator='comma', output=intersectFileTemp, overwrite=True)
+
+    split_nodesIntersects(ptFileTemp, intersectFileTemp, vecLines1)
+
     # Split up the lines at these points. Some have multiple intermediate points
-    for i in range(len(breakPoints)):
-        breakPt = breakPoints.iloc[i]
-        x,y = breakPt['x'], breakPt['y']
-        gs.run_command('v.edit', map=vecLines1, tool='break', coords=[x, y], threshold=1)
+    # for i in range(len(breakPoints)):
+    #     breakPt = breakPoints.iloc[i]
+    #     x,y = breakPt['x'], breakPt['y']
+    #     gs.run_command('v.edit', map=vecLines1, tool='break', coords=[x, y], threshold=1)
 
 ### When we split lines into segments, their category number didn't change (only feature ID did)
 ### Create new attribute table so every segment has unique category number
@@ -54,7 +97,7 @@ gs.run_command('v.db.addtable', map=vecLines3)
 #     gs.run_command('v.db.update', map=vecLines, column='ditch_orig', value=4, where='"cat='+str(i)+'"')
 
 gs.run_command('v.to.db', map=vecLines3, option='length', columns=['len'])
-gs.run_command('v.db.droprow', input=vecLines3, where="len=0", output=vecLines)
+gs.run_command('v.db.droprow', input=vecLines3, where="len<0.01", output=vecLines, overwrite=True)
 
 ### Extract start and end point numbers, their xy coordinates, and their elevations
 gs.run_command('v.to.points', input=vecLines, output=vecPoints, use='node', overwrite=True)
@@ -118,8 +161,9 @@ for i in range(len(ditchCombs)):
             fromLine, toLine = fromEntry_nodes['lcat'], toEntry_nodes['lcat']
 
             # Enter line numbers into columns
-            ditchCombs.loc[i, 'fromLine'] = fromLine
-            ditchCombs.loc[i, 'toLine'] = toLine
+            if fromLine != toLine: 
+                ditchCombs.loc[i, 'fromLine'] = fromLine
+                ditchCombs.loc[i, 'toLine'] = toLine
 
 ditchNodes.to_csv('final_' + ptFile, index=False, sep='\t', float_format='%.1f')
 ditchCombs.to_csv('final_' + combFile, index=False, sep='\t', float_format='%.3f')
