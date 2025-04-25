@@ -7,7 +7,7 @@ Created on Tue Apr 22 09:54:26 2025
 
 import pandas as pd
 import numpy as np
-import scipy.stats as sp
+import scipy as sp
 import matplotlib.pyplot as plt
 
 file = 'linRegPts.txt'
@@ -31,24 +31,28 @@ for lcat in lcats:
         along=profilePts['along']
         
         # Outlier analysis
-        avg, std =np.mean(elev), np.std(elev)
-        zOutliers = [avg + 3*std, avg - 3*std]
+        # avg, std =np.mean(elev), np.std(elev)
+        # zOutliers = [avg + 3*std, avg - 3*std]
         
-        q1, q3=np.percentile(elev, 25), np.percentile(elev,75)
-        iqr=q3-q1
-        iqrOutliers=[q1-1.5*iqr,q3+1.5*iqr]
+        # q1, q3=np.percentile(elev, 25), np.percentile(elev,75)
+        # iqr=q3-q1
+        # iqrOutliers=[q1-1.5*iqr,q3+1.5*iqr]
         
-        for z in zOutliers:
-            ax[i].plot(along, [z]*len(along), 'k', ls='dashed')
-        for z in iqrOutliers:
-            ax[i].plot(along, [z]*len(along), 'gold', ls='dashed')
+        # for z in zOutliers:
+        #     ax[i].plot(along, [z]*len(along), 'k', ls='dashed')
+        # for z in iqrOutliers:
+        #     ax[i].plot(along, [z]*len(along), 'gold', ls='dashed')
         
-    
+        # scipy outlier analysis
+        #peakInds, props = sp.signal.find_peaks(elev, width=[10,250])
+        #print(props)
+        
         ### 
-        linreg = sp.linregress(along, elev)
+        linreg = sp.stats.linregress(along, elev)
         
         ax[i].plot(along, elev,'gray', ls='',marker='.')
         ax[i].plot(along, linreg.slope * along + linreg.intercept, 'k')
+        ax[i].plot(along.iloc[peakInds], elev.iloc[peakInds], 'r', ls='', marker='x')
         
         ax[i].set_title('Ditch ' + str(lcat))
         
