@@ -27,8 +27,7 @@ i=0
 for lcat in lcats:
     profilePts = dfWithElevs[dfWithElevs['lcat']==lcat]
     
-    if profilePts['along'].iloc[-1] > 0.01:
-        
+    if profilePts['along'].iloc[-1] > 0.01:    
         elev=profilePts['elev']
         along=profilePts['along']
         
@@ -40,12 +39,15 @@ for lcat in lcats:
             l=math.floor(lefts[j])
             r=math.ceil(rights[j])
             allPeaks += range(l, r+1)
+            
+        filtElev=elev.drop(elev.index[allPeaks])
+        filtAlong=along.drop(along.index[allPeaks])
         
-        linreg = sp.stats.linregress(along, elev)
+        linreg = sp.stats.linregress(filtAlong, filtElev)    
         
-        ax[i].plot(along, elev,'gray', ls='',marker='.')
+        ax[i].plot(along, elev, 'lightgray', ls='', marker='.') 
+        ax[i].plot(filtAlong, filtElev,'gray', ls='',marker='.')
         ax[i].plot(along, linreg.slope * along + linreg.intercept, 'k')
-        ax[i].plot(along.iloc[allPeaks], elev.iloc[allPeaks], 'lightgray', ls='', marker='.') 
         
         ax[i].set_title('Ditch ' + str(lcat))
         
@@ -60,6 +62,6 @@ for lcat in lcats:
       
         ax[i].annotate(annotation, xy=xy, xycoords='axes fraction', fontweight='bold', \
                        bbox={'facecolor': 'wheat', 'alpha': 0.3})
-
+    
         i+=1
 
