@@ -26,11 +26,29 @@ for lcat in lcats:
     profilePts = dfWithElevs[dfWithElevs['lcat']==lcat]
     
     if profilePts['along'].iloc[-1] > 0.01:
-    
-        linreg = sp.linregress(profilePts['along'], profilePts['elev'])
         
-        ax[i].plot(profilePts['along'], profilePts['elev'],'gray', ls='',marker='.')
-        ax[i].plot(profilePts['along'], linreg.slope * profilePts['along'] + linreg.intercept, 'k')
+        elev=profilePts['elev']
+        along=profilePts['along']
+        
+        # Outlier analysis
+        avg, std =np.mean(elev), np.std(elev)
+        zOutliers = [avg + 3*std, avg - 3*std]
+        
+        q1, q3=np.percentile(elev, 25), np.percentile(elev,75)
+        iqr=q3-q1
+        iqrOutliers=[q1-1.5*iqr,q3+1.5*iqr]
+        
+        for z in zOutliers:
+            ax[i].plot(along, [z]*len(along), 'k', ls='dashed')
+        for z in iqrOutliers:
+            ax[i].plot(along, [z]*len(along), 'gold', ls='dashed')
+        
+    
+        ### 
+        linreg = sp.linregress(along, elev)
+        
+        ax[i].plot(along, elev,'gray', ls='',marker='.')
+        ax[i].plot(along, linreg.slope * along + linreg.intercept, 'k')
         
         ax[i].set_title('Ditch ' + str(lcat))
         
