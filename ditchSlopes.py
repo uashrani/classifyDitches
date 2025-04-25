@@ -19,6 +19,7 @@ dfWithElevs = df[np.isnan(df['elev'])==False]
 lcats = sorted(set(dfWithElevs['lcat']))
 
 fig,axs=plt.subplots(4, 4, figsize=(20, 16))
+plt.subplots_adjust(wspace=0.3)
 ax = axs.flat
 
 i=0
@@ -30,13 +31,14 @@ for lcat in lcats:
         elev=profilePts['elev']
         along=profilePts['along']
         
-        # Outlier analysis
-        # avg, std =np.mean(elev), np.std(elev)
-        # zOutliers = [avg + 3*std, avg - 3*std]
+        # last try: derivatives
+        deriv = np.diff(elev) / np.diff(along)
         
-        # q1, q3=np.percentile(elev, 25), np.percentile(elev,75)
-        # iqr=q3-q1
-        # iqrOutliers=[q1-1.5*iqr,q3+1.5*iqr]
+        # Outlier analysis
+        avg, std =np.mean(deriv), np.std(deriv)
+        zOutliers = [avg - 3*std, avg + 3*std]
+        locOutliers = np.where((deriv < zOutliers[0]) | (deriv > zOutliers[1]))
+        
         
         # for z in zOutliers:
         #     ax[i].plot(along, [z]*len(along), 'k', ls='dashed')
@@ -48,13 +50,19 @@ for lcat in lcats:
         #print(props)
         
         ### 
+        # Plot derivative
+        ax2 = ax[i].twinx()
+        #ax2.plot(along[1:], deriv, 'lightgray')
+        
         linreg = sp.stats.linregress(along, elev)
         
         ax[i].plot(along, elev,'gray', ls='',marker='.')
         ax[i].plot(along, linreg.slope * along + linreg.intercept, 'k')
-        ax[i].plot(along.iloc[peakInds], elev.iloc[peakInds], 'r', ls='', marker='x')
+        ax[i].plot(along.iloc[locOutliers], elev.iloc[locOutliers], 'r', ls='', marker='x', markersize=5)
         
         ax[i].set_title('Ditch ' + str(lcat))
+        
+        
         
         annotation='m='+str(round(linreg.slope, 6)) + \
             '\nr$^2$='+str(round(linreg.rvalue**2, 3)) + \
