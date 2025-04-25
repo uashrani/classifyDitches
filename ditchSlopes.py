@@ -8,6 +8,7 @@ Created on Tue Apr 22 09:54:26 2025
 import pandas as pd
 import numpy as np
 import scipy as sp
+import math
 import matplotlib.pyplot as plt
 
 file = 'linRegPts.txt'
@@ -31,38 +32,22 @@ for lcat in lcats:
         elev=profilePts['elev']
         along=profilePts['along']
         
-        # last try: derivatives
-        deriv = np.diff(elev) / np.diff(along)
+        peakInds, props = sp.signal.find_peaks(elev, prominence=1, width=[1,250])
+        lefts, rights = props['left_ips'], props['right_ips']
         
-        # Outlier analysis
-        avg, std =np.mean(deriv), np.std(deriv)
-        zOutliers = [avg - 3*std, avg + 3*std]
-        locOutliers = np.where((deriv < zOutliers[0]) | (deriv > zOutliers[1]))
-        
-        
-        # for z in zOutliers:
-        #     ax[i].plot(along, [z]*len(along), 'k', ls='dashed')
-        # for z in iqrOutliers:
-        #     ax[i].plot(along, [z]*len(along), 'gold', ls='dashed')
-        
-        # scipy outlier analysis
-        #peakInds, props = sp.signal.find_peaks(elev, width=[10,250])
-        #print(props)
-        
-        ### 
-        # Plot derivative
-        ax2 = ax[i].twinx()
-        #ax2.plot(along[1:], deriv, 'lightgray')
+        allPeaks = []
+        for (j, ind) in enumerate(peakInds):
+            l=math.floor(lefts[j])
+            r=math.ceil(rights[j])
+            allPeaks += range(l, r+1)
         
         linreg = sp.stats.linregress(along, elev)
         
         ax[i].plot(along, elev,'gray', ls='',marker='.')
         ax[i].plot(along, linreg.slope * along + linreg.intercept, 'k')
-        ax[i].plot(along.iloc[locOutliers], elev.iloc[locOutliers], 'r', ls='', marker='x', markersize=5)
+        ax[i].plot(along.iloc[allPeaks], elev.iloc[allPeaks], 'lightgray', ls='', marker='.') 
         
         ax[i].set_title('Ditch ' + str(lcat))
-        
-        
         
         annotation='m='+str(round(linreg.slope, 6)) + \
             '\nr$^2$='+str(round(linreg.rvalue**2, 3)) + \
