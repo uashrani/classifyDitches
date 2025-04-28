@@ -21,7 +21,6 @@ lcats=[27]
 # Create empty vector map for new lines, and empty file to add coords
 gs.run_command('v.edit', map_='shifted_ditches', type_='line', tool='create', overwrite=True)
 f=open('lineDefs.txt', 'a')
-f.write('VERTI:\n')
 
 for lcat in lcats:
     profilePts = dfWithElevs[dfWithElevs['lcat']==lcat]

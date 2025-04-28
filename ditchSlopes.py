@@ -64,4 +64,16 @@ for lcat in lcats:
                        bbox={'facecolor': 'wheat', 'alpha': 0.3})
     
         i+=1
+        
+fig, ax = plt.subplots(figsize=(10,8))
+profilePts = dfWithElevs[dfWithElevs['lcat']==27]
+adjustedDf = pd.read_csv('shiftedDitch27.txt')
 
+ax.plot(profilePts['along'], profilePts['elev'], 'gray', ls='', marker='.', label='original')
+ax.plot(adjustedDf['along'], adjustedDf['elev'], 'cornflowerblue', ls='', marker='.', label='adjusted')
+
+plt.legend()
+
+ax.set_xlabel('Along [m]')
+ax.set_ylabel('Elevation [m]')
+ax.set_title('Ditch 27')
