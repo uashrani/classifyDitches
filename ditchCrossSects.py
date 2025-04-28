@@ -48,10 +48,17 @@ for lcat in lcats:
     
     # Get profile across these endpoints
     for i in range(5): #len(trX1)):
+        x1,y1,x2,y2=trX1.iloc[i],trY1.iloc[i],trX2.iloc[i],trY2.iloc[i]
+        cos,sin=cosines[i], sines[i]
+        
         gs.run_command('r.profile', input_=dem, output='tmpProfile.txt', \
-                       coordinates=[trX1.iloc[i],trY1.iloc[i],trX2.iloc[i],trY2.iloc[i]])
+                       coordinates=[x1,y1,x2,y2], overwrite=True)
     
-    
-    
+        profile=pd.read_csv('tmpProfile.txt', sep='\s+', names=['across', 'elev'])
+        crossElev=profile['elev']
+        minCS = profile[crossElev==np.min(crossElev)].iloc[0]
+        across=minCS['across']
+        
+        newPt = [x1 + across*cos, y1 + across*sin]
     
     
