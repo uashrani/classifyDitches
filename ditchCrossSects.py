@@ -10,16 +10,18 @@ import numpy as np
 import grass.script as gs
 
 file = 'linRegPts.txt'
-
 dem='ambigDEM2'
 
 df = pd.read_csv(file) 
-
 dfWithElevs = df[np.isnan(df['elev'])==False]
 
 lcats = sorted(set(dfWithElevs['lcat']))
-
 lcats=[27]
+
+# Create empty vector map for new lines, and empty file to add coords
+gs.run_command('v.edit', map_='shifted_ditches', type_='line', tool='create', overwrite=True)
+f=open('lineDefs.txt', 'a')
+f.write('VERTI:\n')
 
 for lcat in lcats:
     profilePts = dfWithElevs[dfWithElevs['lcat']==lcat]
@@ -46,8 +48,11 @@ for lcat in lcats:
     trY1 = y_m - halfDist*sines
     trY2 = y_m + halfDist*sines
     
+    ncoords = len(x_m)
+    f.write('L  ' + str(ncoords) + ' 1\n')
+    
     # Get profile across these endpoints
-    for i in range(5): #len(trX1)):
+    for i in range(ncoords):
         x1,y1,x2,y2=trX1.iloc[i],trY1.iloc[i],trX2.iloc[i],trY2.iloc[i]
         cos,sin=cosines[i], sines[i]
         
@@ -59,6 +64,16 @@ for lcat in lcats:
         minCS = profile[crossElev==np.min(crossElev)].iloc[0]
         across=minCS['across']
         
-        newPt = [x1 + across*cos, y1 + across*sin]
+        newX, newY = x1 + across*cos, y1 + across*sin
+        
+        f.write(' ' + str(newX) + ' ' + str(newY) + '\n')
+        
+    f.write(' 1 ' + str(lcat))
+    
+f.close()
+        
+        
+        
+        
     
     
