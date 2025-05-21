@@ -22,14 +22,18 @@ intersectTable = 'culvertLocs'    # table of road-ditch intersections
 intersectFile = tmpFiles + intersectTable + '.txt'
 pointDefFile = tmpFiles + 'culvertPtDefs.txt'   # file that GRASS will read from 
 culvertPts = 'culvertPoints'    # points layer of road-ditch intersections
+culvertBuffers = 'bufferedPoints'   # vector layer containing circles around the culvert points
+culvertLines = 'culvertLines'
 
 ### ---------------------------------------------------------------
 # Temporary: drop table because overwrite doesn't work
 
+
+### Start by finding intersection points between roads and ditches, & create vector layer
 if not gdb.map_exists(culvertPts, 'vector'):
     gs.run_command('db.droptable', flags='f', table=intersectTable)
     
-    ### Start by finding intersection points between roads and ditches
+    # Find all intersections and add these to table
     gs.run_command('v.distance', flags='a', from_=ditches, to=roads, upload=['to_x', 'to_y'], \
                    dmax=0, table=intersectTable)
     gs.run_command('db.select', table=intersectTable, separator='comma', output=intersectFile, overwrite=True)
@@ -48,6 +52,16 @@ if not gdb.map_exists(culvertPts, 'vector'):
     # Create a points layer based on this file
     gs.run_command('v.edit', map_=culvertPts, type_='point', tool='create', overwrite=True)
     gs.run_command('v.edit', flags='n', map_=culvertPts, tool='add', input_=pointDefFile)
+    
+### Now find portions of ditches that go through a culvert
+
+# First buffer the intersection points by a 25m radius
+gs.run_command('v.buffer', input_=culvertPts, type_='point', \
+               output=culvertBuffers, distance=25)
+# Then find where these buffers intersect the ditch lines
+gs.run_command('v.overlay', ainput=ditches, atype='line', binput=culvertBuffers, \
+               operator='and', output=culvertLines)
+
 
 
  
