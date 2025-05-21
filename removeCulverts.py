@@ -18,20 +18,21 @@ dem = 'ambigDEM2'
 tmpFiles = 'tempFiles/'
 
 # Names of files/layers to be created
-intersectTable = 'culvertLocs'    # table of road-ditch intersections
+intersectTable = 'culvertLocs2'    # table of road-ditch intersections
 intersectFile = tmpFiles + intersectTable + '.txt'
 pointDefFile = tmpFiles + 'culvertPtDefs.txt'   # file that GRASS will read from 
-culvertPts = 'culvertPoints'    # points layer of road-ditch intersections
+intersectionPts = 'intersectionPoints'    # points layer of road-ditch intersections
 culvertBuffers = 'bufferedPoints'   # vector layer containing circles around the culvert points
 culvertLines = 'culvertLines'
+culvertEndpts = 'culvertEndpoints'
+culvertProfPts = 'culvertProfilePts'
 
 ### ---------------------------------------------------------------
-# Temporary: drop table because overwrite doesn't work
-
 
 ### Start by finding intersection points between roads and ditches, & create vector layer
-if not gdb.map_exists(culvertPts, 'vector'):
-    gs.run_command('db.droptable', flags='f', table=intersectTable)
+if not gdb.map_exists(intersectionPts, 'vector'):
+    # Temporary: drop table because overwrite doesn't work
+    #gs.run_command('db.droptable', flags='f', table=intersectTable)
     
     # Find all intersections and add these to table
     gs.run_command('v.distance', flags='a', from_=ditches, to=roads, upload=['to_x', 'to_y'], \
@@ -50,17 +51,33 @@ if not gdb.map_exists(culvertPts, 'vector'):
     f.close()
     
     # Create a points layer based on this file
-    gs.run_command('v.edit', map_=culvertPts, type_='point', tool='create', overwrite=True)
-    gs.run_command('v.edit', flags='n', map_=culvertPts, tool='add', input_=pointDefFile)
+    gs.run_command('v.edit', map_=intersectionPts, type_='point', tool='create', overwrite=True)
+    gs.run_command('v.edit', flags='n', map_=intersectionPts, tool='add', input_=pointDefFile)
     
 ### Now find portions of ditches that go through a culvert
-
 # First buffer the intersection points by a 25m radius
-gs.run_command('v.buffer', input_=culvertPts, type_='point', \
+gs.run_command('v.buffer', input_=intersectionPts, type_='point', \
                output=culvertBuffers, distance=25)
 # Then find where these buffers intersect the ditch lines
 gs.run_command('v.overlay', ainput=ditches, atype='line', binput=culvertBuffers, \
                operator='and', output=culvertLines)
+
+### Now interpolate an elevation profile along culvert segments
+# First find the endpoints of each culvert segment
+gs.run_command('v.to.points', input_=culvertLines, output=culvertEndpts, use='node')
+# Now get elevation values at these endpoints
+gs.run_command('v.what.rast', map_=culvertEndpts, raster=dem, column='elev')
+
+# Now we need the points that run all along the culvert segments 
+gs.run_command('v.to.points', input_=culvertLines, output=culvertProfPts, dmax=1)
+gs.run_command('v.db.addcolumn', map_=culvertProfPts, layer=2, columns=['elev double precision'])
+
+# We chose a wide buffer distance for the culverts,
+# so we can assume the endpoints are in the actual ditch and not on the bridge.
+# We can interpolate between them to fill in the missing data under the culvert
+
+
+
 
 
 
