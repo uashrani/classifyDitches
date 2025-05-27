@@ -5,6 +5,8 @@ Created on Wed May 21 11:03:19 2025
 @author: Uma
 """
 
+#%% Prerequisite modules, data, and folders
+
 import grass.script as gs
 import grass.grassdb.data as gdb
 import pandas as pd
@@ -17,7 +19,8 @@ dem = 'ambigDEM2'
 # Folder names
 tmpFiles = 'tempFiles/'
 
-# Names of files/layers to be created
+#%% Layers/files that will be created automatically
+
 intersectTable = 'culvertLocs2'    # table of road-ditch intersections
 intersectFile = tmpFiles + intersectTable + '.txt'
 
@@ -40,7 +43,7 @@ finalDEM = 'finalDEM'
 nullMask = 'culvertMaskWide'
 demNull = 'DEMwNulls'
 
-### ---------------------------------------------------------------
+#%% Actual code
 
 ### Start by finding intersection points between roads and ditches, & create vector layer
 if not gdb.map_exists(intersectionPts, 'vector'):
@@ -82,7 +85,6 @@ if not gdb.map_exists(culvertLines, 'vector'):
     gs.run_command('v.what.rast', map_=culvertEndpts, raster=dem, column='elev', layer=2, overwrite=True)
     
 ### Create interpolated surfaces where the culvert regions are
-
 if not gdb.map_exists(finalDEM, 'raster'):
     # First, we need a mask, only in regions where culverts are
     gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=culvertMask, \
@@ -105,13 +107,10 @@ if not gdb.map_exists(demNull):
     expr=demNull + '=if(isnull('+ nullMask+ '),' + dem + ', 0)'
     gs.run_command('r.mapcalc', expression=expr)
     gs.run_command('r.null', map_=demNull, setnull=0)
-    
-    
-    
-    
-    
 
-### ------------------ This is in case we want to add more points along the profile first, 
+#%% Extra/unused code
+
+# This is in case we want to add more points along the profile first, 
 # before interpolating a surface
 
 # Now we need the points that run all along the culvert segments 

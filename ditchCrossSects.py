@@ -10,7 +10,6 @@ import numpy as np
 import grass.script as gs
 
 file = 'tempFiles/linRegPts.txt'
-#dem='finalDEM'  # DEM used for taking transects. Has burned culverts (no nulls)
 demNull='DEMwNulls'     # DEM used to take elevation profile along shifted lines. Has nulls
 
 df = pd.read_csv(file) 
