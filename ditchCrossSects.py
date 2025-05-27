@@ -5,26 +5,34 @@ Created on Fri Apr 25 13:50:10 2025
 @author: Uma
 """
 
+#%% Prerequisite modules, data, and folders
+
 import pandas as pd
 import numpy as np
 import grass.script as gs
 
-file = 'tempFiles/linRegPts.txt'
-demNull='DEMwNulls'     # DEM used to take elevation profile along shifted lines. Has nulls
+alongFile = 'tempFiles/linRegPts.txt'
+demNull='DEMwNulls'     
 
-df = pd.read_csv(file) 
-dfWithElevs = df[np.isnan(df['elev'])==False]
-
-lcats = sorted(set(dfWithElevs['lcat']))
-lcats=[27, 36, 37, 251, 274, 414, 415, 420, 421, 428, 467, 564]
+#%% Layers/files that will be created automatically
 
 lineDefFile='tempFiles/lineDefs_culvertsRemoved.txt'
 tmpFile = 'tempFiles/tmpProfile.txt'
 
+# Shifted lines, and points that line along the shifted line
 newLine = 'shiftedDitches'
 newPts = 'shiftedVertices'
 
+# Elevation profile from the shifted points
 newElevFile = 'tempFiles/elevProfile_shiftedDitches.txt'
+
+#%% Actual code
+
+df = pd.read_csv(alongFile) 
+dfWithElevs = df[np.isnan(df['elev'])==False]
+
+lcats = sorted(set(dfWithElevs['lcat']))
+lcats=[27, 36, 37, 251, 274, 414, 415, 420, 421, 428, 467, 564]
 
 # Create empty vector map for new lines, and empty file to add coords
 gs.run_command('v.edit', map_=newLine, type_='line', tool='create', overwrite=True)
