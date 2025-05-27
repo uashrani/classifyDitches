@@ -37,6 +37,9 @@ culvertMask = 'culvertMask'
 culvertRaster = 'culvertRasEnds'
 finalDEM = 'finalDEM'
 
+nullMask = 'culvertMaskWide'
+demNull = 'DEMwNulls'
+
 ### ---------------------------------------------------------------
 
 ### Start by finding intersection points between roads and ditches, & create vector layer
@@ -83,7 +86,7 @@ if not gdb.map_exists(culvertLines, 'vector'):
 if not gdb.map_exists(finalDEM, 'raster'):
     # First, we need a mask, only in regions where culverts are
     gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=culvertMask, \
-                   distance=2)
+                   distance=3) 
     # Above is a vector, but we need a raster mask
     gs.run_command('v.to.rast', input_=culvertMask, type_='area', output=culvertMask, use='value')
     # Interpolate a surface from these points
@@ -92,6 +95,20 @@ if not gdb.map_exists(finalDEM, 'raster'):
     # Now patch the interpolated section with the original DEM,
     # using the interpolated part as the primary raster
     gs.run_command('r.patch', input_=[culvertRaster,dem], output=finalDEM)
+    
+if not gdb.map_exists(demNull):
+    # We want a wider mask for the nulls, to ensure we cover the whole ditch
+    gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=nullMask, \
+                   distance=7.5) 
+    gs.run_command('v.to.rast', input_=nullMask, type_='area', output=nullMask, use='value')
+    
+    expr=demNull + '=if(isnull('+ nullMask+ '),' + dem + ', 0)'
+    gs.run_command('r.mapcalc', expression=expr)
+    gs.run_command('r.null', map_=demNull, setnull=0)
+    
+    
+    
+    
     
 
 ### ------------------ This is in case we want to add more points along the profile first, 
