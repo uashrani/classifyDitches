@@ -1,26 +1,36 @@
+""" 
+Author: Uma
+"""
+
+#%% Prerequisite modules, data, and folders
+
 import grass.script as gs
 import pandas as pd
 
 vecLines1='drainage_centerlines'   # name of ditch layer in Grass, already imported
+
+tmpFiles = 'tempFiles/'
+
+#%% Layers/files that will be created automatically
+
 vecLines2='ditch_lines_nameless'
 vecLines3='ditch_lines_renamed'
 vecLines='ditch_lines_final'
+
 vecPoints1='ditch_nodes_old'  
-vecPoints='ditch_nodes'
 
 combTable='ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
 intersectTable='ditchIntersections'
 
 # Names of files to export from Grass
-combFile='ditchCombinations.txt'        # has distances from points to lines
-ptFile='ditchNodes.txt'                 # has point attributes like elevation and xy coords
+ptFileTemp=tmpFiles + 'ditchNodesTemp.txt'
+intersectFileTemp=tmpFiles + 'ditchIntersections.txt'
 
-ptFileTemp='ditchNodesTemp.txt'
-intersectFileTemp='ditchIntersections.txt'
+# Layers/files for the along profile
+profilePts='profilePts'
+alongFile=tmpFiles + 'linRegPts.txt'
 
-# External link to data
-dem='mnDEM'
-### Function definitions----------------------------------------------------------------------------------
+#%% Function definitions
 
 def split_nodesIntersects(ptFile, intersectFile, linesLayer):
     """ Takes two csv's, one containing nodes and one containing line intersections.
@@ -46,17 +56,18 @@ def split_nodesIntersects(ptFile, intersectFile, linesLayer):
         elt = elt.strip('()')
         x, y = tuple(map(float,elt.split(',')))
 
-        gs.run_command('v.edit', map=linesLayer, tool='break', coords=[x,y], threshold=1)
+        gs.run_command('v.edit', map_=linesLayer, tool='break', coords=[x,y], threshold=1)
 
-### ------------------------------------------------------------------------------------------------------
+#%% Actual code
+
 # Temporary: drop table because overwrite doesn't work
 gs.run_command('db.droptable', flags='f', table=intersectTable)
 
 # Get list of all nodes and their xy coordinates, will split lines at these points
-gs.run_command('v.to.points', input=vecLines1, output=vecPoints1, use='node', overwrite=True)
-gs.run_command('v.to.db', map=vecPoints1, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
+gs.run_command('v.to.points', input_=vecLines1, output=vecPoints1, use='node', overwrite=True)
+gs.run_command('v.to.db', map_=vecPoints1, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
 # Export attribute table of these points
-gs.run_command('v.db.select', map=vecPoints1, layer=2, format='csv', file=ptFileTemp, overwrite=True)
+gs.run_command('v.db.select', map_=vecPoints1, layer=2, format_='csv', file=ptFileTemp, overwrite=True)
 
 # Also get intersections between lines, since there is not always a node at the intersection
 gs.run_command('v.distance', flags='a', from_=vecLines1, to=vecLines1, dmax=1, \
@@ -69,14 +80,19 @@ split_nodesIntersects(ptFileTemp, intersectFileTemp, vecLines1)
 ### Create new attribute table so every segment has unique category number
 
 # Delete old category numbers and assign new category number to each segment
-gs.run_command('v.category', input=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
-gs.run_command('v.category', input=vecLines2, output=vecLines3, option='add', overwrite=True)
+gs.run_command('v.category', input_=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
+gs.run_command('v.category', input_=vecLines2, output=vecLines3, option='add', overwrite=True)
 
 # Disconnect from old attribute table and create new one
 gs.run_command('db.droptable', flags='f', table=vecLines3)
-gs.run_command('v.db.connect', flags='d', map=vecLines3, layer=1)
-gs.run_command('v.db.addtable', map=vecLines3)
+gs.run_command('v.db.connect', flags='d', map_=vecLines3, layer=1)
+gs.run_command('v.db.addtable', map_=vecLines3)
 
-gs.run_command('v.to.db', map=vecLines3, option='length', columns=['len'])
-gs.run_command('v.db.droprow', input=vecLines3, where="len<0.01", output=vecLines, overwrite=True)
+gs.run_command('v.to.db', map_=vecLines3, option='length', columns=['len'])
+gs.run_command('v.db.droprow', input_=vecLines3, where="len<0.01", output=vecLines, overwrite=True)
+
+### Get points spaced 1m apart along the new lines, will be used for transects
+gs.run_command('v.to.points', input_=vecLines, output=profilePts, dmax=1)
+gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
+gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile)
 
