@@ -14,14 +14,14 @@ import pandas as pd
 # We need roads vector data, ditch vector data, and elevation raster data
 roads = 'gis_osm_roads_free_1'
 ditches = 'drainage_centerlines'
-dem = 'ambigDEM2'
+dem = 'ambigDEM'
 
 # Folder names
 tmpFiles = 'tempFiles/'
 
 #%% Layers/files that will be created automatically
 
-intersectTable = 'culvertLocs2'    # table of road-ditch intersections
+intersectTable = 'culvertLocs'    # table of road-ditch intersections
 intersectFile = tmpFiles + intersectTable + '.txt'
 
 pointDefFile = tmpFiles + 'culvertPtDefs.txt'   # file that GRASS will read from 
@@ -98,7 +98,7 @@ if not gdb.map_exists(finalDEM, 'raster'):
     # using the interpolated part as the primary raster
     gs.run_command('r.patch', input_=[culvertRaster,dem], output=finalDEM)
     
-if not gdb.map_exists(demNull):
+if not gdb.map_exists(demNull, 'raster'):
     # We want a wider mask for the nulls, to ensure we cover the whole ditch
     gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=nullMask, \
                    distance=7.5) 
