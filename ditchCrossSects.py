@@ -13,20 +13,21 @@ import grass.script as gs
 
 tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM1'
+ditchPrefix = 'BRR'
 
-alongFile = tmpFiles + 'alongPts.txt'
+alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'
 demNull = hucPrefix + '_wNulls' 
 #%% Layers/files that will be created automatically
 
-lineDefFile= tmpFiles + 'lineDefs_culvertsRemoved.txt'
+lineDefFile= tmpFiles + hucPrefix + '_shiftedLineDefs.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines, and points that line along the shifted line
-newLine = 'shiftedDitches'
-newPts = 'shiftedVertices'
+newLine = hucPrefix + '_shiftedDitches'
+newPts = hucPrefix + '_shiftedVertices'
 
 # Elevation profile from the shifted points
-newElevFile = tmpFiles + 'elevProfile_shiftedDitches.txt'
+newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 #%% Actual code
 
