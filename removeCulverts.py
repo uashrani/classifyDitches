@@ -19,7 +19,7 @@ dem = 'ambigDEM2'
 # Folder names
 tmpFiles = 'tempFiles/'
 
-hucPrefix='testDEM2'
+hucPrefix='testDEM2' # use for operations that need the DEM
 ditchPrefix='BRR' # use for operations involving the entire ditch layer
 
 #%% Layers/files that will be created automatically
