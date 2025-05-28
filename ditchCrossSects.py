@@ -45,8 +45,6 @@ dfInRegion = dfInRegion[dfInRegion['along']>=1]
 
 lcats=sorted(set(dfInRegion['lcat']))
 
-#lcats=[27, 36, 37, 251, 274, 414, 415, 420, 421, 428, 467, 564]
-
 # Create empty vector map for new lines, and empty file to add coords
 gs.run_command('v.edit', map_=newLine, type_='line', tool='create', overwrite=True)
 fLine=open(lineDefFile, 'a')
@@ -93,7 +91,7 @@ for lcat in lcats:
         crossElev=profile['elev']
         minElev=np.min(crossElev)
         
-        if minElev==np.nan:
+        if np.isnan(minElev):
             newX, newY = x_m.iloc[i], y_m.iloc[i]
         else:
             minAcross = profile[crossElev==minElev].iloc[0]
