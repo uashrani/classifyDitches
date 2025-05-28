@@ -100,12 +100,10 @@ if not gdb.map_exists(culvertLines, 'vector'):
     gs.run_command('v.to.rast', input_=nullMask, type_='area', output=nullMask, use='value')
     
 ### Create interpolated surfaces where the culvert regions are
-
 gs.run_command('g.region', raster=dem)
 
 # Get elevation values at endpoints of culvert segments
 gs.run_command('v.what.rast', map_=culvertEndpts, raster=dem, column='elev', layer=2, overwrite=True)
-
 # Interpolate a surface from these points
 gs.run_command('v.surf.rst', input_=culvertEndpts, zcolumn='elev', \
                elevation=culvertRaster, mask=culvertMask, layer=2)
@@ -113,6 +111,7 @@ gs.run_command('v.surf.rst', input_=culvertEndpts, zcolumn='elev', \
 # using the interpolated part as the primary raster
 gs.run_command('r.patch', input_=[culvertRaster,dem], output=finalDEM)
 
+### Create null regions where the culvert regions are
 # We want a wider mask for the nulls, to ensure we cover the whole ditch
 expr=demNull + '=if(isnull('+ nullMask+ '),' + dem + ', 0)'
 gs.run_command('r.mapcalc', expression=expr)
