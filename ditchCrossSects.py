@@ -63,7 +63,7 @@ for lcat in lcats:
     cosines=np.cos(angles)
     
     # How far to take the profile on each side, in m
-    halfDist = 7.5
+    halfDist = 7.5    # slightly smaller than the null width
     
     # Get the midpoints of all 1-m line segments
     x_m = (x[1:].reset_index(drop=True) +x[:-1].reset_index(drop=True)) / 2
@@ -75,7 +75,7 @@ for lcat in lcats:
     trY2 = y_m + halfDist*sines
     
     ncoords = len(x_m)
-    coordsToAdd = range(0,ncoords)
+    coordsToAdd = list(range(0,ncoords,5))+[ncoords]
     fLine.write('L  ' + str(len(coordsToAdd)) + ' 1\n')
     
     # Get profile across these endpoints
@@ -110,7 +110,8 @@ fLine.close()
 gs.run_command('v.edit', flags='n', map_=newLine, tool='add', input_=lineDefFile)
 
 # Now compute the elevations at the newly-created points
-gs.run_command('v.to.points', input_=newLine, use='vertex', output=newPts)
+#gs.run_command('v.to.points', input_=newLine, use='vertex', output=newPts)
+gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
 gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
 gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile)
         
