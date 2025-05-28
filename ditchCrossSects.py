@@ -12,7 +12,7 @@ import numpy as np
 import grass.script as gs
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM1'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'
@@ -34,8 +34,8 @@ newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 df = pd.read_csv(alongFile) 
 
 # Later will be region of the HUC, get from the bounding box file
-n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
-#n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
+#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
+n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
 
 # Get all points whose coordinates are in the DEM region
 dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
@@ -75,7 +75,7 @@ for lcat in lcats:
     trY2 = y_m + halfDist*sines
     
     ncoords = len(x_m)
-    coordsToAdd = list(range(0,ncoords,5))+[ncoords]
+    coordsToAdd = list(range(0,ncoords,5))+[ncoords-1]  # go every 5m but include end
     fLine.write('L  ' + str(len(coordsToAdd)) + ' 1\n')
     
     # Get profile across these endpoints
