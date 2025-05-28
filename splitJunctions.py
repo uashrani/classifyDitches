@@ -11,23 +11,25 @@ vecLines1='drainage_centerlines'   # name of ditch layer in Grass, already impor
 
 tmpFiles = 'tempFiles/'
 
+ditchPrefix='BRR'
+
 #%% Layers/files that will be created automatically
 
-vecLines2='ditch_lines_nameless'
-vecLines3='ditch_lines_renamed'
-vecLines='ditch_lines_final'
+vecLines2=ditchPrefix + '_lines_nameless'
+vecLines3=ditchPrefix + '_lines_renamed'
+vecLines=ditchPrefix + '_lines_final'
 
-vecPoints1='ditch_nodes_old'  
+vecPoints1=ditchPrefix + '_nodes_old'  
 
-intersectTable='ditchIntersections'
+intersectTable = ditchPrefix + '_intersections'
 
 # Names of files to export from Grass
-ptFileTemp=tmpFiles + 'ditchNodesTemp.txt'
-intersectFileTemp=tmpFiles + 'ditchIntersections.txt'
+ptFileTemp=tmpFiles + ditchPrefix + '_nodes.txt'
+intersectFileTemp=tmpFiles + ditchPrefix + '_intersections.txt'
 
 # Layers/files for the along profile
-profilePts='profilePts'
-alongFile=tmpFiles + 'alongPts.txt'
+profilePts=ditchPrefix + '_profilePts'  # GRASS layer
+alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  # output file
 
 #%% Function definitions
 
