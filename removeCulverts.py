@@ -14,39 +14,45 @@ import pandas as pd
 # We need roads vector data, ditch vector data, and elevation raster data
 roads = 'gis_osm_roads_free_1'
 ditches = 'drainage_centerlines'
-dem = 'ambigDEM'
+dem = 'ambigDEM2'
 
 # Folder names
 tmpFiles = 'tempFiles/'
 
+hucPrefix='testDEM2'
+ditchPrefix='BRR' # use for operations involving the entire ditch layer
+
 #%% Layers/files that will be created automatically
 
-intersectTable = 'culvertLocs'    # table of road-ditch intersections
+intersectTable = 'culvertLocs_' + ditchPrefix  # table of road-ditch intersections
 intersectFile = tmpFiles + intersectTable + '.txt'
 
-pointDefFile = tmpFiles + 'culvertPtDefs.txt'   # file that GRASS will read from 
+pointDefFile = tmpFiles + 'culvertPtDefs_' + ditchPrefix + '.txt'   # file that GRASS will read from 
 
-intersectionPts = 'intersectionPoints'    # points layer of road-ditch intersections
+intersectionPts = 'intersectionPoints_' + ditchPrefix   # points layer of road-ditch intersections
 
-culvertBuffers = 'bufferedPoints'   # vector layer containing circles around the culvert points
-culvertLines = 'culvertLines'
+culvertBuffers = 'bufferedPoints_' + ditchPrefix  # vector layer containing circles around the culvert points
+culvertLines = 'culvertLines_' + ditchPrefix
 
-culvertEndpts = 'culvertEndpoints'
-culvertProfPts = 'culvertProfilePts'
+culvertEndpts = 'culvertEndpoints_' + ditchPrefix
+culvertProfPts = 'culvertProfilePts_' + ditchPrefix
 endptFile = tmpFiles + culvertEndpts + '.txt'
 profptFile = tmpFiles + culvertProfPts + '.txt'
 
-culvertMask = 'culvertMask'
-culvertRaster = 'culvertRasEnds'
-finalDEM = 'finalDEM'
+culvertMask = 'culvertMask_' + ditchPrefix
+nullMask = 'culvertMaskWide_' + ditchPrefix
 
-nullMask = 'culvertMaskWide'
-demNull = 'DEMwNulls'
+culvertRaster = 'culvertSurf_' + hucPrefix
+
+finalDEM = hucPrefix + '_final'
+demNull = hucPrefix + '_wNulls'
 
 #%% Actual code
 
+gs.run_command('g.region', vector=ditches)
+
 ### Start by finding intersection points between roads and ditches, & create vector layer
-if not gdb.map_exists(intersectionPts, 'vector'):
+if not gdb.map_exists(culvertLines, 'vector'):
     # Temporary: drop table because overwrite doesn't work
     #gs.run_command('db.droptable', flags='f', table=intersectTable)
     
@@ -70,8 +76,8 @@ if not gdb.map_exists(intersectionPts, 'vector'):
     gs.run_command('v.edit', map_=intersectionPts, type_='point', tool='create', overwrite=True)
     gs.run_command('v.edit', flags='n', map_=intersectionPts, tool='add', input_=pointDefFile)
     
-### Now find portions of ditches that go through a culvert
-if not gdb.map_exists(culvertLines, 'vector'):
+    ### Now find portions of ditches that go through a culvert
+
     # First buffer the intersection points by a 25m radius
     gs.run_command('v.buffer', input_=intersectionPts, type_='point', \
                    output=culvertBuffers, distance=25)
@@ -81,32 +87,36 @@ if not gdb.map_exists(culvertLines, 'vector'):
 
     # First find the endpoints of each culvert segment
     gs.run_command('v.to.points', input_=culvertLines, output=culvertEndpts, use='node', overwrite=True)
-    # Now get elevation values at these endpoints
-    gs.run_command('v.what.rast', map_=culvertEndpts, raster=dem, column='elev', layer=2, overwrite=True)
     
-### Create interpolated surfaces where the culvert regions are
-if not gdb.map_exists(finalDEM, 'raster'):
-    # First, we need a mask, only in regions where culverts are
+    # Also, we need a narrow mask (for burning drainage), only in regions where culverts are
     gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=culvertMask, \
                    distance=3) 
     # Above is a vector, but we need a raster mask
     gs.run_command('v.to.rast', input_=culvertMask, type_='area', output=culvertMask, use='value')
-    # Interpolate a surface from these points
-    gs.run_command('v.surf.rst', input_=culvertEndpts, zcolumn='elev', \
-                   elevation=culvertRaster, mask=culvertMask, layer=2)
-    # Now patch the interpolated section with the original DEM,
-    # using the interpolated part as the primary raster
-    gs.run_command('r.patch', input_=[culvertRaster,dem], output=finalDEM)
     
-if not gdb.map_exists(demNull, 'raster'):
-    # We want a wider mask for the nulls, to ensure we cover the whole ditch
+    # Do the same but for a wide mask (for setting nulls)
     gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=nullMask, \
                    distance=7.5) 
     gs.run_command('v.to.rast', input_=nullMask, type_='area', output=nullMask, use='value')
     
-    expr=demNull + '=if(isnull('+ nullMask+ '),' + dem + ', 0)'
-    gs.run_command('r.mapcalc', expression=expr)
-    gs.run_command('r.null', map_=demNull, setnull=0)
+### Create interpolated surfaces where the culvert regions are
+
+gs.run_command('g.region', raster=dem)
+
+# Get elevation values at endpoints of culvert segments
+gs.run_command('v.what.rast', map_=culvertEndpts, raster=dem, column='elev', layer=2, overwrite=True)
+
+# Interpolate a surface from these points
+gs.run_command('v.surf.rst', input_=culvertEndpts, zcolumn='elev', \
+               elevation=culvertRaster, mask=culvertMask, layer=2)
+# Now patch the interpolated section with the original DEM,
+# using the interpolated part as the primary raster
+gs.run_command('r.patch', input_=[culvertRaster,dem], output=finalDEM)
+
+# We want a wider mask for the nulls, to ensure we cover the whole ditch
+expr=demNull + '=if(isnull('+ nullMask+ '),' + dem + ', 0)'
+gs.run_command('r.mapcalc', expression=expr)
+gs.run_command('r.null', map_=demNull, setnull=0)
 
 #%% Extra/unused code
 

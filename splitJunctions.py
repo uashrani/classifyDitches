@@ -19,7 +19,6 @@ vecLines='ditch_lines_final'
 
 vecPoints1='ditch_nodes_old'  
 
-combTable='ditchCombinations'     # distances between points and lines, can find distances between every pair of ditches
 intersectTable='ditchIntersections'
 
 # Names of files to export from Grass
@@ -28,7 +27,7 @@ intersectFileTemp=tmpFiles + 'ditchIntersections.txt'
 
 # Layers/files for the along profile
 profilePts='profilePts'
-alongFile=tmpFiles + 'linRegPts.txt'
+alongFile=tmpFiles + 'alongPts.txt'
 
 #%% Function definitions
 
@@ -50,7 +49,7 @@ def split_nodesIntersects(ptFile, intersectFile, linesLayer):
 
     breakDf['tuple'] = '(' + breakDf['x'].astype('str') + ',' + breakDf['y'].astype('str') + ')'
 
-    tupleSet = set(breakDf['tuple'])
+    tupleSet = sorted(set(breakDf['tuple']))
 
     for elt in tupleSet:
         elt = elt.strip('()')
@@ -61,7 +60,9 @@ def split_nodesIntersects(ptFile, intersectFile, linesLayer):
 #%% Actual code
 
 # Temporary: drop table because overwrite doesn't work
-gs.run_command('db.droptable', flags='f', table=intersectTable)
+#gs.run_command('db.droptable', flags='f', table=intersectTable)
+
+gs.run_command('g.region', vector=vecLines1)
 
 # Get list of all nodes and their xy coordinates, will split lines at these points
 gs.run_command('v.to.points', input_=vecLines1, output=vecPoints1, use='node', overwrite=True)
@@ -89,10 +90,10 @@ gs.run_command('v.db.connect', flags='d', map_=vecLines3, layer=1)
 gs.run_command('v.db.addtable', map_=vecLines3)
 
 gs.run_command('v.to.db', map_=vecLines3, option='length', columns=['len'])
-gs.run_command('v.db.droprow', input_=vecLines3, where="len<0.01", output=vecLines, overwrite=True)
+#gs.run_command('v.db.droprow', input_=vecLines3, where="len<0.01", output=vecLines, overwrite=True)
 
 ### Get points spaced 1m apart along the new lines, will be used for transects
-gs.run_command('v.to.points', input_=vecLines, output=profilePts, dmax=1)
+gs.run_command('v.to.points', input_=vecLines3, output=profilePts, dmax=1)
 gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile)
+gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 

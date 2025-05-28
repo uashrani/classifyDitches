@@ -11,28 +11,40 @@ import pandas as pd
 import numpy as np
 import grass.script as gs
 
-alongFile = 'tempFiles/linRegPts.txt'
-demNull='DEMwNulls'     
+tmpFiles = 'tempFiles/'
+hucPrefix = 'testDEM1'
 
+alongFile = tmpFiles + 'alongPts.txt'
+demNull = hucPrefix + '_wNulls' 
 #%% Layers/files that will be created automatically
 
-lineDefFile='tempFiles/lineDefs_culvertsRemoved.txt'
-tmpFile = 'tempFiles/tmpProfile.txt'
+lineDefFile= tmpFiles + 'lineDefs_culvertsRemoved.txt'
+tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines, and points that line along the shifted line
 newLine = 'shiftedDitches'
 newPts = 'shiftedVertices'
 
 # Elevation profile from the shifted points
-newElevFile = 'tempFiles/elevProfile_shiftedDitches.txt'
+newElevFile = tmpFiles + 'elevProfile_shiftedDitches.txt'
 
 #%% Actual code
 
 df = pd.read_csv(alongFile) 
-dfWithElevs = df[np.isnan(df['elev'])==False]
 
-lcats = sorted(set(dfWithElevs['lcat']))
-lcats=[27, 36, 37, 251, 274, 414, 415, 420, 421, 428, 467, 564]
+# Later will be region of the HUC, get from the bounding box file
+n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
+#n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
+
+# Get all points whose coordinates are in the DEM region
+dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
+
+# Temporary: also filter out the ones that are <1m 
+dfInRegion = dfInRegion[dfInRegion['along']>=1]
+
+lcats=sorted(set(dfInRegion['lcat']))
+
+#lcats=[27, 36, 37, 251, 274, 414, 415, 420, 421, 428, 467, 564]
 
 # Create empty vector map for new lines, and empty file to add coords
 gs.run_command('v.edit', map_=newLine, type_='line', tool='create', overwrite=True)
