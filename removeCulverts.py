@@ -96,7 +96,7 @@ if not gdb.map_exists(culvertLines, 'vector'):
     
     # Do the same but for a wide mask (for setting nulls)
     gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=nullMask, \
-                   distance=7.5) 
+                   distance=10) 
     gs.run_command('v.to.rast', input_=nullMask, type_='area', output=nullMask, use='value')
     
 ### Create interpolated surfaces where the culvert regions are
