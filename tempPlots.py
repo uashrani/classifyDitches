@@ -14,11 +14,12 @@ import math
 df = pd.read_csv('tempFiles/testDEM1_elevProfile_shiftedDitches.txt')
 #df = pd.read_csv('tempFiles/BRR_elevProfile_origDitches.txt')
 
-fig,axs=plt.subplots(3, 4, figsize=(18, 10))
+fig,axs=plt.subplots(3, 3, figsize=(18, 10))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
-lcats=[73, 238, 298, 1097, 1099, 2680]
+lcats=[92, 93, 94]
+#lcats=[1, 8, 49, 51, 72, 73, 74, 222]
 #lcats=[27, 36, 37, 206, 267, 296, 314, 376, 407, 408, 663, 2242]
 
 for (i,lcat) in enumerate(lcats):
