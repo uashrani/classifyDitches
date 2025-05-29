@@ -93,6 +93,14 @@ gs.run_command('v.db.addtable', map_=vecLines3)
 gs.run_command('v.to.db', map_=vecLines3, option='length', columns=['len'])
 #gs.run_command('v.db.droprow', input_=vecLines3, where="len<0.01", output=vecLines, overwrite=True)
 
+# Keep track of original category numbers
+gs.run_command('v.db.addcolumn', map_=vecLines3, columns='orig_cat int')
+gs.run_command('v.distance', from_=vecLines3, to=vecLines1, upload='cat', column='orig_cat')
+
+### Next create layers for start and end points, and find connections where 1 lcat --> 1 lcat and both are from same original line
+
+
+
 ### Get points spaced 1m apart along the new lines, will be used for transects
 gs.run_command('v.to.points', input_=vecLines3, output=profilePts, dmax=1)
 gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
