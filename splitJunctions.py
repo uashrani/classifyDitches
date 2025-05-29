@@ -83,11 +83,10 @@ split_nodesIntersects(ptFileTemp, intersectFileTemp, vecLines1)
 ### Create new attribute table so every segment has unique category number
 
 # Delete old category numbers and assign new category number to each segment
-gs.run_command('v.category', input_=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
+gs.run_command('v.category', flags='t', input_=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
 gs.run_command('v.category', input_=vecLines2, output=vecLines3, option='add', overwrite=True)
 
 # Disconnect from old attribute table and create new one
-gs.run_command('db.droptable', flags='f', table=vecLines3)
 gs.run_command('v.db.connect', flags='d', map_=vecLines3, layer=1)
 gs.run_command('v.db.addtable', map_=vecLines3)
 
