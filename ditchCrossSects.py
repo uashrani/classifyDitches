@@ -10,7 +10,6 @@ Created on Fri Apr 25 13:50:10 2025
 import pandas as pd
 import numpy as np
 import grass.script as gs
-import grass.grassdb.data as gdb
 
 tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM2'
@@ -18,48 +17,29 @@ ditchPrefix = 'BRR'
 
 demNull = hucPrefix + '_wNulls' 
 
-vecLines1='drainage_centerlines'
+alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  # output file
+
+# Later will be region of the HUC, get from the bounding box file
+#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
+n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
 #%% Layers/files that will be created automatically
-
-vecLines2=ditchPrefix + '_lines_nameless'
-vecLines3=ditchPrefix + '_lines_renamed'
-
-alongFile=tmpFiles + ditchPrefix + '_alongPts_unbroken.txt'
-profilePts=ditchPrefix + '_profilePts'  # GRASS layer
 
 lineDefFile= tmpFiles + hucPrefix + '_shiftedLineDefs.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines, and points that line along the shifted line
-newLine = hucPrefix + '_shiftedDitches_unbroken'
-newPts = hucPrefix + '_shiftedVertices_unbroken'
+newLine = hucPrefix + '_shiftedDitches'
+newPts = hucPrefix + '_shiftedVertices'
 
 # Elevation profile from the shifted points
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 #%% Actual code
 
-### Rename category values so features don't share a cat number
-if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.category', input_=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
-    gs.run_command('v.category', input_=vecLines2, output=vecLines3, option='add', overwrite=True)
-    
-    # Disconnect from old attribute table and create new one
-    gs.run_command('db.droptable', flags='f', table=vecLines3)
-    gs.run_command('v.db.connect', flags='d', map_=vecLines3, layer=1)
-    gs.run_command('v.db.addtable', map_=vecLines3)
-    
-    # Get points along line, and their xy coordinates
-    gs.run_command('v.to.points', input_=vecLines3, output=profilePts, dmax=1)
-    gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+gs.run_command('g.region', raster=demNull)
 
 ### Read the points
 df = pd.read_csv(alongFile) 
-
-# Later will be region of the HUC, get from the bounding box file
-#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
-n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
 
 # Get all points whose coordinates are in the DEM region
 dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
