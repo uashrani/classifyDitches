@@ -25,8 +25,8 @@ chainDf = pd.read_csv(chainFile)
 df = pd.read_csv('tempFiles/BRR_elevProfile_origDitches.txt')
 
 # Later will be region of the HUC, get from the bounding box file
-#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
-n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
+n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
+#n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
 
 # Get all points whose coordinates are in the DEM region
 dfInRegion = origDf[((origDf['y']>=s)&(origDf['y']<=n))&((origDf['x']>=w)&(origDf['x']<=e))]
@@ -110,7 +110,7 @@ ax[0].annotate('Along [m]', xy=(0.45, 0.03), xycoords='figure fraction', \
                fontweight='bold', fontsize=15)
 ax[0].annotate('Elevation [m]', xy=(0.04, 0.4), xycoords='figure fraction', \
                fontweight='bold', fontsize=15, rotation=90)
-fig.suptitle('Ditch Segment Long-Profiles (Shifted Ditches)', y=0.96, fontweight='bold', fontsize=16)        
+fig.suptitle('Ditch Segment Long-Profiles (Original Ditches)', y=0.96, fontweight='bold', fontsize=16)        
 
 
 
