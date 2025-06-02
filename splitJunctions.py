@@ -36,6 +36,7 @@ startNodes = ditchPrefix + '_starts'
 endNodes = ditchPrefix + '_ends'
 
 mergeFile=tmpFiles + 'mergeLines.txt'
+chainFile= tmpFiles + ditchPrefix + '_streamChains.txt'
 
 # Layers/files for the along profile
 profilePts=ditchPrefix + '_profilePts'  # GRASS layer
@@ -127,8 +128,6 @@ fIDs = np.arange(1, len(ls_orig_cats)+1)
 
 dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
 
-#dfOrig.to_csv('testView.txt', index=False)
-
 from_cats, to_cats=[], []
 
 # Get connections b/w segments that were originally part of same line
@@ -163,36 +162,42 @@ for i in range(len(dfOrig)):
 # To merge a segment, we want the number of its successors and predecessors to be 1
 singleChains=dfOrig[(dfOrig['nPrev']<=1) & (dfOrig['nNext']<=1) & ((dfOrig['nPrev'] + dfOrig['nNext']) > 0)]
 # Start at roots
-roots=singleChains[singleChains['nPrev']==0]
+rootLcats=singleChains['cat'][singleChains['nPrev']==0]
 
-for i in range(len(roots)):
-    rootLcat=roots['cat'].iloc[i]
-    
-    chain=[rootLcat]
-    nextLcats=list(graph.successors(rootLcat))
-    if len(nextLcats) > 0: 
-        nextLcat=nextLcats[0] 
+chainCol = []
+rootCol = []
+
+for lcat in fIDs:
+    if graph.has_node(lcat)==False or len(list(graph.predecessors(lcat))) == 0:
+           chain=[int(lcat)]
     else: 
-        nextLcat=0
-    
-    while nextLcat in list(singleChains['cat']):
-        chain+=[nextLcat]
+        chain=[]
+    if lcat in list(rootLcats):
         
-        nextLcats=list(graph.successors(nextLcat))
+        nextLcats=list(graph.successors(lcat))
+        
         if len(nextLcats) > 0: 
-            nextLcat=nextLcats[0]
+            nextLcat=nextLcats[0] 
         else: 
             nextLcat=0
         
-    print(chain)
+        while nextLcat in list(singleChains['cat']):
+            chain+=[int(nextLcat)]
+            
+            nextLcats=list(graph.successors(nextLcat))
+            if len(nextLcats) > 0: 
+                nextLcat=nextLcats[0]
+            else: 
+                nextLcat=0
+            
+    chainCol += [str(chain)]
+    
+chainDf = pd.DataFrame({'root': fIDs, 'chain': chainCol})
+chainDf.to_csv(chainFile, index=False)
         
-
-
-
-
-
 ### Get points spaced 1m apart along the new lines, will be used for transects
-# gs.run_command('v.to.points', input_=vecLines3, output=profilePts, dmax=1)
-# gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-# gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+if not gdb.map_exists(profilePts, 'vector'):
+    gs.run_command('v.to.points', input_=vecLines, output=profilePts, dmax=1)
+    gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
