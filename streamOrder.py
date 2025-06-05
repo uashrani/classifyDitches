@@ -79,15 +79,9 @@ def findOrder(lcat, ditchLines):
 gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
 gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
 
-# Find where the end of one segment flows into the start of another
-gs.run_command('db.droptable', flags='f', table=connectTable)
-gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
-                dmax=0.2, upload='cat', table= connectTable, overwrite=True)
 # But also find where the start points of two segments are nearby
 gs.run_command('v.distance', flags='a', from_=startNodes, to=startNodes, from_layer=1, to_layer=1, \
                 dmax=1, upload='cat', table= duplicTable, overwrite=True)
-
-gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
 gs.run_command('db.select', table=duplicTable, separator='comma', output=duplicFile, overwrite=True)
 
 # Also maybe get sparse profile points along ditch (corrected flow dir)
@@ -139,22 +133,22 @@ for i in range(len(sameStarts)):
             
             chain1 = chainDf['chain'][chainDf['root']==cat1].iloc[0]
             chain2 = chainDf['chain'][chainDf['root']==cat2].iloc[0]
+            len1, len2 = prof1['along'].iloc[-1], prof2['along'].iloc[-1]
             
             # Delete the one that is an isolate, or the shorter one
-            if chain1 == '[]' and chain2 != '[]':
-                gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat2)
-            elif chain2 == '[]':
-                gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat1)
-            else:
-                len1, len2 = prof1['along'].iloc[-1], prof2['along'].iloc[-1]
-                if len1 < len2: 
-                    gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat1)
-                else: 
-                    gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat2)
-                
+            toDel=cat1
+            if (chain1 == '[]' and chain2 != '[]') or len2 < len1:
+                toDel=cat2
             
+            for layer in [vecLines, startNodes, endNodes]:
+                gs.run_command('v.edit', map_=layer, tool='delete', cats=toDel)
 
 #%% Find stream orders
+# Find where the end of one segment flows into the start of another
+gs.run_command('db.droptable', flags='f', table=connectTable)
+gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
+                dmax=0.2, upload='cat', table= connectTable, overwrite=True)
+gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
 
 dfInRegion = profDf[((profDf['y']>=s)&(profDf['y']<=n))&((profDf['x']>=w)&(profDf['x']<=e))]
 
