@@ -122,14 +122,37 @@ for i in range(len(sameStarts)):
     x1, y1 = prof1['x'].iloc[-1], prof1['y'].iloc[-1]
     x2, y2 = prof2['x'].iloc[-1], prof2['y'].iloc[-1]
     
-    # Calculate distance between endpoints
+    # First check distance between endpoints, if they are far then stop
     endDist=math.sqrt((x2-x1)**2 + (y2-y1)**2)
     
-    if endDist > 1:
-        continue
-    else:
+    if endDist < 1:
         print(cat1, cat2)
-        # Delete the one that is an isolate, or the shorter one
+        # Check 10 evenly spaced points along profile to make sure they're same
+        nPts = min([len(prof1), len(prof2)])
+        dists = []
+        for j in range(1, nPts-1):
+            x1, y1 = prof1['x'].iloc[j], prof1['y'].iloc[j]
+            x2, y2 = prof2['x'].iloc[j], prof2['y'].iloc[j]
+            
+            dists += [math.sqrt((x2-x1)**2 + (y2-y1)**2)]
+        if np.mean(dists) < 1:
+            
+            chain1 = chainDf['chain'][chainDf['root']==cat1].iloc[0]
+            chain2 = chainDf['chain'][chainDf['root']==cat2].iloc[0]
+            
+            # Delete the one that is an isolate, or the shorter one
+            if chain1 == '[]' and chain2 != '[]':
+                gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat2)
+            elif chain2 == '[]':
+                gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat1)
+            else:
+                len1, len2 = prof1['along'].iloc[-1], prof2['along'].iloc[-1]
+                if len1 < len2: 
+                    gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat1)
+                else: 
+                    gs.run_command('v.edit', map_=vecLines, tool='delete', cats=cat2)
+                
+            
 
 #%% Find stream orders
 
