@@ -4,36 +4,60 @@ Created on Sun May  4 20:48:37 2025
 
 @author: Uma
 """
-
+import grass.script as gs
 import pandas as pd
 import networkx as nx
 import numpy as np
-import grass.script as gs
+import math
 
-combFile = 'ditchCombinations.txt'
-startFile = 'ditchStartPts.txt'
-endFile = 'ditchEndPts.txt'
+tmpFiles = 'tempFiles/'
+ditchPrefix='BRR'
+
+vecLines = ditchPrefix + '_lines_final'
+chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
+
+# Later will be region of the HUC, get from the bounding box file
+#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
+n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
+
+#%% To be created
+
+startNodes = ditchPrefix + '_starts'
+endNodes = ditchPrefix + '_ends'
+
+connectTable = ditchPrefix + '_flowConnections'
+duplicTable = ditchPrefix + '_duplicateStarts'
+
+duplicFile=tmpFiles + 'maybeDuplicates.txt'
+connectFile=tmpFiles + 'mergeLines.txt'
+
+sparseProfilePts = ditchPrefix + '_sparseProfile'
+sparseFile = tmpFiles + ditchPrefix + '_sparsePts.txt'
+
 linesFile = 'ditchLines.txt'
 
-ditchCombs = pd.read_csv(combFile)
-ditchStarts = pd.read_csv(startFile)
-ditchEnds = pd.read_csv(endFile)
 
-ditchCombs = ditchCombs.rename(columns={'from_cat': 'fromPt', 'cat': 'toPt'})
+#%% 
 
 def findOrder(lcat, ditchLines):
-    order = ditchLines.loc[ditchLines['cat']==lcat, 'order'].iloc[0]
+    thisRow = ditchLines[ditchLines['cat']==lcat].iloc[0]
+    order = thisRow['order']
+    strParents = thisRow['parents']
+    strpParents=strParents.strip('[]')
+    if strpParents != '': 
+        parents = list(map(int,strpParents.split(', ')))
+    else:
+        parents=[]
     
     if order > 0:
         return(order, ditchLines)
     else:
-        parents = list(graph.predecessors(lcat))
         parentOrders = []
         for parent in parents:
-            if parent in list(ditchLines['cat']):
-                parentOrder, ditchLines = findOrder(parent, ditchLines)
-            
-                parentOrders += [parentOrder]            
+            #if parent in list(ditchLines['cat']):
+            parentOrder, ditchLines = findOrder(parent, ditchLines)
+        
+            parentOrders += [parentOrder]            
             
         parentOrders = pd.Series(parentOrders)
         
@@ -50,75 +74,121 @@ def findOrder(lcat, ditchLines):
         
         return(order, ditchLines)
 
-### In ditch combinations csv, find associated line for each point
-### and determine flow direction between ditches
+#%%  Create new start and end point layers from correct flow direction
+#gs.run_command('g.remove', flags='f', type_='vector', name=[startNodes, endNodes])
+gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
+gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
 
-ditchCombs['fromLine']=0
-ditchCombs['toLine']=0
+# Find where the end of one segment flows into the start of another
+gs.run_command('db.droptable', flags='f', table=connectTable)
+gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
+                dmax=0.2, upload='cat', table= connectTable, overwrite=True)
+# But also find where the start points of two segments are nearby
+gs.run_command('v.distance', flags='a', from_=startNodes, to=startNodes, from_layer=1, to_layer=1, \
+                dmax=1, upload='cat', table= duplicTable, overwrite=True)
 
-for i in range(len(ditchCombs)):
-    # Read the current row in the "combinations" table
-    combEntry = ditchCombs.iloc[i]
-    fromPt, toPt = combEntry['fromPt'], combEntry['toPt']
+gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
+gs.run_command('db.select', table=duplicTable, separator='comma', output=duplicFile, overwrite=True)
+
+# Also maybe get sparse profile points along ditch (corrected flow dir)
+# just to compare for duplicates
+gs.run_command('v.to.points', flags='p', input_=vecLines, output=sparseProfilePts, dmax=10)
+gs.run_command('v.to.db', map_=sparseProfilePts, layer=2, option='coor', columns=['x', 'y'])
+gs.run_command('v.db.select', map_=sparseProfilePts, layer=2, format_='csv', file=sparseFile, overwrite=True)
+
+#%% Delete duplicates to make stream orders correct
+
+sameStarts = pd.read_csv(duplicFile)
+sameStarts = sameStarts[sameStarts['from_cat']!=sameStarts['cat']]
+
+chainDf = pd.read_csv(chainFile)
+
+# # Each row is being double-counted, so delete half
+origLen = len(sameStarts)
+i=0
+while len(sameStarts) > origLen/2:
+    f_cat, t_cat = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
+    sameStarts = sameStarts[(sameStarts['from_cat']!=t_cat) | (sameStarts['cat']!=f_cat)]
+    i += 1
+sameStarts.reset_index(drop=True, inplace=True)
+
+# # The starts are the same, but check points along the entire profile
+profDf = pd.read_csv(sparseFile)   
+
+for i in range(len(sameStarts)):
+    cat1, cat2 = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
+    prof1, prof2 = profDf[profDf['lcat']==cat1], profDf[profDf['lcat']==cat2]
     
-    # Find the corresponding rows in the point attribute tables
-    # Remember: 'from' is downstream, 'to' is upstream
-    fromEntry = ditchEnds[ditchEnds['cat']==fromPt].iloc[0]
-    toEntry = ditchStarts[ditchStarts['cat']==toPt].iloc[0]
+    x1, y1 = prof1['x'].iloc[-1], prof1['y'].iloc[-1]
+    x2, y2 = prof2['x'].iloc[-1], prof2['y'].iloc[-1]
     
-    # Get line numbers associated with points
-    fromLine, toLine = fromEntry['lcat'], toEntry['lcat']
+    # Calculate distance between endpoints
+    endDist=math.sqrt((x2-x1)**2 + (y2-y1)**2)
+    
+    if endDist > 1:
+        continue
+    else:
+        print(cat1, cat2)
+        # Delete the one that is an isolate, or the shorter one
 
-    if fromLine != toLine: 
-        ditchCombs.loc[i, 'fromLine'] = fromLine
-        ditchCombs.loc[i, 'toLine'] = toLine
-        
+#%% Find stream orders
+
+dfInRegion = profDf[((profDf['y']>=s)&(profDf['y']<=n))&((profDf['x']>=w)&(profDf['x']<=e))]
+
+# Temporary: also filter out the ones that are <1m 
+dfInRegion = dfInRegion[dfInRegion['along']>=1]
+
+lcats=sorted(set(dfInRegion['lcat']))
+
+connectDf = pd.read_csv(connectFile)
+connectDf = connectDf[connectDf['from_cat']!=connectDf['cat']]
+
+graph = nx.from_pandas_edgelist(connectDf, source='from_cat', target='cat', create_using=nx.DiGraph)
+
 # Go through all lines for upstream neighbors & stream order
-ditchLines = pd.read_csv(linesFile)
-ditchLines = ditchLines[ditchLines['len'] >= 1].reset_index(drop=True)
+orderDf = pd.DataFrame({'cat': chainDf['root']})
 
-ditchLines['parents']=''
-ditchLines['order']=0
-
-graph = nx.from_pandas_edgelist(ditchCombs, source='fromLine', target='toLine', create_using=nx.DiGraph)
+orderDf['parents']=''
+orderDf['order']=0
 
 # First pass: note parents of each ditch
-for i in range(len(ditchLines)):
-    lcat = ditchLines['cat'].iloc[i]
+for i in range(len(orderDf)):
+    lcat = orderDf['cat'].iloc[i]
     
     # Find upstream neighbors/parents
     if graph.has_node(lcat):
-        parents = str(list(graph.predecessors(lcat)))
+        prelimParents = list(graph.predecessors(lcat))
+        parents=[]
+        # A short ditch segment is not really a parent, probably a mapping error
+        for parent in prelimParents:
+            parentLen = chainDf['us_len'][chainDf['root']==parent].iloc[0]
+            if parentLen > 10:
+                parents += [parent]
+        parents=str(parents)
     else:
         parents = '[]'
     
-    ditchLines.loc[i, 'parents'] = parents
+    orderDf.loc[i, 'parents'] = parents
     
-ditchLines.loc[ditchLines['parents'] == '[]', 'order'] = 1
+orderDf.loc[orderDf['parents'] == '[]', 'order'] = 1
 
-file = 'linRegPts.txt'
 
-df = pd.read_csv(file) 
-df['elev']=df['elev'] / 100
 
-dfWithElevs = df[np.isnan(df['elev'])==False]
 
-lcats = sorted(set(dfWithElevs['lcat']))
 
-#gs.run_command('v.edit', map_='order1', type_='line', tool='create', overwrite=True)
-#gs.run_command('v.edit', map_='order2', type_='line', tool='create', overwrite=True)
-gs.run_command('v.db.addcolumn', map_='ditch_lines_renamed', columns='order int')
+# #gs.run_command('v.edit', map_='order1', type_='line', tool='create', overwrite=True)
+# #gs.run_command('v.edit', map_='order2', type_='line', tool='create', overwrite=True)
+# gs.run_command('v.db.addcolumn', map_='ditch_lines_renamed', columns='order int')
 
+# Next pass: 
 for lcat in lcats:
-    print(lcat)
-    
-    if lcat in list(ditchLines['cat']):
-        order, ditchLines = findOrder(lcat, ditchLines)
+    order, orderDf = findOrder(lcat, orderDf)
+    print(lcat, order)
             
-        if order==1:
-            gs.run_command('v.edit', map_='order1', tool='copy', bgmap='ditch_lines_renamed', cat=lcat, overwrite=True)
-        if order==2: 
-            gs.run_command('v.edit', map_='order2', tool='copy', bgmap='ditch_lines_renamed', cat=lcat, overwrite=True)
+#         if order==1:
+#             gs.run_command('v.edit', map_='order1', tool='copy', bgmap='ditch_lines_renamed', cat=lcat, overwrite=True)
+#         if order==2: 
+#             gs.run_command('v.edit', map_='order2', tool='copy', bgmap='ditch_lines_renamed', cat=lcat, overwrite=True)
     
         #gs.run_command('v.db.update', map_='ditch_lines_renamed', column='order', value=order, where="cat="+str(lcat))
 
