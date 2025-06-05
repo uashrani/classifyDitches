@@ -9,11 +9,10 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import numpy as np
 import networkx as nx
-import math
 
 vecLines0='drainage_centerlines'   # name of ditch layer in Grass, already imported
 
-tmpFiles = 'tempFiles/'
+tmpFiles = 'tempFiles2/'
 
 ditchPrefix='BRR'
 
@@ -89,7 +88,7 @@ if not gdb.map_exists(vecLines4, 'vector'):
     gs.run_command('v.db.select', map_=vecPoints1, layer=2, format_='csv', file=ptFileTemp, overwrite=True)
     
     # Also get intersections between lines, since there is not always a node at the intersection
-    gs.run_command('v.distance', flags='a', from_=vecLines1, to=vecLines1, dmax=1, \
+    gs.run_command('v.distance', flags='a', from_=vecLines1, to=vecLines1, dmax=10, \
         upload=['to_x', 'to_y', 'cat'], table=intersectTable, overwrite=True)
     gs.run_command('db.select', table=intersectTable, separator='comma', output=intersectFileTemp, overwrite=True)
     
@@ -206,15 +205,12 @@ for lcat in fIDs:
                 
     chainDf.loc[lcat-1, 'chain']=str(chain)
     
-    #if len()
-    
-#chainDf = pd.DataFrame({'root': fIDs, 'chain': chainCol})
 chainDf.to_csv(chainFile, index=False)
 
 ### Get points spaced 1m apart along the new lines
 ### Will be used to take transects and check for duplicates
-if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.to.points', input_=vecLines4, output=profilePts, dmax=1)
-    gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+# if not gdb.map_exists(profilePts, 'vector'):
+#     gs.run_command('v.to.points', input_=vecLines4, output=profilePts, dmax=1)
+#     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
+#     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
