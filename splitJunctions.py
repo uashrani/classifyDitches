@@ -9,6 +9,7 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import numpy as np
 import networkx as nx
+import math
 
 vecLines0='drainage_centerlines'   # name of ditch layer in Grass, already imported
 
@@ -21,7 +22,7 @@ ditchPrefix='BRR'
 vecLines1=vecLines0 + '_modifiable'
 vecLines2=ditchPrefix + '_lines_nameless'
 vecLines3=ditchPrefix + '_lines_renamed'
-vecLines=ditchPrefix + '_lines_filtered'
+vecLines4=ditchPrefix + '_lines_filtered'
 
 vecPoints1=ditchPrefix + '_nodes_old'  
 
@@ -31,12 +32,12 @@ intersectTable = ditchPrefix + '_intersections'
 ptFileTemp=tmpFiles + ditchPrefix + '_nodes.txt'
 intersectFileTemp=tmpFiles + ditchPrefix + '_intersections.txt'
 
-# Start and end points
-startNodes = ditchPrefix + '_starts'
-endNodes = ditchPrefix + '_ends'
-origTable = ditchPrefix + '_origConnections'
+# Start and end points, and duplicates
+startNodes = ditchPrefix + '_startsTemp'
+endNodes = ditchPrefix + '_endsTemp'
+connectTable = ditchPrefix + '_flowConnections'
 
-mergeFile=tmpFiles + 'mergeLines.txt'
+connectFile=tmpFiles + 'mergeLines.txt'
 chainFile= tmpFiles + ditchPrefix + '_streamChains.txt'
 
 # Layers/files for the along profile
@@ -71,17 +72,17 @@ def split_nodesIntersects(ptFile, intersectFile, linesLayer):
 
         gs.run_command('v.edit', map_=linesLayer, tool='break', coords=[x,y], threshold=1)
 
-#%% Actual code
+#%% Split lines at intersections, and on nodes along line
 
 # Temporary: drop table because overwrite doesn't work
 #gs.run_command('db.droptable', flags='f', table=intersectTable)
 
 gs.run_command('g.region', vector=vecLines0)
 
-if not gdb.map_exists(vecLines, 'vector'):
+if not gdb.map_exists(vecLines4, 'vector'):
     gs.run_command('g.copy', vector=[vecLines0, vecLines1])
     
-# Get list of all nodes and their xy coordinates, will split lines at these points
+    # Get list of all nodes and their xy coordinates, will split lines at these points
     gs.run_command('v.to.points', input_=vecLines1, output=vecPoints1, use='node', overwrite=True)
     gs.run_command('v.to.db', map_=vecPoints1, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
     # Export attribute table of these points
@@ -105,20 +106,25 @@ if not gdb.map_exists(vecLines, 'vector'):
     gs.run_command('v.db.addtable', map_=vecLines3)
 
     gs.run_command('v.to.db', map_=vecLines3, option='length', columns=['len'])
-    gs.run_command('v.db.droprow', input_=vecLines3, where="len < 0.1", output=vecLines, overwrite=True)
+    gs.run_command('v.db.droprow', input_=vecLines3, where="len < 0.1", output=vecLines4, overwrite=True)
 
-### Find which segments originally connected to each other (even if not actual flow dir)
+### Find segments to concatenate
+### and identify which lines may be duplicates
 if not gdb.map_exists(endNodes, 'vector'):
-    # Next create layers for start and end points
-    gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
-    gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
-    # Find which segments are connected
+    # Create layers for start and end points
+    gs.run_command('v.to.points', input_=vecLines4, output=startNodes, use='start', overwrite=True)
+    gs.run_command('v.to.points', input_=vecLines4, output=endNodes, use='end', overwrite=True)
+    # Find where the end of one segment flows into the start of another
     gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=2, \
-                    dmax=0.2, upload='to_attr', to_column='lcat', \
-                        column='to_lcat', table= origTable, overwrite=True)
-    gs.run_command('db.select', table=origTable, separator='comma', output=mergeFile, overwrite=True)
+                    dmax=0.2, upload='to_attr', to_column='lcat', column='to_lcat', \
+                        table= connectTable, overwrite=True)
+    
+    gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
+    
+    
+#%% Find which segments originally connected to each other (even if not actual flow dir)
 
-dfEnds=pd.read_csv(mergeFile)
+dfEnds=pd.read_csv(connectFile)
 dfEnds=dfEnds[dfEnds['from_cat']!=dfEnds['to_lcat']].reset_index(drop=True)
 
 # Keep track of original category numbers
@@ -154,7 +160,11 @@ graph = nx.from_pandas_edgelist(mergedLines, source='from', target='to', create_
 
 ### We will construct chains of segments, and keep track of the first in the chain
 ### Chains should have 1 segment feeding into 1, & shouldn't have forks/branches
-chainCol = []
+chainDf = pd.DataFrame({'root': fIDs})
+chainDf['chain']=''
+#chainDf['us_chain']=''
+
+#chainCol = []
 
 for lcat in fIDs:
     # If a segment isn't in the directed graph, it forms its own chain
@@ -193,15 +203,18 @@ for lcat in fIDs:
                 nextLcat=0
             else:
                 nextLcat=nextLcats[0]
-               
-    chainCol += [str(chain)]
+                
+    chainDf.loc[lcat-1, 'chain']=str(chain)
     
-chainDf = pd.DataFrame({'root': fIDs, 'chain': chainCol})
+    #if len()
+    
+#chainDf = pd.DataFrame({'root': fIDs, 'chain': chainCol})
 chainDf.to_csv(chainFile, index=False)
-        
-### Get points spaced 1m apart along the new lines, will be used for transects
+
+### Get points spaced 1m apart along the new lines
+### Will be used to take transects and check for duplicates
 if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.to.points', input_=vecLines, output=profilePts, dmax=1)
+    gs.run_command('v.to.points', input_=vecLines4, output=profilePts, dmax=1)
     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
