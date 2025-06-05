@@ -79,7 +79,7 @@ for lcat in lcats:
     trY2 = y_m + halfDist*sines
     
     ncoords = len(x_m)
-    coordsToAdd = list(range(0,ncoords,5))+[ncoords-1]  # go every 5m but include end
+    coordsToAdd = list(range(0,ncoords,10))+[ncoords-1]  # go every 5m but include end
     fLine.write('L  ' + str(len(coordsToAdd)) + ' 1\n')
     
     # Get profile across these endpoints
