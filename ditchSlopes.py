@@ -22,7 +22,7 @@ alongFile = tmpFiles + ditchPrefix + '_alongPts.txt'    # before shifting. used 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
-vecLines=ditchPrefix + '_lines_filtered'
+vecLines4 = ditchPrefix + '_lines_filtered'
 
 #df = pd.read_csv('tempFiles/BRR_elevProfile_origDitches.txt')
 
@@ -32,7 +32,7 @@ n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
 
 #%% To be created
 
-linesToFlip = ditchPrefix + '_lines_final'
+vecLines = ditchPrefix + '_lines_final'
 
 #%% Actual code 
 origDf = pd.read_csv(alongFile)    
@@ -47,8 +47,11 @@ dfInRegion = dfInRegion[dfInRegion['along']>=1]
 
 lcats=sorted(set(dfInRegion['lcat']))
 
-if not gdb.map_exists(linesToFlip, 'vector'):
-    gs.run_command('g.copy', vector=[vecLines, linesToFlip])
+chainDf['us_chain']=''
+chainDf['us_len']=''
+
+if not gdb.map_exists(vecLines, 'vector'):
+    gs.run_command('g.copy', vector=[vecLines4, vecLines])
 
     ### Do linear regression and flip vector directions if needed
     for lcat in lcats:
@@ -65,9 +68,13 @@ if not gdb.map_exists(linesToFlip, 'vector'):
             chain=[]
             
         if len(chain) > 0:
+            lens = []
+            
             # Concatenate the elevation profiles from different segments into one
             for (j,link) in enumerate(chain):
                 thisDitch = df[df['lcat']==link]
+                
+                lens += [thisDitch['along'].iloc[-1]]
                 if j==0:
                     concatDf = thisDitch.reset_index(drop=True)
                 else:
@@ -96,8 +103,18 @@ if not gdb.map_exists(linesToFlip, 'vector'):
             r2=linreg.rvalue**2
             
             if linreg.slope > 0:
-                gs.run_command('v.edit', map_=linesToFlip, tool='flip', cats=chain)
+                gs.run_command('v.edit', map_=vecLines, tool='flip', cats=chain)
+                chain = chain[::-1]
+                newRoot = chain[0]
+                chainDf.loc[lcat-1, 'chain']='[]'
+                chainDf.loc[newRoot-1, 'chain']=str(chain)
             if r2 < 0.25:
                 print('Warning: Ditch ' + strpChain + 'has r2 value less than 0.25.')
+                
+            for (i,segment) in enumerate(chain):
+                us_chain = chain[:i+1]
+                us_len = sum(lens[:i+1])
+                chainDf.loc[segment-1, 'us_chain']=str(us_chain)
+                chainDf.loc[segment-1, 'us_len']=us_len          
 
-
+chainDf.to_csv(chainFile, index=False)
