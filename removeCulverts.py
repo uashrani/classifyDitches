@@ -52,7 +52,7 @@ if not gdb.map_exists(culvertLines, 'vector'):
     layers=[roads, railroads, bridges, airports]
     suffix = ['Roads', 'Railroads', 'Bridges', 'Airports']
     dmax = [0, 0, 75, 100]  # max distance between ditches and this layer
-    buffers = [25, 50, 25, 25]  # width of the culvert
+    buffers = [25, 50, 25, 75]  # width of the culvert
     
     for (i,layer) in enumerate(layers):
         tabName = intersectTable+suffix[i]
@@ -60,7 +60,7 @@ if not gdb.map_exists(culvertLines, 'vector'):
         
         # Temporary: drop table because overwrite doesn't work
         gs.run_command('db.droptable', flags='f', table=tabName)
-        gs.run_command('v.distance', flags='a', from_=ditches, to=layer, upload=['to_x', 'to_y'], \
+        gs.run_command('v.distance', flags='a', from_=layer, to=ditches, upload=['to_x', 'to_y'], \
                        dmax=dmax[i], table=tabName)
         gs.run_command('db.select', table=tabName, separator='comma', output=fileName, overwrite=True) 
         
