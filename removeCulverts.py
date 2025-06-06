@@ -11,20 +11,19 @@ import grass.script as gs
 import grass.grassdb.data as gdb
 import pandas as pd
 
-# We need roads vector data, ditch vector data, and elevation raster data
-roads = 'gis_osm_roads_free_1'
-railroads = 'rail_lines'
-bridges = 'Bridge_locations_in_Minnesota'
-airports = 'Airport_Runways_in_Minnesota'
-ditches = 'drainage_centerlines'
-dem = 'ambigDEM2'
-
 # Folder names
 tmpFiles = 'tempFiles/'
 
 hucPrefix='testDEM2' # use for operations that need the DEM
 ditchPrefix='BRR' # use for operations involving the entire ditch layer
 
+# We need roads vector data, ditch vector data, and elevation raster data
+roads = 'gis_osm_roads_free_1'
+railroads = 'rail_lines'
+bridges = 'Bridge_locations_in_Minnesota'
+airports = 'Airport_Runways_in_Minnesota'
+ditches = ditchPrefix + '_lines_filtered'
+dem = 'ambigDEM2'
 #%% Layers/files that will be created automatically
 
 intersectTable = ditchPrefix + '_intersect'
@@ -34,12 +33,12 @@ pointDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'   # file that GRASS
 culvertPts = ditchPrefix + '_culvertPoints'   # points layer of culvert locations
 culvertBuffers = ditchPrefix + '_culvertBuffers'  # vector layer containing circles around the culvert points
 culvertLines = ditchPrefix + '_culvertLines'    # segment of ditch that passes through culvert
-culvertEndpts = 'culvertEndpoints_' + ditchPrefix
+culvertEndpts = ditchPrefix + '_culvertEndpoints' 
 
-culvertMask = 'culvertMask_' + ditchPrefix
-nullMask = 'culvertMaskWide_' + ditchPrefix
+culvertMask = ditchPrefix + '_culvertMask'
+nullMask = ditchPrefix + '_culvertMaskWide'
 
-culvertRaster = 'culvertSurf_' + hucPrefix
+culvertRaster = hucPrefix + '_culvertSurf'
 
 demBurned = hucPrefix + '_burned'
 demNull = hucPrefix + '_wNulls'
