@@ -79,7 +79,7 @@ for lcat in lcats:
     trY2 = y_m + halfDist*sines
     
     ncoords = len(x_m)
-    coordsToAdd = list(range(0,ncoords,10))+[ncoords-1]  # go every 5m but include end
+    coordsToAdd = list(range(0,ncoords,10))+[ncoords-1]  # go every 10m but include end
     fLine.write('L  ' + str(len(coordsToAdd)) + ' 1\n')
     
     # Get profile across these endpoints
@@ -117,7 +117,7 @@ gs.run_command('v.edit', flags='n', map_=newLine, tool='add', input_=lineDefFile
 #gs.run_command('v.to.points', input_=newLine, use='vertex', output=newPts)
 gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
 gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
-gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile)
+gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
         
     
     
