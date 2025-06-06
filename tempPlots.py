@@ -17,28 +17,16 @@ tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
-alongFile = tmpFiles + ditchPrefix + '_alongPts.txt'    # before shifting. used for determining lcats bc attribute table has xy column
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
-#df = pd.read_csv('tempFiles/BRR_elevProfile_origDitches.txt')
-
-# Later will be region of the HUC, get from the bounding box file
-#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
-n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
+newLine = hucPrefix + '_shiftedDitches'
 
 #%% Actual code 
-origDf = pd.read_csv(alongFile)    
 chainDf = pd.read_csv(chainFile)   
 df = pd.read_csv(newElevFile)
 
-# Get all points whose coordinates are in the DEM region
-dfInRegion = origDf[((origDf['y']>=s)&(origDf['y']<=n))&((origDf['x']>=w)&(origDf['x']<=e))]
-
-# Temporary: also filter out the ones that are <1m 
-dfInRegion = dfInRegion[dfInRegion['along']>=1]
-
-lcats=sorted(set(dfInRegion['lcat']))
+lcats=sorted(set(df['lcat']))
 
 ### Make plots and do linear regression
 
