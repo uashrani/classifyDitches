@@ -15,7 +15,8 @@ tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
-demNull = hucPrefix + '_wNulls' 
+dem = 'ambigDEM2'
+#demNull = hucPrefix + '_wNulls' 
 
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  # output file
 
@@ -36,7 +37,7 @@ newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 #%% Actual code
 
-gs.run_command('g.region', raster=demNull)
+gs.run_command('g.region', raster=dem)
 
 ### Read the points
 df = pd.read_csv(alongFile) 
@@ -88,7 +89,7 @@ for lcat in lcats:
         x1,y1,x2,y2=trX1.iloc[i],trY1.iloc[i],trX2.iloc[i],trY2.iloc[i]
         cos,sin=cosines[i], sines[i]
         
-        gs.run_command('r.profile', input_=demNull, output=tmpFile, \
+        gs.run_command('r.profile', input_=dem, output=tmpFile, \
                         coordinates=[x1,y1,x2,y2], overwrite=True)
     
         profile=pd.read_csv(tmpFile, sep='\s+', names=['across', 'elev'], na_values='*')
@@ -115,9 +116,9 @@ gs.run_command('v.edit', flags='n', map_=newLine, tool='add', input_=lineDefFile
 
 # Now compute the elevations at the newly-created points
 #gs.run_command('v.to.points', input_=newLine, use='vertex', output=newPts)
-gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
-gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
-gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
+# gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
+# gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
+# gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
         
     
     
