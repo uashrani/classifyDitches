@@ -23,6 +23,7 @@ railroads = 'rail_lines'
 bridges = 'Bridge_locations_in_Minnesota'
 airports = 'Airport_Runways_in_Minnesota'
 ditches = ditchPrefix + '_lines_filtered'
+ditchesCropped = hucPrefix + '_shiftedDitches'  # only covers extent of DEM
 dem = 'ambigDEM2'
 #%% Layers/files that will be created automatically
 
@@ -31,15 +32,15 @@ intersectTable = ditchPrefix + '_intersect'
 pointDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'   # file that GRASS will read from 
 
 ditchBuffers = ditchPrefix + '_lineBuffers'
-#culvertIntersections = ditchPrefix + '_culvertIntersections'
 
 culvertPts = ditchPrefix + '_culvertPoints'   # points layer of culvert locations
 culvertBuffers = ditchPrefix + '_culvertBuffers'  # vector layer containing circles around the culvert points
-culvertLines = ditchPrefix + '_culvertLines'    # segment of ditch that passes through culvert
-culvertEndpts = ditchPrefix + '_culvertEndpoints' 
 
-culvertMask = ditchPrefix + '_culvertMask'
-nullMask = ditchPrefix + '_culvertMaskWide'
+culvertLines = hucPrefix + '_culvertLines'    # segment of ditch that passes through culvert
+culvertEndpts = hucPrefix + '_culvertEndpoints' 
+
+culvertMask = hucPrefix + '_culvertMask'
+nullMask = hucPrefix + '_culvertMaskWide'
 
 culvertRaster = hucPrefix + '_culvertSurf'
 
@@ -103,27 +104,29 @@ if not gdb.map_exists(culvertLines, 'vector'):
     # Buffer the culvert points
     gs.run_command('v.buffer', input_=culvertPts, type_='point', \
                     output=culvertBuffers, column='buffer', layer=1)
-    # Then find where these buffers intersect the ditch lines
-    gs.run_command('v.overlay', ainput=ditches, atype='line', binput=culvertBuffers, \
-                    operator='and', output=culvertLines)
-
-    # First find the endpoints of each culvert segment
-    gs.run_command('v.to.points', input_=culvertLines, output=culvertEndpts, use='node', overwrite=True)
-    
-    # Also, we need a narrow mask (for burning drainage), only in regions where culverts are
-    gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=culvertMask, \
-                    distance=3) 
-    # Above is a vector, but we need a raster mask
-    gs.run_command('v.to.rast', input_=culvertMask, type_='area', output=culvertMask, use='value')
-    
-    # Do the same but for a wide mask (for setting nulls)
-    gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=nullMask, \
-                    distance=10) 
-    gs.run_command('v.to.rast', input_=nullMask, type_='area', output=nullMask, use='value')
-    
-### Create interpolated surfaces where the culvert regions are
+       
+#%% Need DEM for this part
 gs.run_command('g.region', raster=dem)
 
+# Then find where these buffers intersect the ditch lines
+gs.run_command('v.overlay', ainput=ditchesCropped, atype='line', binput=culvertBuffers, \
+                operator='and', output=culvertLines)
+
+# First find the endpoints of each culvert segment
+gs.run_command('v.to.points', input_=culvertLines, output=culvertEndpts, use='node', overwrite=True)
+
+# Also, we need a narrow mask (for burning drainage), only in regions where culverts are
+gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=culvertMask, \
+                distance=3) 
+# Above is a vector, but we need a raster mask
+gs.run_command('v.to.rast', input_=culvertMask, type_='area', output=culvertMask, use='value')
+
+# Do the same but for a wide mask (for setting nulls)
+gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=nullMask, \
+                distance=10) 
+gs.run_command('v.to.rast', input_=nullMask, type_='area', output=nullMask, use='value')
+    
+### Create interpolated surfaces where the culvert regions are
 # Get elevation values at endpoints of culvert segments
 gs.run_command('v.what.rast', map_=culvertEndpts, raster=dem, column='elev', layer=2, overwrite=True)
 # Interpolate a surface from these points
@@ -137,6 +140,10 @@ gs.run_command('r.patch', input_=[culvertRaster,dem], output=demBurned)
 expr=demNull + '=if(isnull('+ nullMask+ '),' + dem + ', 0)'
 gs.run_command('r.mapcalc', expression=expr)
 gs.run_command('r.null', map_=demNull, setnull=0)
+
+# gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
+# gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
+# gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
 
 
  
