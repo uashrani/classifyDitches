@@ -113,12 +113,5 @@ for lcat in lcats:
 fLine.close()
         
 gs.run_command('v.edit', flags='n', map_=newLine, tool='add', input_=lineDefFile)
-
-# Now compute the elevations at the newly-created points
-#gs.run_command('v.to.points', input_=newLine, use='vertex', output=newPts)
-# gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
-# gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
-# gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
-        
     
     
