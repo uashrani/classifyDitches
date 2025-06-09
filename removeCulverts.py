@@ -30,6 +30,9 @@ intersectTable = ditchPrefix + '_intersect'
 
 pointDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'   # file that GRASS will read from 
 
+ditchBuffers = ditchPrefix + '_lineBuffers'
+#culvertIntersections = ditchPrefix + '_culvertIntersections'
+
 culvertPts = ditchPrefix + '_culvertPoints'   # points layer of culvert locations
 culvertBuffers = ditchPrefix + '_culvertBuffers'  # vector layer containing circles around the culvert points
 culvertLines = ditchPrefix + '_culvertLines'    # segment of ditch that passes through culvert
@@ -49,23 +52,41 @@ gs.run_command('g.region', vector=ditches)
 
 ### Start by finding intersection points between roads and ditches, & create vector layer
 if not gdb.map_exists(culvertLines, 'vector'):
-    layers=[roads, railroads, bridges, airports]
-    suffix = ['Roads', 'Railroads', 'Bridges', 'Airports']
-    dmax = [0, 0, 75, 100]  # max distance between ditches and this layer
-    buffers = [25, 50, 25, 75]  # width of the culvert
+    ### A single road can loop back around and intersect the same ditch twice,
+    ### but v.distance only recognizes this as one intersection.
+    ### Use v.overlay in places where dmax=0, then get the center of the line? 
+    gs.run_command('v.buffer', input_=ditches, type_='line', \
+                   output=ditchBuffers, distance=0.01)
     
-    for (i,layer) in enumerate(layers):
-        tabName = intersectTable+suffix[i]
+    layers=[roads, railroads, bridges, airports]
+    suffixs = ['Roads', 'Railroads', 'Bridges', 'Airports']
+    dmaxs = [0, 0, 60, 100]  # max distance between ditches and this layer
+    buffers = [25, 50, 50, 75]  # width of the culvert
+    
+    for (i, layer) in enumerate(layers):
+        dmax, buffer, suffix = dmaxs[i], buffers[i], suffixs[i]
+        tabName = intersectTable+suffix
         fileName = tmpFiles + tabName + '.txt'
-        
+
         # Temporary: drop table because overwrite doesn't work
-        gs.run_command('db.droptable', flags='f', table=tabName)
-        gs.run_command('v.distance', flags='a', from_=layer, to=ditches, upload=['to_x', 'to_y'], \
-                       dmax=dmax[i], table=tabName)
-        gs.run_command('db.select', table=tabName, separator='comma', output=fileName, overwrite=True) 
+        if dmax > 0:
+            gs.run_command('db.droptable', flags='f', table=tabName)
+            gs.run_command('v.distance', flags='a', from_=layer, to=ditches, upload=['to_x', 'to_y', 'dist'], \
+                           dmax=dmax, table=tabName)
+            gs.run_command('db.select', table=tabName, separator='comma', output=fileName, overwrite=True) 
+        else:
+            gs.run_command('db.droptable', flags='f', table=tabName)
+            gs.run_command('v.overlay', ainput=layer, atype='line', binput=ditchBuffers, \
+                            operator='and', output=tabName)
+            gs.run_command('v.to.db', map_=tabName, option='start', columns=['to_x', 'to_y'])
+            gs.run_command('v.db.select', map_=tabName, format_='csv', file=fileName, overwrite=True)
         
         df = pd.read_csv(fileName)
-        df['buffer']=buffers[i]
+        if suffix=='Bridges':
+            df['buffer']=buffer + df['dist']
+            df.loc[df['buffer']>100, 'buffer']=100
+        else:
+            df['buffer']=buffer
         
         if i==0:
             intersectDf = df
@@ -76,7 +97,7 @@ if not gdb.map_exists(culvertLines, 'vector'):
     
     # Create a points layer based on this file
     gs.run_command('v.in.ascii', input_=pointDefFile, output=culvertPts, \
-                   separator='comma', columns=['x double precision', 'y double precision', 'buffer int'])
+                   separator='comma', columns=['x double precision', 'y double precision', 'buffer double precision'])
     
     ### Now find portions of ditches that go through a culvert
     # Buffer the culvert points
