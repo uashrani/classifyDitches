@@ -5,37 +5,33 @@ Created on Sun May  4 20:48:37 2025
 @author: Uma
 """
 import grass.script as gs
+import grass.grassdb.data as gdb
 import pandas as pd
 import networkx as nx
 import numpy as np
 import math
 
 tmpFiles = 'tempFiles/'
+hucPrefix = 'testDEM1'
 ditchPrefix='BRR'
 
-vecLines = ditchPrefix + '_lines_final'
-chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
-
-# Later will be region of the HUC, get from the bounding box file
-#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
-n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
+vecLines = hucPrefix + '_lines_final'
+chainFile = tmpFiles + ditchPrefix + '_streamChains_final.txt'
 
 #%% To be created
 
-startNodes = ditchPrefix + '_starts'
-endNodes = ditchPrefix + '_ends'
+startNodes = hucPrefix + '_starts'
+endNodes = hucPrefix + '_ends'
 
-connectTable = ditchPrefix + '_flowConnections'
-duplicTable = ditchPrefix + '_duplicateStarts'
-
-duplicFile=tmpFiles + 'maybeDuplicates.txt'
+connectTable = hucPrefix + '_flowConnections'
+duplicTable = hucPrefix + '_duplicateStarts'
 connectFile=tmpFiles + 'mergeLines.txt'
+duplicFile=tmpFiles + 'maybeDuplicates.txt'
 
-sparseProfilePts = ditchPrefix + '_sparseProfile'
-sparseFile = tmpFiles + ditchPrefix + '_sparsePts.txt'
+sparseProfilePts = hucPrefix + '_sparseProfile'
+sparseFile = tmpFiles + hucPrefix + '_sparsePts.txt'
 
 linesFile = 'ditchLines.txt'
-
 
 #%% 
 
@@ -76,19 +72,20 @@ def findOrder(lcat, ditchLines):
 
 #%%  Create new start and end point layers from correct flow direction
 #gs.run_command('g.remove', flags='f', type_='vector', name=[startNodes, endNodes])
-gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
-gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
-
-# But also find where the start points of two segments are nearby
-gs.run_command('v.distance', flags='a', from_=startNodes, to=startNodes, from_layer=1, to_layer=1, \
-                dmax=1, upload='cat', table= duplicTable, overwrite=True)
-gs.run_command('db.select', table=duplicTable, separator='comma', output=duplicFile, overwrite=True)
-
-# Also maybe get sparse profile points along ditch (corrected flow dir)
-# just to compare for duplicates
-gs.run_command('v.to.points', flags='p', input_=vecLines, output=sparseProfilePts, dmax=10)
-gs.run_command('v.to.db', map_=sparseProfilePts, layer=2, option='coor', columns=['x', 'y'])
-gs.run_command('v.db.select', map_=sparseProfilePts, layer=2, format_='csv', file=sparseFile, overwrite=True)
+if not gdb.map_exists(sparseProfilePts, 'vector'): 
+    gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
+    gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
+    
+    # But also find where the start points of two segments are nearby
+    gs.run_command('v.distance', flags='a', from_=startNodes, to=startNodes, from_layer=1, to_layer=1, \
+                    dmax=1, upload='cat', table= duplicTable, overwrite=True)
+    gs.run_command('db.select', table=duplicTable, separator='comma', output=duplicFile, overwrite=True)
+    
+    # Also maybe get sparse profile points along ditch (corrected flow dir)
+    # just to compare for duplicates
+    gs.run_command('v.to.points', flags='p', input_=vecLines, output=sparseProfilePts, dmax=10)
+    gs.run_command('v.to.db', map_=sparseProfilePts, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.db.select', map_=sparseProfilePts, layer=2, format_='csv', file=sparseFile, overwrite=True)
 
 #%% Delete duplicates to make stream orders correct
 
@@ -147,15 +144,10 @@ for i in range(len(sameStarts)):
 # Find where the end of one segment flows into the start of another
 gs.run_command('db.droptable', flags='f', table=connectTable)
 gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
-                dmax=0.2, upload='cat', table= connectTable, overwrite=True)
+                dmax=10, upload='cat', table= connectTable, overwrite=True)
 gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
 
-dfInRegion = profDf[((profDf['y']>=s)&(profDf['y']<=n))&((profDf['x']>=w)&(profDf['x']<=e))]
-
-# Temporary: also filter out the ones that are <1m 
-dfInRegion = dfInRegion[dfInRegion['along']>=1]
-
-lcats=sorted(set(dfInRegion['lcat']))
+lcats=sorted(set(profDf['lcat']))
 
 connectDf = pd.read_csv(connectFile)
 connectDf = connectDf[connectDf['from_cat']!=connectDf['cat']]
@@ -189,24 +181,20 @@ for i in range(len(orderDf)):
     
 orderDf.loc[orderDf['parents'] == '[]', 'order'] = 1
 
+if not gdb.map_exists(ditchPrefix + '_order1', 'vector'):
+    for ordr in range(1,5):
+        mapName = ditchPrefix + '_order' + str(ordr)
+        gs.run_command('v.edit', map_=mapName, type_='line', tool='create', overwrite=True)
 
-
-
-
-# #gs.run_command('v.edit', map_='order1', type_='line', tool='create', overwrite=True)
-# #gs.run_command('v.edit', map_='order2', type_='line', tool='create', overwrite=True)
-# gs.run_command('v.db.addcolumn', map_='ditch_lines_renamed', columns='order int')
+#gs.run_command('v.db.addcolumn', map_=vecLines, columns='order int')
 
 # Next pass: 
 for lcat in lcats:
     order, orderDf = findOrder(lcat, orderDf)
+    mapName = ditchPrefix + '_order' + str(order)
     print(lcat, order)
-            
-#         if order==1:
-#             gs.run_command('v.edit', map_='order1', tool='copy', bgmap='ditch_lines_renamed', cat=lcat, overwrite=True)
-#         if order==2: 
-#             gs.run_command('v.edit', map_='order2', tool='copy', bgmap='ditch_lines_renamed', cat=lcat, overwrite=True)
+    gs.run_command('v.edit', map_=mapName, tool='copy', bgmap=vecLines, cat=lcat)
     
-        #gs.run_command('v.db.update', map_='ditch_lines_renamed', column='order', value=order, where="cat="+str(lcat))
+    #gs.run_command('v.db.update', map_=vecLines, column='order', value=order, where="cat = "+str(lcat))
 
 #ditchCombs.to_csv('final_' + combFile, index=False, sep='\t', float_format='%.3f')
