@@ -200,6 +200,8 @@ for lcat in fIDs:
                 
     chainDf.loc[lcat-1, 'chain']=str(chain)
     
+chainDf['us_chain']=''
+chainDf['us_len']=np.nan
 chainDf.to_csv(chainFile, index=False)
 
 ### Get points spaced 1m apart along the new lines
