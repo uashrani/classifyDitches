@@ -8,31 +8,31 @@ Created on Wed May 21 11:03:19 2025
 #%% Prerequisite modules, data, and folders
 
 import grass.script as gs
-import grass.grassdb.data as gdb
-import pandas as pd
 
 # Folder names
 tmpFiles = 'tempFiles/'
-
-hucPrefix='testDEM2' # use for operations that need the DEM
+hucPrefix='HUC_0902010603' # use for operations that need the DEM
 ditchPrefix='BRR' # use for operations involving the entire ditch layer
 
 # We need roads vector data, ditch vector data, and elevation raster data
 ditchesCropped = hucPrefix + '_shiftedDitches'  # only covers extent of DEM
-dem = 'ambigDEM2'
+dem = 'HUC_0902010603'
 
 culvertBuffers = ditchPrefix + '_culvertBuffers'  # vector layer containing circles around the culvert points
+
 #%% Layers/files that will be created automatically
 culvertLines = hucPrefix + '_culvertLines'    # segment of ditch that passes through culvert
 culvertEndpts = hucPrefix + '_culvertEndpoints' 
 
 culvertMask = hucPrefix + '_culvertMask'
-nullMask = hucPrefix + '_culvertMaskWide'
 
 culvertRaster = hucPrefix + '_culvertSurf'
 
 demBurned = hucPrefix + '_burned'
 demNull = hucPrefix + '_wNulls'
+
+newPts = hucPrefix + '_shiftedVertices'
+newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
        
 #%% Need DEM for this part
 gs.run_command('g.region', raster=dem)
@@ -49,11 +49,6 @@ gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=
                 distance=3) 
 # Above is a vector, but we need a raster mask
 gs.run_command('v.to.rast', input_=culvertMask, type_='area', output=culvertMask, use='value')
-
-# Do the same but for a wide mask (for setting nulls)
-gs.run_command('v.buffer', flags='c', input_=culvertLines, type_='line', output=nullMask, \
-                distance=10) 
-gs.run_command('v.to.rast', input_=nullMask, type_='area', output=nullMask, use='value')
     
 ### Create interpolated surfaces where the culvert regions are
 # Get elevation values at endpoints of culvert segments
@@ -66,13 +61,13 @@ gs.run_command('v.surf.rst', input_=culvertEndpts, zcolumn='elev', \
 gs.run_command('r.patch', input_=[culvertRaster,dem], output=demBurned)
 
 ### Create null regions where the culvert regions are
-expr=demNull + '=if(isnull('+ nullMask+ '),' + dem + ', 0)'
+expr=demNull + '=if(isnull('+ culvertMask+ '),' + dem + ', 0)'
 gs.run_command('r.mapcalc', expression=expr)
 gs.run_command('r.null', map_=demNull, setnull=0)
 
-# gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
-# gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
-# gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
+gs.run_command('v.to.points', input_=ditchesCropped, dmax=1, output=newPts)
+gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
+gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
 
 
  
