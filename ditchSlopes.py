@@ -15,7 +15,7 @@ import grass.script as gs
 import grass.grassdb.data as gdb
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'testDEM1'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -25,16 +25,21 @@ newLine = hucPrefix + '_shiftedDitches'
 
 #%% To be created
 
-vecLines = ditchPrefix + '_lines_final'
+vecLines = hucPrefix + '_lines_final'
+
+newChainFile = tmpFiles + ditchPrefix + '_streamChains_final.txt'
 
 #%% Actual code   
+gs.run_command('g.region', vector=newLine)
+
 chainDf = pd.read_csv(chainFile)   
 df = pd.read_csv(newElevFile)
 
 lcats=sorted(set(df['lcat']))
 
-chainDf['us_chain']=''
-chainDf['us_len']=''
+newChainDf = chainDf.copy()
+newChainDf['us_chain']=''
+newChainDf['us_len']=''
 
 if not gdb.map_exists(vecLines, 'vector'):
     gs.run_command('g.copy', vector=[newLine, vecLines])
@@ -92,15 +97,15 @@ if not gdb.map_exists(vecLines, 'vector'):
                 gs.run_command('v.edit', map_=vecLines, tool='flip', cats=chain)
                 chain = chain[::-1]
                 newRoot = chain[0]
-                chainDf.loc[lcat-1, 'chain']='[]'
-                chainDf.loc[newRoot-1, 'chain']=str(chain)
+                newChainDf.loc[lcat-1, 'chain']='[]'
+                newChainDf.loc[newRoot-1, 'chain']=str(chain)
             if r2 < 0.25:
-                print('Warning: Ditch ' + strpChain + 'has r2 value less than 0.25.')
+                print('Warning: Ditch ' + strpChain + ' has r2 value less than 0.25.')
                 
             for (i,segment) in enumerate(chain):
                 us_chain = chain[:i+1]
                 us_len = sum(lens[:i+1])
-                chainDf.loc[segment-1, 'us_chain']=str(us_chain)
-                chainDf.loc[segment-1, 'us_len']=us_len          
+                newChainDf.loc[segment-1, 'us_chain']=str(us_chain)
+                newChainDf.loc[segment-1, 'us_len']=us_len          
 
-chainDf.to_csv(chainFile, index=False)
+newChainDf.to_csv(newChainFile, index=False)
