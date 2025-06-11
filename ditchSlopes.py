@@ -7,15 +7,15 @@ Created on Wed May 21 16:09:13 2025
 
 #%% Prerequisites 
 
+import grass.script as gs
+import grass.grassdb.data as gdb
 import pandas as pd
 import scipy as sp
 import numpy as np
 import math
-import grass.script as gs
-import grass.grassdb.data as gdb
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM1'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -27,8 +27,6 @@ newLine = hucPrefix + '_shiftedDitches'
 
 vecLines = hucPrefix + '_lines_final'
 
-newChainFile = tmpFiles + ditchPrefix + '_streamChains_final.txt'
-
 #%% Actual code   
 gs.run_command('g.region', vector=newLine)
 
@@ -38,8 +36,6 @@ df = pd.read_csv(newElevFile)
 lcats=sorted(set(df['lcat']))
 
 newChainDf = chainDf.copy()
-newChainDf['us_chain']=''
-newChainDf['us_len']=''
 
 if not gdb.map_exists(vecLines, 'vector'):
     gs.run_command('g.copy', vector=[newLine, vecLines])
@@ -108,4 +104,4 @@ if not gdb.map_exists(vecLines, 'vector'):
                 newChainDf.loc[segment-1, 'us_chain']=str(us_chain)
                 newChainDf.loc[segment-1, 'us_len']=us_len          
 
-newChainDf.to_csv(newChainFile, index=False)
+newChainDf.to_csv(chainFile, index=False)
