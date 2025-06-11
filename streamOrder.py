@@ -12,11 +12,11 @@ import numpy as np
 import math
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM1'
+hucPrefix = 'HUC_0902010603'
 ditchPrefix='BRR'
 
 vecLines = hucPrefix + '_lines_final'
-chainFile = tmpFiles + ditchPrefix + '_streamChains_final.txt'
+chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 
 #%% To be created
 
@@ -52,7 +52,6 @@ def findOrder(lcat, ditchLines):
         for parent in parents:
             #if parent in list(ditchLines['cat']):
             parentOrder, ditchLines = findOrder(parent, ditchLines)
-        
             parentOrders += [parentOrder]            
             
         parentOrders = pd.Series(parentOrders)
@@ -77,6 +76,7 @@ if not gdb.map_exists(sparseProfilePts, 'vector'):
     gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
     
     # But also find where the start points of two segments are nearby
+    gs.run_command('db.droptable', flags='f', table=duplicTable)
     gs.run_command('v.distance', flags='a', from_=startNodes, to=startNodes, from_layer=1, to_layer=1, \
                     dmax=1, upload='cat', table= duplicTable, overwrite=True)
     gs.run_command('db.select', table=duplicTable, separator='comma', output=duplicFile, overwrite=True)
@@ -103,7 +103,7 @@ while len(sameStarts) > origLen/2:
     i += 1
 sameStarts.reset_index(drop=True, inplace=True)
 
-# # The starts are the same, but check points along the entire profile
+# The starts are the same, but check points along the entire profile
 profDf = pd.read_csv(sparseFile)   
 
 for i in range(len(sameStarts)):
