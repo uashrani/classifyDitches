@@ -110,35 +110,23 @@ for i in range(len(sameStarts)):
     cat1, cat2 = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
     prof1, prof2 = profDf[profDf['lcat']==cat1], profDf[profDf['lcat']==cat2]
     
-    x1, y1 = prof1['x'].iloc[-1], prof1['y'].iloc[-1]
-    x2, y2 = prof2['x'].iloc[-1], prof2['y'].iloc[-1]
+    x1, y1 = prof1['x'], prof1['y']
+    x2, y2 = prof2['x'], prof2['y']
     
-    # First check distance between endpoints, if they are far then stop
-    endDist=math.sqrt((x2-x1)**2 + (y2-y1)**2)
+    dists = np.sqrt((x2-x1)**2 + (y2-y1)**2)
     
-    if endDist < 1:
-        print(cat1, cat2)
-        # Check 10 evenly spaced points along profile to make sure they're same
-        nPts = min([len(prof1), len(prof2)])
-        dists = []
-        for j in range(1, nPts-1):
-            x1, y1 = prof1['x'].iloc[j], prof1['y'].iloc[j]
-            x2, y2 = prof2['x'].iloc[j], prof2['y'].iloc[j]
-            
-            dists += [math.sqrt((x2-x1)**2 + (y2-y1)**2)]
-        if np.mean(dists) < 1:
-            
-            chain1 = chainDf['chain'][chainDf['root']==cat1].iloc[0]
-            chain2 = chainDf['chain'][chainDf['root']==cat2].iloc[0]
-            len1, len2 = prof1['along'].iloc[-1], prof2['along'].iloc[-1]
-            
-            # Delete the one that is an isolate, or the shorter one
-            toDel=cat1
-            if (chain1 == '[]' and chain2 != '[]') or len2 < len1:
-                toDel=cat2
-            
-            for layer in [vecLines, startNodes, endNodes]:
-                gs.run_command('v.edit', map_=layer, tool='delete', cats=toDel)
+    if np.mean(dists) < 1:
+        chain1 = chainDf['chain'][chainDf['root']==cat1].iloc[0]
+        chain2 = chainDf['chain'][chainDf['root']==cat2].iloc[0]
+        len1, len2 = prof1['along'].iloc[-1], prof2['along'].iloc[-1]
+        
+        # Delete the one that is an isolate, or the shorter one
+        toDel=cat1
+        if (chain1 == '[]' and chain2 != '[]') or len2 < len1:
+            toDel=cat2
+        
+        for layer in [vecLines, startNodes, endNodes]:
+            gs.run_command('v.edit', map_=layer, tool='delete', cats=toDel)
 
 #%% Find stream orders
 # Find where the end of one segment flows into the start of another
