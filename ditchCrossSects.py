@@ -12,37 +12,34 @@ import pandas as pd
 import numpy as np
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'HUC_0902010603'
 ditchPrefix = 'BRR'
 
-dem = 'ambigDEM2'
-#demNull = hucPrefix + '_wNulls' 
+dem = 'HUC_0902010603'
 
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  
 
 culvertDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'
 
-# Later will be region of the HUC, get from the bounding box file or g.region
-#n, s, e, w = 5217318, 5212652, 274769, 269803   # test region 1
-n, s, e, w = 5202318, 5191400, 220687, 212912   # test region 2
-
 # How far to take the profile on each side, in m
-halfDist = 15    # slightly smaller than the null width
+halfDist = 10   
+
 #%% Layers/files that will be created automatically
 
 lineDefFile= tmpFiles + hucPrefix + '_shiftedLineDefs.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
-# Shifted lines, and points that line along the shifted line
+# Shifted lines
 newLine = hucPrefix + '_shiftedDitches'
-newPts = hucPrefix + '_shiftedVertices'
-
-# Elevation profile from the shifted points
-newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
-
 #%% Actual code
 
-gs.run_command('g.region', raster=dem)
+region = gs.read_command('g.region', flags='gp', raster=dem)
+rgn = region.split('\r\n')
+rgnDict = {}
+for entry in rgn[:-1]: 
+    keyVal = entry.split('=')
+    rgnDict[keyVal[0]] = int(keyVal[1])
+n, s, e, w = rgnDict['n'], rgnDict['s'], rgnDict['e'], rgnDict['w']
 
 ### Read the points
 df = pd.read_csv(alongFile) 
@@ -168,5 +165,6 @@ for lcat in lcats:
 fLine.close()
         
 gs.run_command('v.edit', flags='n', map_=newLine, tool='add', input_=lineDefFile)
+#gs.run_command('v.db.addtable', map_=newLine)
     
     
