@@ -14,7 +14,7 @@ import numpy as np
 import math
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'testDEM1'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -94,8 +94,7 @@ for lcat in lcats:
         ax[i].annotate(annotation, xy=xy, xycoords='axes fraction', fontweight='bold', \
                        bbox={'facecolor': 'xkcd:light mint green', 'alpha': 0.3})
             
-        i += 1
-        
+        i += 1    
         
 ax[0].annotate('Along [m]', xy=(0.45, 0.03), xycoords='figure fraction', \
                fontweight='bold', fontsize=15)
