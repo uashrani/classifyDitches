@@ -18,12 +18,15 @@ ditchPrefix='BRR' # use for operations involving the entire ditch layer
 
 # We need roads vector data, ditch vector data, and elevation raster data
 roads = 'gis_osm_roads_free_1'
+ctyRoads = ['roads_beckerCounty', 'roads_clayCounty', 'roads_wilkinCounty']     # list of TIGER county roads
 railroads = 'rail_lines'
 bridges = 'Bridge_locations_in_Minnesota'
 airports = 'Airport_Runways_in_Minnesota'
 ditches = ditchPrefix + '_lines_filtered'
-dem = 'ambigDEM2'
+
 #%% Layers/files that will be created automatically
+
+roads2 = ditchPrefix + '_ctyRoads'
 
 intersectTable = ditchPrefix + '_intersect'
 
@@ -38,6 +41,12 @@ culvertBuffers = ditchPrefix + '_culvertBuffers'  # vector layer containing circ
 
 gs.run_command('g.region', vector=ditches)
 
+### Patch together the county roads into one layer
+if len(ctyRoads) > 1:
+    gs.run_command('v.patch', input_=ctyRoads, output=roads2)
+else: 
+    roads2 = ctyRoads[0]
+
 ### Start by finding intersection points between roads and ditches, & create vector layer
 if not gdb.map_exists(culvertBuffers, 'vector'):
     ### A single road can loop back around and intersect the same ditch twice,
@@ -46,10 +55,10 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
     gs.run_command('v.buffer', input_=ditches, type_='line', \
                    output=ditchBuffers, distance=0.01)
     
-    layers=[roads, railroads, bridges, airports]
-    suffixs = ['Roads', 'Railroads', 'Bridges', 'Airports']
-    dmaxs = [0, 0, 60, 100]  # max distance between ditches and this layer
-    buffers = [25, 50, 50, 75]  # width of the culvert
+    layers=[roads, roads2, railroads, bridges, airports]
+    suffixs = ['Roads', 'Roads2', 'Railroads', 'Bridges', 'Airports']
+    dmaxs = [0, 0, 0, 60, 100]  # max distance between ditches and this layer
+    buffers = [25, 25, 50, 50, 75]  # width of the culvert
     
     for (i, layer) in enumerate(layers):
         dmax, buffer, suffix = dmaxs[i], buffers[i], suffixs[i]
