@@ -131,6 +131,7 @@ ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
 fIDs = np.arange(1, len(ls_orig_cats)+1)
 
 dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
+dfOrig.to_csv(tmpFiles + 'origCats.csv')
 
 ### We have a table showing all connections, 
 ### but we narrow this down to connections b/w segments that had same original cat
@@ -164,41 +165,48 @@ for lcat in fIDs:
     # If a segment isn't in the directed graph, it forms its own chain
     if graph.has_node(lcat)==False: 
         chain=[int(lcat)]
-        
-    # If it has exactly one predecessor, it's part of another chain
-    elif len(list(graph.predecessors(lcat))) == 1:
+    else:
         prevLcats = list(graph.predecessors(lcat))
-        prevLcat = prevLcats[0]
+        
+        if len(prevLcats) != 1 or (len(prevLcats)==1 and len(list(graph.successors(prevLcats[0])))!=1):
+           
+    # If it has exactly one predecessor and no siblings, it's part of another chain
+    #elif len(list(graph.predecessors(lcat))) == 1 and len(list(graph.successors(list(graph.predecessors(lcat)))[0]))==1:
+        #prevLcats = list(graph.predecessors(lcat))
+        #prevLcat = prevLcats[0]
         
         # But check that it doesn't have siblings
-        if len(list(graph.successors(prevLcat))) == 1:
-            chain=[]
-        else:
-            chain=[int(lcat)]
+        #if len(list(graph.successors(prevLcat))) == 1:
+        #    chain=[]
+        #if len(list(graph.successors(prevLcat))) != 1:
+        #    chain=[int(lcat)]
         
     # If it has 0 or 2+ predecessors, start a new chain here
-    else:
-        chain=[int(lcat)]
-        
-        nextLcats=list(graph.successors(lcat))
-        
-        # If a segment has 0 or 2+ successors, end the chain here
-        if len(nextLcats) != 1:
-            nextLcat=0 
-        else:
-            nextLcat=nextLcats[0]
-        
-        # Check to make sure the successor isn't receiving flow from another segment
-        while nextLcat != 0 and len(list(graph.predecessors(nextLcat)))==1:
-            chain+=[int(nextLcat)]
+    #else:
+            chain=[int(lcat)]
             
-            nextLcats = list(graph.successors(nextLcat))
+            nextLcats=list(graph.successors(lcat))
+            
+            # If a segment has 0 or 2+ successors, end the chain here
             if len(nextLcats) != 1:
-                nextLcat=0
+                nextLcat=0 
             else:
                 nextLcat=nextLcats[0]
+            
+            # Check to make sure the successor isn't receiving flow from another segment
+            while nextLcat != 0 and len(list(graph.predecessors(nextLcat)))==1:
+                chain+=[int(nextLcat)]
                 
-    chainDf.loc[lcat-1, 'chain']=str(chain)
+                nextLcats = list(graph.successors(nextLcat))
+                if len(nextLcats) != 1:
+                    nextLcat=0
+                else:
+                    nextLcat=nextLcats[0]
+                
+    #chainDf.loc[lcat-1, 'chain']=str(chain)
+    
+    for segment in chain:
+        chainDf.loc[segment-1, 'chain']=str(chain)
     
 chainDf['us_chain']=''
 chainDf['us_len']=np.nan
