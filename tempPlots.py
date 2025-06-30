@@ -14,7 +14,7 @@ import numpy as np
 import math
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM1'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -30,71 +30,81 @@ lcats=sorted(set(df['lcat']))
 
 ### Make plots and do linear regression
 
-fig,axs=plt.subplots(3, 3, figsize=(18, 10))
+fig,axs=plt.subplots(4, 4, figsize=(18, 10))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
 i=0
-for lcat in lcats:
+for lcat in lcats[32:]:
+    strpChain = str(lcat)
+    
     thisDitch = df[df['lcat']==lcat]
     filtProfile = thisDitch[np.isnan(thisDitch['elev'])==False]
+    along, elev = filtProfile['along'], filtProfile['elev']
     
-    ## Chain some lines together based on the definitions in the file
-    strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
+    # Try linear regression with just a single ditch segment,
+    linreg = sp.stats.linregress(along, elev)  
+    r2=linreg.rvalue**2
     
-    strpChain=strChain.strip('[]')
-    if strpChain != '': 
+    # Concatenate segments for linreg if r2 is too low
+    if r2 < 0.4: 
+        ## Chain some lines together based on the definitions in the file
+        strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
+        strpChain=strChain.strip('[]')
         chain = list(map(int,strpChain.split(', ')))
-    else:
-        chain=[]
-        
-    if len(chain) > 0:
-        # Concatenate the elevation profiles from different segments into one
-        for (j,link) in enumerate(chain):
-            thisDitch = df[df['lcat']==link]
+            
+        for (j, segment) in enumerate(chain):
+            thisDitch = df[df['lcat']==segment]
             if j==0:
                 concatDf = thisDitch.reset_index(drop=True)
             else:
-                thisDitch.loc[:, 'along']=thisDitch['along'] + concatDf['along'].iloc[-1]
+                if len(concatDf) > 0: thisDitch.loc[:, 'along']=thisDitch['along'] + concatDf['along'].iloc[-1]
                 concatDf = pd.concat((concatDf, thisDitch)).reset_index(drop=True)
                 
         filtProfile = concatDf[np.isnan(concatDf['elev'])==False]
         along, elev = filtProfile['along'], filtProfile['elev']
+        
+        linreg = sp.stats.linregress(along, elev)
+        
+    linElev = linreg.slope * along + linreg.intercept
     
-        ### Still have to filter out peaks even after culvert removal
-        peakInds, props = sp.signal.find_peaks(elev, prominence=1, width=[1,250])
+    # Calculate the absolute value of error 
+    absErr = np.absolute(elev - linElev)
+    rmse = np.sqrt(np.mean((elev - linElev)**2))
+    prom=min([1,rmse*4])
+    
+    ### Still have to filter out culverts from unmapped roads, etc.
+    peakInds, props = sp.signal.find_peaks(elev, prominence=prom, width=[1,50])
         
-        lefts, rights = props['left_ips'], props['right_ips']
+    lefts, rights = props['left_ips'], props['right_ips']
         
-        allPeaks = []
-        for (k, ind) in enumerate(peakInds):
-            l=math.floor(lefts[k])
-            r=math.ceil(rights[k])
-            allPeaks += range(l, r+1)
-            
-        filtElev=elev.drop(elev.index[allPeaks])
-        filtAlong=along.drop(along.index[allPeaks])
+    allPeaks = []
+    for (k, ind) in enumerate(peakInds):
+        l=math.floor(lefts[k])
+        r=math.ceil(rights[k])
+        allPeaks += range(l, r+1)
         
-        linreg = sp.stats.linregress(filtAlong, filtElev)   
+    filtElev=elev.drop(elev.index[allPeaks])
+    filtAlong=along.drop(along.index[allPeaks])
         
-        ax[i].plot(along, elev, 'lightsteelblue', ls='', marker='.') 
-        ax[i].plot(filtAlong, filtElev, 'xkcd:purplish brown', ls='', marker='.') 
-        ax[i].plot(along, linreg.slope * along + linreg.intercept, 'k')
+    ax[i].plot(along, elev, 'lightsteelblue', ls='', marker='.') 
+    ax[i].plot(filtAlong, filtElev, 'xkcd:purplish brown', ls='', marker='.') 
+    ax[i].plot(along, linElev, 'k')
         
-        ax[i].set_title('Ditch ' + str(strpChain))
+    ax[i].set_title('Ditch ' + str(strpChain))
+    
+    annotation='m='+str(round(linreg.slope, 6)) + \
+        '\nr$^2$='+str(round(linreg.rvalue**2, 3))
         
-        annotation='m='+str(round(linreg.slope, 6)) + \
-            '\nr$^2$='+str(round(linreg.rvalue**2, 3))
-            
-        if linreg.slope < 0:
-            xy=(.62, .78) 
-        else:
-            xy=(.03, .78)
-            
-        ax[i].annotate(annotation, xy=xy, xycoords='axes fraction', fontweight='bold', \
-                       bbox={'facecolor': 'xkcd:light mint green', 'alpha': 0.3})
-            
-        i += 1    
+    if linreg.slope < 0:
+        xy=(.62, .78) 
+    else:
+        xy=(.03, .78)
+        
+    ax[i].annotate(annotation, xy=xy, xycoords='axes fraction', fontweight='bold', \
+                   bbox={'facecolor': 'xkcd:light mint green', 'alpha': 0.3})
+        
+    i += 1    
         
 ax[0].annotate('Along [m]', xy=(0.45, 0.03), xycoords='figure fraction', \
                fontweight='bold', fontsize=15)
