@@ -9,7 +9,6 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import networkx as nx
 import numpy as np
-import math
 
 tmpFiles = 'tempFiles/'
 hucPrefix = 'HUC_0902010603'
@@ -70,7 +69,6 @@ def findOrder(lcat, ditchLines):
         return(order, ditchLines)
 
 #%%  Create new start and end point layers from correct flow direction
-#gs.run_command('g.remove', flags='f', type_='vector', name=[startNodes, endNodes])
 if not gdb.map_exists(sparseProfilePts, 'vector'): 
     gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
     gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
