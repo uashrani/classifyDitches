@@ -36,7 +36,7 @@ plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
 i=0
-for lcat in lcats[:16]: #[32:48]:
+for lcat in lcats[32:48]: #[32:48]:
     if lcat==259: continue
     
     strpChain = ''
