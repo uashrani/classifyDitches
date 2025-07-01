@@ -15,7 +15,7 @@ tmpFiles = 'tempFiles/'
 hucPrefix='testDEM3' # use for operations that need the DEM
 ditchPrefix='BRR' # use for operations involving the entire ditch layer
 
-# We need roads vector data, ditch vector data, and elevation raster data
+# We need ditch vector data, culvert vector data, and elevation raster data
 ditchesCropped = hucPrefix + '_shiftedDitches'  # only covers extent of DEM
 dem = 'testDEM3'
 
@@ -69,6 +69,7 @@ if not gdb.map_exists(demNull, 'raster'):
     gs.run_command('r.null', map_=demNull, setnull=0)
     
     gs.run_command('v.to.points', input_=ditchesCropped, dmax=1, output=newPts)
+    gs.run_command('v.to.db', map_=newPts, layer=2, option='coor', columns=['x', 'y'])
     gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
     gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
 
