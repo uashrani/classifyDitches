@@ -28,15 +28,18 @@ df = pd.read_csv(newElevFile)
 
 lcats=sorted(set(df['lcat']))
 
-### Make plots and do linear regression
+unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
+### Make plots and do linear regression
 fig,axs=plt.subplots(4, 4, figsize=(18, 10))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
 i=0
-for lcat in lcats[32:]:
-    strpChain = str(lcat)
+for lcat in lcats[:16]: #[32:48]:
+    if lcat==259: continue
+    
+    strpChain = ''
     
     thisDitch = df[df['lcat']==lcat]
     filtProfile = thisDitch[np.isnan(thisDitch['elev'])==False]
@@ -66,12 +69,37 @@ for lcat in lcats[32:]:
         
         linreg = sp.stats.linregress(along, elev)
         
+    x, y = filtProfile['x'], filtProfile['y']
     linElev = linreg.slope * along + linreg.intercept
     
     # Calculate the absolute value of error 
     absErr = np.absolute(elev - linElev)
     rmse = np.sqrt(np.mean((elev - linElev)**2))
     prom=min([1,rmse*4])
+    
+    # scipy find_peaks doesn't catch peaks at the endpoints
+    # Check where slope is different from rest of profile?
+    ditchSlope = np.diff(elev) / np.diff(along)
+    start25, end25 = np.where(along>25)[0][0], np.where(along+25<along.iloc[-1])[0][-1]
+    
+    startSlope = (elev.iloc[start25] - elev.iloc[0]) / (along.iloc[start25] - along.iloc[0])
+    endSlope = (elev.iloc[-1] - elev.iloc[end25]) / (along.iloc[-1] - along.iloc[end25])
+    
+    print(lcat, linreg.slope, startSlope, endSlope)
+    
+    peakIndsEP = []
+    if (np.abs(startSlope) > np.abs(linreg.slope) * 20) and np.max((elev-linElev).iloc[:start25]) > prom:
+        peakIndsEP += [0] 
+        unmappedCulverts = pd.concat((unmappedCulverts, \
+                                      pd.DataFrame({'x': [x.iloc[0]], 'y': [y.iloc[0]]})))
+                                     
+    if np.abs(endSlope) > np.abs(linreg.slope) * 20 and np.max((elev-linElev).iloc[end25:]) > prom:
+        lastInd = len(along)-1
+        peakIndsEP += [len(along)-1]
+        unmappedCulverts = pd.concat((unmappedCulverts, \
+                                      pd.DataFrame({'x': [x.iloc[lastInd]], 'y': [y.iloc[lastInd]]})))
+    
+    #peakIndsEP = np.where((np.abs(ditchSlope) > 3*np.abs(linreg.slope)) & ((truncAlong < 25) | (truncAlong + 25 > along.iloc[-1])))
     
     ### Still have to filter out culverts from unmapped roads, etc.
     peakInds, props = sp.signal.find_peaks(elev, prominence=prom, width=[1,50])
@@ -83,6 +111,8 @@ for lcat in lcats[32:]:
         l=math.floor(lefts[k])
         r=math.ceil(rights[k])
         allPeaks += range(l, r+1)
+        unmappedCulverts = pd.concat((unmappedCulverts, \
+                                      pd.DataFrame({'x': [x.iloc[ind]], 'y': [y.iloc[ind]]})))
         
     filtElev=elev.drop(elev.index[allPeaks])
     filtAlong=along.drop(along.index[allPeaks])
@@ -90,8 +120,9 @@ for lcat in lcats[32:]:
     ax[i].plot(along, elev, 'lightsteelblue', ls='', marker='.') 
     ax[i].plot(filtAlong, filtElev, 'xkcd:purplish brown', ls='', marker='.') 
     ax[i].plot(along, linElev, 'k')
+    ax[i].plot(along.iloc[peakIndsEP], elev.iloc[peakIndsEP], 'r', ls='', marker='x', markersize=10, mew=4)
         
-    ax[i].set_title('Ditch ' + str(strpChain))
+    ax[i].set_title('Ditch ' + str(lcat) + ' (' + strpChain + ')')
     
     annotation='m='+str(round(linreg.slope, 6)) + \
         '\nr$^2$='+str(round(linreg.rvalue**2, 3))
