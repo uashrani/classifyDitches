@@ -12,10 +12,9 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import scipy as sp
 import numpy as np
-import math
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -48,6 +47,8 @@ if not gdb.map_exists(vecLines, 'vector'):
 
     ### Do linear regression and flip vector directions if needed
     for lcat in lcats:
+        chain=[lcat]
+        
         # temporary
         if lcat == 259: continue
     
@@ -113,11 +114,11 @@ if not gdb.map_exists(vecLines, 'vector'):
                                           pd.DataFrame({'x': [x.iloc[ind]], 'y': [y.iloc[ind]]})))
             
         if linreg.slope > 0:
-            gs.run_command('v.edit', map_=vecLines, tool='flip', cats=chain)
+            gs.run_command('v.edit', map_=vecLines, tool='flip', cats=lcat)
             chain = chain[::-1]
             newRoot = chain[0]
-            newChainDf.loc[lcat-1, 'chain']='[]'
-            newChainDf.loc[newRoot-1, 'chain']=str(chain)
+            #newChainDf.loc[lcat-1, 'chain']='[]'
+            newChainDf.loc[lcat-1, 'chain']=str(chain)
         if r2 < 0.4:
             print('Warning: Ditch ' + str(lcat) + ' still has r2 < 0.4 even after concatenating profiles.')
                 
