@@ -96,7 +96,6 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
     gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
                    separator='comma', columns=['x double precision', 'y double precision', 'buffer double precision'])
     
-    ### Now find portions of ditches that go through a culvert
     # Buffer the culvert points
     gs.run_command('v.buffer', input_=culvertPts, type_='point', \
                     output=culvertBuffers, column='buffer', layer=1)
