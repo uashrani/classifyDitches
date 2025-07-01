@@ -18,7 +18,7 @@ hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
-newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
+newElevFile = tmpFiles + hucPrefix + '_v2_elevProfile_shiftedDitches.txt'
 
 newLine = hucPrefix + '_shiftedDitches'
 
@@ -31,12 +31,12 @@ lcats=sorted(set(df['lcat']))
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 ### Make plots and do linear regression
-fig,axs=plt.subplots(4, 4, figsize=(18, 10))
+fig,axs=plt.subplots(7, 7, figsize=(36, 20))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
 i=0
-for lcat in lcats[32:48]: #[32:48]:
+for lcat in lcats: #[32:48]:
     if lcat==259: continue
     
     strpChain = ''
