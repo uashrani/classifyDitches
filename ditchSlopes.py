@@ -13,6 +13,8 @@ import pandas as pd
 import scipy as sp
 import numpy as np
 
+import removeCulverts
+
 tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
@@ -21,6 +23,9 @@ chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 newLine = hucPrefix + '_shiftedDitches'
+
+demNull = hucPrefix + '_wNulls'
+demBurned = hucPrefix + '_burned'
 
 #%% To be created
 vecLines = hucPrefix + '_lines_final'
@@ -67,7 +72,7 @@ if not gdb.map_exists(vecLines, 'vector'):
             strpChain=strChain.strip('[]')
             chain = list(map(int,strpChain.split(', ')))
             
-            print('Ditch ' + str(lcat) + ' has r2 value less than 0.4. Concatenating with ' + \
+            print('Ditch ' + str(lcat) + ' has r2 < 0.4. Concatenating with ' + \
                   strpChain)
                 
             for (j, segment) in enumerate(chain):
@@ -138,3 +143,7 @@ gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
 # Buffer the culvert points
 gs.run_command('v.buffer', input_=culvertPts, type_='point', \
                 output=culvertBuffers, distance=25)
+    
+# Later make a mega program that calls all functions, but for now do it here
+removeCulverts.removeCulverts(tmpFiles, hucPrefix + '_v2', hucPrefix, \
+                              culvertBuffers, newLine, demNull, demBurned)
