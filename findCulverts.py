@@ -12,7 +12,7 @@ import grass.grassdb.data as gdb
 import pandas as pd
 
 # Folder names
-tmpFiles = 'tempFiles/'
+tmpFiles = 'tempFiles2/'
 
 ditchPrefix='BRR' # use for operations involving the entire ditch layer
 
@@ -22,7 +22,7 @@ ctyRoads = ['roads_beckerCounty', 'roads_clayCounty', 'roads_wilkinCounty']     
 railroads = 'rail_lines'
 bridges = 'Bridge_locations_in_Minnesota'
 airports = 'Airport_Runways_in_Minnesota'
-ditches = ditchPrefix + '_lines_filtered'
+ditches = ditchPrefix + '_lines_snapped'
 
 #%% Layers/files that will be created automatically
 
