@@ -12,11 +12,13 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import numpy as np
 
-tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM3'
+import removeCulverts
+
+tmpFiles = 'tempFiles2/'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
-dem = 'testDEM3'
+dem = hucPrefix
 
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  
 
@@ -32,6 +34,11 @@ tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines
 newLine = hucPrefix + '_shiftedDitches'
+
+# Stuff needed to remove culverts
+culvertBuffers = ditchPrefix + '_culvertBuffers'
+demNull = hucPrefix + '_wNulls'
+demBurned = hucPrefix + '_burned'
 #%% Actual code
 
 if not gdb.map_exists(newLine, 'vector'):
@@ -167,6 +174,9 @@ if not gdb.map_exists(newLine, 'vector'):
     fLine.close()
             
     gs.run_command('v.edit', flags='n', map_=newLine, tool='add', input_=lineDefFile)
-#gs.run_command('v.db.addtable', map_=newLine)
+
+# Later make a mega program that calls all functions, but for now do it here
+removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
+                              culvertBuffers, newLine, dem, dem)
     
     
