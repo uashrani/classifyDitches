@@ -15,7 +15,7 @@ import numpy as np
 
 import removeCulverts
 
-tmpFiles = 'tempFiles/'
+tmpFiles = 'tempFiles2/'
 hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
