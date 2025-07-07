@@ -33,6 +33,7 @@ lineDefFile= tmpFiles + hucPrefix + '_shiftedLineDefs.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines
+definedLine = hucPrefix + '_shiftedDitches_notCleaned'
 newLine = hucPrefix + '_shiftedDitches'
 
 # Stuff needed to remove culverts
@@ -66,10 +67,22 @@ if not gdb.map_exists(newLine, 'vector'):
     # Create empty vector map for new lines, and empty file to add coords
     newPtsDf = pd.DataFrame({'lcat': [], 'x': [], 'y': [], 'across': [], \
                              'x1': [], 'y1': [], 'cos': [], 'sin': [], 'culvert': []})
-    gs.run_command('v.edit', map_=newLine, type_='line', tool='create', overwrite=True)
+    gs.run_command('v.edit', map_=definedLine, type_='line', tool='create', overwrite=True)
     
     for lcat in lcats:
         profilePts = df[df['lcat']==lcat]
+        
+        # Sometimes v.edit adds a 'toe' to a segment
+        # you can tell if there are two places where along = 0
+        whereStarts = np.where(profilePts['along']==0)[0]
+        if len(whereStarts) > 1:
+            # Keep the longest segment and filter out the toe
+            segEndpts = list(whereStarts) + [len(profilePts)]
+            lenSegments=np.diff(segEndpts)
+            k = np.where(lenSegments==np.max(lenSegments))[0][0]
+            profilePts = profilePts.iloc[segEndpts[k]:segEndpts[k+1]]
+            print(str(lcat) + ' had a toe added by v.edit')
+        
         x, y = profilePts['x'], profilePts['y']
         
         tangentSlopes=np.diff(y) / np.diff(x)  
@@ -136,7 +149,8 @@ if not gdb.map_exists(newLine, 'vector'):
                                    'across': [across], 'x1': [x1], 'y1': [y1], \
                                        'cos': [cos], 'sin': [sin], 'culvert': [culvert]})
             newPtsDf = pd.concat((newPtsDf, newRow))
-                
+       
+    #newPtsDf.to_csv(tmpFiles + hucPrefix + '_newPtsDf.csv')
     # Now write to a file since we know how many points are in each line
     fLine=open(lineDefFile, 'a')
     
@@ -173,7 +187,9 @@ if not gdb.map_exists(newLine, 'vector'):
             
     fLine.close()
             
-    gs.run_command('v.edit', flags='n', map_=newLine, tool='add', input_=lineDefFile)
+    gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', input_=lineDefFile)
+    
+    gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=10)
 
 # Later make a mega program that calls all functions, but for now do it here
 removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
