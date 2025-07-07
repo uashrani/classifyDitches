@@ -21,7 +21,7 @@ vecLines1=vecLines0 + '_modifiable'
 vecLines2=ditchPrefix + '_lines_nameless'
 vecLines3=ditchPrefix + '_lines_renamed'
 vecLines4=ditchPrefix + '_lines_filtered'
-vecLines5=ditchPrefix + '_lines_snapped'
+#vecLines5=ditchPrefix + '_lines_snapped'
 
 vecPoints1=ditchPrefix + '_nodes_old'  
 
@@ -107,14 +107,14 @@ if not gdb.map_exists(vecLines4, 'vector'):
     gs.run_command('v.to.db', map_=vecLines3, option='length', columns=['len'])
     gs.run_command('v.db.droprow', input_=vecLines3, where="len < 0.1", output=vecLines4, overwrite=True)
     
-    gs.run_command('v.clean', input_=vecLines4, type_='line', output=vecLines5, tool='snap', threshold=10)
+    gs.run_command('v.edit', map_=vecLines4, tool='connect', threshold=10, cats='1-1000')
 
 ### Find segments to concatenate
 ### and identify which lines may be duplicates
 if not gdb.map_exists(endNodes, 'vector'):
     # Create layers for start and end points
-    gs.run_command('v.to.points', input_=vecLines5, output=startNodes, use='start', overwrite=True)
-    gs.run_command('v.to.points', input_=vecLines5, output=endNodes, use='end', overwrite=True)
+    gs.run_command('v.to.points', input_=vecLines4, output=startNodes, use='start', overwrite=True)
+    gs.run_command('v.to.points', input_=vecLines4, output=endNodes, use='end', overwrite=True)
     # Find where the end of one segment flows into the start of another
     gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=2, \
                     dmax=0, upload='to_attr', to_column='lcat', column='to_lcat', \
@@ -204,7 +204,7 @@ chainDf.to_csv(chainFile, index=False)
 ### Get points spaced 1m apart along the new lines
 ### Will be used to take transects and check for duplicates
 if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
+    gs.run_command('v.to.points', input_=vecLines4, output=profilePts, dmax=1)
     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
