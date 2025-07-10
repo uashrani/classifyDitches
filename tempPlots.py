@@ -13,12 +13,12 @@ import scipy as sp
 import numpy as np
 import math
 
-tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM3'
+tmpFiles = 'tempFiles2/'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
-newElevFile = tmpFiles + hucPrefix + '_v2_elevProfile_shiftedDitches.txt'
+newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 newLine = hucPrefix + '_shiftedDitches'
 
@@ -31,7 +31,7 @@ lcats=sorted(set(df['lcat']))
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 ### Make plots and do linear regression
-fig,axs=plt.subplots(7, 7, figsize=(36, 20))
+fig,axs=plt.subplots(4, 4, figsize=(18, 10))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
@@ -46,11 +46,12 @@ for lcat in lcats: #[32:48]:
     along, elev = filtProfile['along'], filtProfile['elev']
     
     # Try linear regression with just a single ditch segment,
-    linreg = sp.stats.linregress(along, elev)  
-    r2=linreg.rvalue**2
+    if len(along) >= 2:
+        linreg = sp.stats.linregress(along, elev)  
+        r2=linreg.rvalue**2
     
     # Concatenate segments for linreg if r2 is too low
-    if r2 < 0.4: 
+    if len(along) < 2 or r2 < 0.4:
         ## Chain some lines together based on the definitions in the file
         strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
         strpChain=strChain.strip('[]')
@@ -84,8 +85,6 @@ for lcat in lcats: #[32:48]:
     
     startSlope = (elev.iloc[start25] - elev.iloc[0]) / (along.iloc[start25] - along.iloc[0])
     endSlope = (elev.iloc[-1] - elev.iloc[end25]) / (along.iloc[-1] - along.iloc[end25])
-    
-    print(lcat, linreg.slope, startSlope, endSlope)
     
     peakIndsEP = []
     if (np.abs(startSlope) > np.abs(linreg.slope) * 20) and np.max((elev-linElev).iloc[:start25]) > prom:

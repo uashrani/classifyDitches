@@ -16,7 +16,7 @@ import numpy as np
 import removeCulverts
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM3'
+hucPrefix = 'testDEM4'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -62,11 +62,12 @@ if not gdb.map_exists(vecLines, 'vector'):
         along, elev = filtProfile['along'], filtProfile['elev']
         
         # Try linear regression with just a single ditch segment first
-        linreg = sp.stats.linregress(along, elev)  
-        r2=linreg.rvalue**2
+        if len(along) >=2: 
+            linreg = sp.stats.linregress(along, elev)  
+            r2=linreg.rvalue**2
         
         # Concatenate segments for linreg if r2 is too low
-        if r2 < 0.4: 
+        if len(along) < 2 or r2 < 0.4: 
             ## Chain some lines together based on the definitions in the file
             strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
             strpChain=strChain.strip('[]')
@@ -100,16 +101,18 @@ if not gdb.map_exists(vecLines, 'vector'):
         # scipy find_peaks doesn't catch peaks at the endpoints
         # Check where slope is different from rest of profile?
         ditchSlope = np.diff(elev) / np.diff(along)
-        start25, end25 = np.where(along>25)[0][0], np.where(along+25<along.iloc[-1])[0][-1]
-        
-        startSlope = (elev.iloc[start25] - elev.iloc[0]) / (along.iloc[start25] - along.iloc[0])
-        endSlope = (elev.iloc[-1] - elev.iloc[end25]) / (along.iloc[-1] - along.iloc[end25])
         
         peakIndsEP = []
-        if (np.abs(startSlope) > np.abs(linreg.slope) * 20) and np.max((elev-linElev).iloc[:start25]) > prom:
-            peakIndsEP += [0] 
-        if np.abs(endSlope) > np.abs(linreg.slope) * 20 and np.max((elev-linElev).iloc[end25:]) > prom:
-            peakIndsEP += [len(along)-1]
+        
+        if np.max(along) > 50:
+            start25, end25 = np.where(along>25)[0][0], np.where(along+25<along.iloc[-1])[0][-1]
+            startSlope = (elev.iloc[start25] - elev.iloc[0]) / (along.iloc[start25] - along.iloc[0])
+            endSlope = (elev.iloc[-1] - elev.iloc[end25]) / (along.iloc[-1] - along.iloc[end25]) 
+            
+            if (np.abs(startSlope) > np.abs(linreg.slope) * 20) and np.max((elev-linElev).iloc[:start25]) > prom:
+                peakIndsEP += [0] 
+            if np.abs(endSlope) > np.abs(linreg.slope) * 20 and np.max((elev-linElev).iloc[end25:]) > prom:
+                peakIndsEP += [len(along)-1]
                 
         peakInds, props = sp.signal.find_peaks(elev, prominence=prom, width=[1,50])
             
