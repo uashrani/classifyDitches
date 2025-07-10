@@ -17,11 +17,16 @@ ditchPrefix='BRR'
 
 #%% Layers/files that will be created automatically
 
-vecLines1=vecLines0 + '_modifiable'
-vecLines2=ditchPrefix + '_lines_nameless'
-vecLines3=ditchPrefix + '_lines_renamed'
-vecLines4=ditchPrefix + '_lines_filtered'
-#vecLines5=ditchPrefix + '_lines_snapped'
+vecLines1 = ditchPrefix + '_lines_cleaned'
+vecLines2 = ditchPrefix + '_lines_nameless'
+vecLines3 = ditchPrefix + '_lines_renamed'
+vecLines4 = ditchPrefix + '_lines_filtered'
+
+# vecLines1=vecLines0 + '_modifiable'
+# vecLines2 = ditchPrefix + '_lines_cleaned'
+# vecLines3=ditchPrefix + '_lines_nameless'
+# vecLines4=ditchPrefix + '_lines_renamed'
+# vecLines4=ditchPrefix + '_lines_filtered'
 
 vecPoints1=ditchPrefix + '_nodes_old'  
 
@@ -34,12 +39,15 @@ intersectFileTemp=tmpFiles + ditchPrefix + '_intersections.txt'
 # Start and end points, and duplicates
 startNodes = ditchPrefix + '_startsTemp'
 endNodes = ditchPrefix + '_endsTemp'
+allNodes = ditchPrefix + '_nodesTemp'
 connectTable = ditchPrefix + '_flowConnections'
+snapTable = ditchPrefix + '_whereToSnap'
 
-connectFile=tmpFiles + 'mergeLines.txt'
+connectFile= tmpFiles + 'mergeLines.txt'
+snapDefFile = tmpFiles + snapTable + '.txt'
 chainFile= tmpFiles + ditchPrefix + '_streamChains.txt'
 
-# Layers/files for the along profile
+# Layers/files for the along profile - use it to take cross sections later
 profilePts=ditchPrefix + '_profilePts'  # GRASS layer
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  # output file
 
@@ -79,24 +87,27 @@ def split_nodesIntersects(ptFile, intersectFile, linesLayer):
 gs.run_command('g.region', vector=vecLines0)
 
 if not gdb.map_exists(vecLines4, 'vector'):
-    gs.run_command('g.copy', vector=[vecLines0, vecLines1])
     
     # Get list of all nodes and their xy coordinates, will split lines at these points
-    gs.run_command('v.to.points', input_=vecLines1, output=vecPoints1, use='node', overwrite=True)
+    gs.run_command('v.to.points', input_=vecLines0, output=vecPoints1, use='node', overwrite=True)
     gs.run_command('v.to.db', map_=vecPoints1, layer=2, option='coor', columns=['x', 'y'], overwrite=True)
     # Export attribute table of these points
     gs.run_command('v.db.select', map_=vecPoints1, layer=2, format_='csv', file=ptFileTemp, overwrite=True)
     
     # Also get intersections between lines, since there is not always a node at the intersection
-    gs.run_command('v.distance', flags='a', from_=vecLines1, to=vecLines1, dmax=10, \
+    gs.run_command('v.distance', flags='a', from_=vecLines0, to=vecLines0, dmax=10, \
         upload=['to_x', 'to_y', 'cat'], table=intersectTable, overwrite=True)
     gs.run_command('db.select', table=intersectTable, separator='comma', output=intersectFileTemp, overwrite=True)
     
+    # Delete duplicates or near-duplicates (small angles)
+    gs.run_command('v.clean', flags='c', input_=vecLines0, type_='line', output=vecLines1, tool='rmsa')
+    
+    # Split lines at intersections and nodes
     split_nodesIntersects(ptFileTemp, intersectFileTemp, vecLines1)
     
-    ### When we split lines into segments, their category number didn't change (only feature ID did)
-    ### Create new attribute table so every segment has unique category number
-    # Delete old category numbers and assign new category number to each segment
+    #gs.run_command('v.clean', flags='c', input_=vecLines1, type_='line', output=vecLines2, tool=['rmline', 'rmsa'], threshold=[0,0])
+    
+    # Update category numbers
     gs.run_command('v.category', flags='t', input_=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
     gs.run_command('v.category', input_=vecLines2, output=vecLines3, option='add', overwrite=True)
     
@@ -104,10 +115,9 @@ if not gdb.map_exists(vecLines4, 'vector'):
     gs.run_command('v.db.connect', flags='d', map_=vecLines3, layer=1)
     gs.run_command('v.db.addtable', map_=vecLines3)
 
+    # Delete very short line segments
     gs.run_command('v.to.db', map_=vecLines3, option='length', columns=['len'])
     gs.run_command('v.db.droprow', input_=vecLines3, where="len < 0.1", output=vecLines4, overwrite=True)
-    
-    gs.run_command('v.edit', map_=vecLines4, tool='connect', threshold=10, cats='1-1000')
 
 ### Find segments to concatenate
 ### and identify which lines may be duplicates
@@ -117,10 +127,19 @@ if not gdb.map_exists(endNodes, 'vector'):
     gs.run_command('v.to.points', input_=vecLines4, output=endNodes, use='end', overwrite=True)
     # Find where the end of one segment flows into the start of another
     gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=2, \
-                    dmax=0, upload='to_attr', to_column='lcat', column='to_lcat', \
-                        table= connectTable, overwrite=True)
+                    dmax=0.2, upload='to_attr', to_column='lcat', column='to_lcat', \
+                        table=connectTable, overwrite=True)
     
     gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
+    
+    # Find locations to snap lines to
+    gs.run_command('v.to.points', input_=vecLines4, output=allNodes, use='node', overwrite=True)
+    gs.run_command('v.distance', flags='a', from_=allNodes, from_layer=1, to_=vecLines4, \
+                   dmax=10, upload=['cat','dist','to_x','to_y'], table=snapTable)
+    gs.run_command('db.select', table=snapTable, separator='comma', output=snapDefFile, overwrite=True)
+    
+    # Connect lines within 10m of each other
+    #gs.run_command('v.edit', map_=vecLines4, tool='connect', threshold=10, cats='1-1000')
     
 #%% Find which segments originally connected to each other (even if not actual flow dir)
 
