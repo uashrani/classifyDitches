@@ -14,7 +14,7 @@ import numpy as np
 import math
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'testDEM4'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -31,7 +31,7 @@ lcats=sorted(set(df['lcat']))
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 ### Make plots and do linear regression
-fig,axs=plt.subplots(4, 4, figsize=(18, 10))
+fig,axs=plt.subplots(9, 9, figsize=(36, 20))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
@@ -68,6 +68,8 @@ for lcat in lcats: #[32:48]:
         filtProfile = concatDf[np.isnan(concatDf['elev'])==False]
         along, elev = filtProfile['along'], filtProfile['elev']
         
+        if len(along) == 0:
+            continue
         linreg = sp.stats.linregress(along, elev)
         
     x, y = filtProfile['x'], filtProfile['y']
@@ -81,22 +83,24 @@ for lcat in lcats: #[32:48]:
     # scipy find_peaks doesn't catch peaks at the endpoints
     # Check where slope is different from rest of profile?
     ditchSlope = np.diff(elev) / np.diff(along)
-    start25, end25 = np.where(along>25)[0][0], np.where(along+25<along.iloc[-1])[0][-1]
-    
-    startSlope = (elev.iloc[start25] - elev.iloc[0]) / (along.iloc[start25] - along.iloc[0])
-    endSlope = (elev.iloc[-1] - elev.iloc[end25]) / (along.iloc[-1] - along.iloc[end25])
-    
     peakIndsEP = []
-    if (np.abs(startSlope) > np.abs(linreg.slope) * 20) and np.max((elev-linElev).iloc[:start25]) > prom:
-        peakIndsEP += [0] 
-        unmappedCulverts = pd.concat((unmappedCulverts, \
-                                      pd.DataFrame({'x': [x.iloc[0]], 'y': [y.iloc[0]]})))
-                                     
-    if np.abs(endSlope) > np.abs(linreg.slope) * 20 and np.max((elev-linElev).iloc[end25:]) > prom:
-        lastInd = len(along)-1
-        peakIndsEP += [len(along)-1]
-        unmappedCulverts = pd.concat((unmappedCulverts, \
-                                      pd.DataFrame({'x': [x.iloc[lastInd]], 'y': [y.iloc[lastInd]]})))
+    
+    if np.max(along) > 50:
+        start25, end25 = np.where(along>25)[0][0], np.where(along+25<along.iloc[-1])[0][-1]
+        startSlope = (elev.iloc[start25] - elev.iloc[0]) / (along.iloc[start25] - along.iloc[0])
+        endSlope = (elev.iloc[-1] - elev.iloc[end25]) / (along.iloc[-1] - along.iloc[end25])
+    
+    
+        if (np.abs(startSlope) > np.abs(linreg.slope) * 20) and np.max((elev-linElev).iloc[:start25]) > prom:
+            peakIndsEP += [0] 
+            unmappedCulverts = pd.concat((unmappedCulverts, \
+                                          pd.DataFrame({'x': [x.iloc[0]], 'y': [y.iloc[0]]})))
+                                         
+        if np.abs(endSlope) > np.abs(linreg.slope) * 20 and np.max((elev-linElev).iloc[end25:]) > prom:
+            lastInd = len(along)-1
+            peakIndsEP += [len(along)-1]
+            unmappedCulverts = pd.concat((unmappedCulverts, \
+                                          pd.DataFrame({'x': [x.iloc[lastInd]], 'y': [y.iloc[lastInd]]})))
     
     #peakIndsEP = np.where((np.abs(ditchSlope) > 3*np.abs(linreg.slope)) & ((truncAlong < 25) | (truncAlong + 25 > along.iloc[-1])))
     
@@ -115,6 +119,8 @@ for lcat in lcats: #[32:48]:
         
     filtElev=elev.drop(elev.index[allPeaks])
     filtAlong=along.drop(along.index[allPeaks])
+    
+    linreg = sp.stats.linregress(filtAlong, filtElev)
         
     ax[i].plot(along, elev, 'lightsteelblue', ls='', marker='.') 
     ax[i].plot(filtAlong, filtElev, 'xkcd:purplish brown', ls='', marker='.') 
