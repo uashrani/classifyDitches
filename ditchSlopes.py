@@ -53,9 +53,6 @@ if not gdb.map_exists(vecLines, 'vector'):
     ### Do linear regression and flip vector directions if needed
     for lcat in lcats:
         chain=[lcat]
-        
-        # temporary
-        if lcat == 259: continue
     
         thisDitch = df[df['lcat']==lcat]
         filtProfile = thisDitch[np.isnan(thisDitch['elev'])==False]
