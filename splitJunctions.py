@@ -25,31 +25,32 @@ vecLines5 = ditchPrefix + '_lines_renamed'
 
 # Create before splitting and breaking category numbers
 allNodes = ditchPrefix + '_nodesTemp'
-intersectTable = ditchPrefix + '_intersections'
-intersectFile=tmpFiles + intersectTable + '.txt'
+#intersectTable = ditchPrefix + '_intersections'
+#intersectFile=tmpFiles + intersectTable + '.txt'
 
 # Start and end points, and duplicates
 startNodes1 = ditchPrefix + '_startsTemp'
 endNodes1 = ditchPrefix + '_endsTemp'
 
-# Layers/files for the along profile - use it to take cross sections later
-profilePts=ditchPrefix + '_profilePts'  # GRASS layer
-alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  # output file
-
 # Removing even more duplicates
-duplicTable1 = ditchPrefix + '_duplicatesFlipped'
+duplicTable1 = ditchPrefix + '_startsToStarts'
 duplicFile1 = tmpFiles + duplicTable1 + '.txt'
-duplicTable2 = ditchPrefix + '_duplicateStarts'
+duplicTable2 = ditchPrefix + '_endsToStarts'
 duplicFile2 = tmpFiles + duplicTable2 + '.txt'
-sparseProfilePts = ditchPrefix + '_sparseProfile'
-sparseFile = tmpFiles + sparseProfilePts + '.txt'
+sparsePts = ditchPrefix + '_sparseProfile'
+sparseFile = tmpFiles + sparsePts + '.txt'
+sparsePts2 = ditchPrefix + '_sparseProfile2'
 
 # Final start and 
 startNodes2 = ditchPrefix + '_startsTemp2'
 endNodes2 = ditchPrefix + '_endsTemp2'
-connectTable = ditchPrefix + '_origConnections'
-connectFile= tmpFiles + connectTable + '.txt'
+#connectTable = ditchPrefix + '_origConnections'
+#connectFile= tmpFiles + connectTable + '.txt'
 chainFile= tmpFiles + ditchPrefix + '_streamChains.txt'
+
+# Layers/files for the along profile - use it to take cross sections later
+profilePts=ditchPrefix + '_profilePts'  # GRASS layer
+alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  # output file
 
 #%% Function definition
 
@@ -79,12 +80,70 @@ def split_nodesIntersects(nodeFile, linesLayer):
         if i==0 or len(np.where(dists < 1)[0]) == 0:
             gs.run_command('v.edit', map_=linesLayer, tool='break', coords=[x,y], threshold=1)
             haveSplit = pd.concat((haveSplit,pd.DataFrame({'x': [x], 'y': [y]})), ignore_index=True)
+            
+def findDuplics(vecLines, profPts, duplicFile1, duplicFile2):
+    """ Finds lines that partially or completely overlap, 
+    and deletes the lower cat value 
+    
+    duplicFile1 is starts-->starts, duplicFile2 is ends-->starts
+    """
+    
+    gs.run_command('v.to.points', flags='p', input_=vecLines, output=profPts, dmax=51)
+    gs.run_command('v.to.db', map_=profPts, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.db.select', map_=profPts, layer=2, format_='csv', file=sparseFile, overwrite=True)
+    
+    profDf = pd.read_csv(sparseFile)
+    duplics = []
+
+    for file in [duplicFile1, duplicFile2]:
+
+        sameStarts = pd.read_csv(file)
+        sameStarts = sameStarts[sameStarts['from_cat']!=sameStarts['cat']]
+
+        # duplicFile2 is where start-->start
+        if file==duplicFile1:
+        # Each row is being double-counted, so delete half
+            origLen = len(sameStarts)
+            i=0
+            while len(sameStarts) > origLen/2:
+                f_cat, t_cat = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
+                sameStarts = sameStarts[(sameStarts['from_cat']!=t_cat) | (sameStarts['cat']!=f_cat)]
+                i += 1
+            sameStarts.reset_index(drop=True, inplace=True)
+
+        for i in range(len(sameStarts)):
+            cat1, cat2 = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
+            prof1, prof2 = profDf[profDf['lcat']==cat1].reset_index(drop=True), \
+                profDf[profDf['lcat']==cat2].reset_index(drop=True)
+            
+            # Read one profile backwards if going from ends to starts
+            if file==duplicFile2: 
+                prof1 = prof1.iloc[::-1].reset_index(drop=True)
+                prof1['along'] = prof1['along'].iloc[::-1].reset_index(drop=True)
+            
+            x1, y1 = prof1['x'], prof1['y']
+            x2, y2 = prof2['x'], prof2['y']
+            
+            dists = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+            if np.mean(dists) < 1: 
+                toDrop=min([cat1,cat2])
+                duplics += [toDrop]
+                
+                #profDf = profDf[profDf['lcat']!=toDrop]        
+                
+    duplics=list(sorted(set(duplics)))
+    for duplic in duplics:
+        profDf = profDf[profDf['lcat']!=duplic]
+        sameStarts = sameStarts[(sameStarts['from_cat']!=duplic) & sameStarts['cat']!=duplic]
+    
+    return(duplics, sameStarts) #, profDf)
+    
 
 #%% Split lines at intersections, and on nodes along line
 
 gs.run_command('g.region', vector=vecLines0)
 
-if not gdb.map_exists(vecLines4, 'vector'):
+if not gdb.map_exists(vecLines3, 'vector'):
     
     # Make copy that we can run v.edit on
     gs.run_command('g.copy', vector=[vecLines0, vecLines1])
@@ -99,79 +158,73 @@ if not gdb.map_exists(vecLines4, 'vector'):
     # Update category numbers temporarily (will update a second time)
     gs.run_command('v.category', flags='t', input_=vecLines1, output=vecLines2, option='del', cat=-1, overwrite=True)
     gs.run_command('v.category', input_=vecLines2, output=vecLines3, option='add', overwrite=True)
-    
-    # Disconnect from old attribute table and create new one
-    #gs.run_command('v.db.connect', flags='d', map_=vecLines3, layer=1)
-    #gs.run_command('v.db.addtable', map_=vecLines3)
 
     # Delete very short line segments
     gs.run_command('v.edit', map_=vecLines3, tool='delete', query='length', threshold=[-1,0,-0.1], type_='line')
-    
-    #gs.run_command('v.to.db', map_=vecLines4, option='length', columns=['len'])
-    #gs.run_command('v.edit', map_=vecLines4, tool='delete', query='length', \
-    #               threshold=[-1,0,-0.1], type_='line')
-    #gs.run_command('v.db.droprow', input_=vecLines4, where="len < 0.1", output=vecLines5, overwrite=True)
 
 ### Get points that help identify duplicates
 if not gdb.map_exists(endNodes1, 'vector'):
     # Create layers for start and end points
     gs.run_command('v.to.points', input_=vecLines3, output=startNodes1, use='start', overwrite=True)
     gs.run_command('v.to.points', input_=vecLines3, output=endNodes1, use='end', overwrite=True)
-    # Find where the end of one segment flows into the start of another
-    gs.run_command('v.distance', flags='a', from_=endNodes1, to=startNodes1, from_layer=1, to_layer=1, \
-                    dmax=1, upload='cat', table=duplicTable1, overwrite=True)
-    gs.run_command('db.select', table=duplicTable1, separator='comma', output=duplicFile1, overwrite=True)
-
+    
+    # Find lines with matching starts
     gs.run_command('v.distance', flags='a', from_=startNodes1, to=startNodes1, from_layer=1, to_layer=1, \
-                    dmax=1, upload='cat', table= duplicTable2, overwrite=True)
+                    dmax=1, upload='cat', table= duplicTable1, overwrite=True)
+    gs.run_command('db.select', table=duplicTable1, separator='comma', output=duplicFile1, overwrite=True)
+    
+    # Direction may be wrong, so also find where the end of one line is near the start of another
+    gs.run_command('v.distance', flags='a', from_=endNodes1, to=startNodes1, from_layer=1, to_layer=1, \
+                    dmax=1, upload='cat', table=duplicTable2, overwrite=True)
     gs.run_command('db.select', table=duplicTable2, separator='comma', output=duplicFile2, overwrite=True)
     
     # Also maybe get sparse profile points along ditch
     # just to compare for duplicates
-    gs.run_command('v.to.points', flags='p', input_=vecLines3, output=sparseProfilePts, dmax=51)
-    gs.run_command('v.to.db', map_=sparseProfilePts, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=sparseProfilePts, layer=2, format_='csv', file=sparseFile, overwrite=True)
+    # gs.run_command('v.to.points', flags='p', input_=vecLines3, output=sparsePts, dmax=51)
+    # gs.run_command('v.to.db', map_=sparsePts, layer=2, option='coor', columns=['x', 'y'])
+    # gs.run_command('v.db.select', map_=sparsePts, layer=2, format_='csv', file=sparseFile, overwrite=True)
     
-#%% Delete duplicates and remove from the point file as well
+# #%% Delete duplicates and remove from the point file as well
 
+duplics, filler = findDuplics(vecLines3, sparsePts, duplicFile1, duplicFile2)
 
-profDf = pd.read_csv(sparseFile)
-duplics = []
+# profDf = pd.read_csv(sparseFile)
+# duplics = []
 
-for file in [duplicFile1, duplicFile2]:
+# for file in [duplicFile1, duplicFile2]:
 
-    sameStarts = pd.read_csv(file)
-    sameStarts = sameStarts[sameStarts['from_cat']!=sameStarts['cat']]
+#     sameStarts = pd.read_csv(file)
+#     sameStarts = sameStarts[sameStarts['from_cat']!=sameStarts['cat']]
 
-    if file==duplicFile2:
-    # Each row is being double-counted, so delete half
-        origLen = len(sameStarts)
-        i=0
-        while len(sameStarts) > origLen/2:
-            f_cat, t_cat = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
-            sameStarts = sameStarts[(sameStarts['from_cat']!=t_cat) | (sameStarts['cat']!=f_cat)]
-            i += 1
-        sameStarts.reset_index(drop=True, inplace=True)
+#     if file==duplicFile2:
+#     # Each row is being double-counted, so delete half
+#         origLen = len(sameStarts)
+#         i=0
+#         while len(sameStarts) > origLen/2:
+#             f_cat, t_cat = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
+#             sameStarts = sameStarts[(sameStarts['from_cat']!=t_cat) | (sameStarts['cat']!=f_cat)]
+#             i += 1
+#         sameStarts.reset_index(drop=True, inplace=True)
 
-    for i in range(len(sameStarts)):
-        cat1, cat2 = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
-        prof1, prof2 = profDf[profDf['lcat']==cat1].reset_index(drop=True), \
-            profDf[profDf['lcat']==cat2].reset_index(drop=True)
+#     for i in range(len(sameStarts)):
+#         cat1, cat2 = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
+#         prof1, prof2 = profDf[profDf['lcat']==cat1].reset_index(drop=True), \
+#             profDf[profDf['lcat']==cat2].reset_index(drop=True)
         
-        # Read one profile backwards if going from ends to starts
-        if file==duplicFile1: 
-            prof1 = prof1.iloc[::-1].reset_index(drop=True)
-            prof1['along'] = prof1['along'].iloc[::-1].reset_index(drop=True)
+#         # Read one profile backwards if going from ends to starts
+#         if file==duplicFile1: 
+#             prof1 = prof1.iloc[::-1].reset_index(drop=True)
+#             prof1['along'] = prof1['along'].iloc[::-1].reset_index(drop=True)
         
-        x1, y1 = prof1['x'], prof1['y']
-        x2, y2 = prof2['x'], prof2['y']
+#         x1, y1 = prof1['x'], prof1['y']
+#         x2, y2 = prof2['x'], prof2['y']
         
-        dists = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-        if np.mean(dists) < 1: 
-            toDrop = min([cat1,cat2])
-            duplics += [toDrop]
+#         dists = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+#         if np.mean(dists) < 1: 
+#             toDrop = min([cat1,cat2])
+#             duplics += [toDrop]
             
-duplics=list(sorted(set(duplics)))
+# duplics=list(sorted(set(duplics)))
 
 # Drop it from the nameless layer using feature IDs
 gs.run_command('v.edit', map_=vecLines1, tool='delete', ids=duplics)
@@ -189,18 +242,30 @@ gs.run_command('v.category', input_=vecLines4, output=vecLines5, option='add', o
 gs.run_command('v.db.connect', flags='d', map_=vecLines5, layer=1)
 gs.run_command('v.db.addtable', map_=vecLines5)
 
-#expr = 'cat IN ' + str(tuple(duplics)) # + ' OR len < 0.1'
-#gs.run_command('v.db.droprow', input_=vecLines5, where=expr, output=vecLines6, overwrite=True)
-
-#%% Find which segments originally connected to each other (even if not actual flow dir)
+### Ok now drop any new duplicates that were missed (like they partially overlapped before but now fully overlap)
 gs.run_command('v.to.points', input_=vecLines5, output=startNodes2, use='start', overwrite=True)
 gs.run_command('v.to.points', input_=vecLines5, output=endNodes2, use='end', overwrite=True)
-# Find where the end of one segment flows into the start of another
-gs.run_command('v.distance', flags='a', from_=endNodes2, to=startNodes2, from_layer=1, to_layer=1, \
-                dmax=1, upload='cat', table=connectTable, overwrite=True)
-gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
 
-dfEnds=pd.read_csv(connectFile)
+# starts-->starts
+gs.run_command('db.droptable', flags='f', table=duplicTable1)
+gs.run_command('v.distance', flags='a', from_=startNodes2, to=startNodes2, from_layer=1, to_layer=1, \
+                dmax=1, upload='cat', table= duplicTable1, overwrite=True)
+gs.run_command('db.select', table=duplicTable1, separator='comma', output=duplicFile1, overwrite=True)
+
+# Ends-->starts (also used for finding stream chains later)
+gs.run_command('db.droptable', flags='f', table=duplicTable2)
+gs.run_command('v.distance', flags='a', from_=endNodes2, to=startNodes2, from_layer=1, to_layer=1, \
+                dmax=1, upload='cat', table=duplicTable2, overwrite=True)
+gs.run_command('db.select', table=duplicTable2, separator='comma', output=duplicFile2, overwrite=True)
+
+duplics, dfEnds = findDuplics(vecLines5, sparsePts2, duplicFile1, duplicFile2)
+
+gs.run_command('v.edit', map_=vecLines5, tool='delete', cats=duplics)
+#profileDf.to_csv(alongFile, index=False)
+
+#%% Find which segments originally connected to each other (even if not actual flow dir)
+
+#dfEnds=pd.read_csv(connectFile)
 dfEnds=dfEnds[dfEnds['from_cat']!=dfEnds['cat']].reset_index(drop=True)
 
 # Keep track of original category numbers
@@ -280,7 +345,9 @@ chainDf.to_csv(chainFile, index=False)
 ### Get points spaced 1m apart along the new lines
 ### Will be used to take transects and check for duplicates
 # if not gdb.map_exists(profilePts, 'vector'):
-#     gs.run_command('v.to.points', input_=vecLines4, output=profilePts, dmax=1)
+#     gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
 #     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
 #     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+
+
 
