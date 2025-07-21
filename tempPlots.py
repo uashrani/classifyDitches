@@ -31,7 +31,7 @@ lcats=sorted(set(df['lcat']))
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 ### Make plots and do linear regression
-fig,axs=plt.subplots(9, 9, figsize=(36, 20))
+fig,axs=plt.subplots(6, 6, figsize=(30, 20))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
