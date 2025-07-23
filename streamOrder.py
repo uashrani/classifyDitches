@@ -10,8 +10,8 @@ import pandas as pd
 import networkx as nx
 import numpy as np
 
-tmpFiles = 'tempFiles/'
-hucPrefix = 'HUC_0902010603'
+tmpFiles = 'tempFiles2/'
+hucPrefix = 'testDEM5'
 ditchPrefix='BRR'
 
 vecLines = hucPrefix + '_lines_final'
