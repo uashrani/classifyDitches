@@ -15,7 +15,7 @@ import numpy as np
 import removeCulverts
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM4'
+hucPrefix = 'testDEM5'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -23,6 +23,7 @@ dem = hucPrefix
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  
 
 culvertDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'
+chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 #snapDefFile = tmpFiles + ditchPrefix + '_whereToSnap.txt'
 
 # How far to take the profile on each side, in m
@@ -65,16 +66,6 @@ if not gdb.map_exists(newLine, 'vector'):
     # Open the culvert definition file so we can check which points are near culvert
     culvertPts = pd.read_csv(culvertDefFile, names=['x', 'y', 'buffer'])
     
-    # Open and process the snapping file to see which lines to snap
-    # snapDf = pd.read_csv('whereToSnap.txt')
-    # snapDf = snapDf[(snapDf['from_cat']!=snapDf['cat']) & (snapDf['dist'] > 0)]
-    # i, l = 0, len(snapDf)
-    # while i < l:
-    #     f_cat, t_cat = snapDf['from_cat'].iloc[i], snapDf['cat'].iloc[i]
-    #     snapDf = snapDf[(snapDf['from_cat']!=t_cat) | (snapDf['cat']!=f_cat)]
-    #     l = len(snapDf)
-    #     i += 1
-    
     # Create empty vector map for new lines, and empty file to add coords
     newPtsDf = pd.DataFrame({'lcat': [], 'x': [], 'y': [], 'across': [], \
                              'x1': [], 'y1': [], 'cos': [], 'sin': [], 'culvert': []})
@@ -82,44 +73,6 @@ if not gdb.map_exists(newLine, 'vector'):
     
     for lcat in lcats:
         profilePts = df[df['lcat']==lcat]
-        #snaps = snapDf[snapDf['from_cat']==lcat]
-        
-        # Check if we need to add points at the ends (snapping)
-        # for pos in [0, -1]:
-        #     xEnd, yEnd = profilePts['x'].iloc[pos], profilePts['y'].iloc[pos]
-            
-        #     snapsDist = np.sqrt((snaps['to_x']-xEnd)**2+(snaps['to_y']-yEnd)**2)
-        #     linesNearby = np.where((snapsDist < 10) & (snapsDist == np.min(snapsDist)))[0]
-        #     nearestXY = snaps.iloc[linesNearby]
-        #     #nearestXY = snaps.iloc[linesNearby]
-        
-        #     # if len(linesNearby) > 1:
-        #     #     nearestXY = snaps[snapsDist == np.min(snapsDist)].iloc[0]
-            
-                
-        #     if profilePts['along'].iloc[-1] > 10 and len(linesNearby) > 0:
-        #         newRow = pd.DataFrame({'cat': [np.nan], 'lcat': [lcat], 'along': [np.nan], \
-        #                                'x': [nearestXY['to_x'].iloc[0]], 'y':[nearestXY['to_y'].iloc[0]]})
-        #         if pos == 0:
-        #             profilePts = pd.concat((newRow,profilePts)).reset_index(drop=True)
-        #         else:
-        #             profilePts = pd.concat((profilePts,newRow)).reset_index(drop=True)
-                    
-                    
-            
-            #and profilePts['along'].iloc[-1] > 10:
-        
-        # Sometimes v.edit adds a 'toe' to a segment
-        # you can tell if two subsequent points have identical xy coords
-        # xDiff, yDiff = np.diff(profilePts['x']), np.diff(profilePts['y'])
-        # whereExtra = np.where((xDiff == 0) & (yDiff == 0))[0]+1
-        # if len(whereExtra) > 0:
-        #     # Keep the longest segment and filter out the toe
-        #     segEndpts = [0] + list(whereExtra) + [len(profilePts)]
-        #     lenSegments=np.diff(segEndpts)
-        #     k = np.where(lenSegments==np.max(lenSegments))[0][0]
-        #     profilePts = profilePts.iloc[segEndpts[k]:segEndpts[k+1]]
-        #     print(str(lcat) + ' had a toe added by v.edit')
         
         x, y = profilePts['x'], profilePts['y']
         
@@ -151,7 +104,7 @@ if not gdb.map_exists(newLine, 'vector'):
             
             # Assume the point is in a culvert, change these variables later if it's not
             across = prevAcross
-            culvert=True
+            culvert=1
             
             x_m, y_m = x_ms.iloc[i], y_ms.iloc[i]
             x1,y1,x2,y2=trX1.iloc[i],trY1.iloc[i],trX2.iloc[i],trY2.iloc[i]
@@ -163,7 +116,7 @@ if not gdb.map_exists(newLine, 'vector'):
             
             # If it's not near a culvert, find the minimum elevation along transect
             if len(culvertsNearby) == 0:     
-                culvert=False
+                culvert=0
     
                 gs.run_command('r.profile', input_=dem, output=tmpFile, \
                                 coordinates=[x1,y1,x2,y2], overwrite=True)
@@ -183,37 +136,63 @@ if not gdb.map_exists(newLine, 'vector'):
                 
             newX, newY = x1 + across*cos, y1 + across*sin
             
-            newRow = pd.DataFrame({'lcat': [lcat], 'x': [newX], 'y': [newY], \
+            newRow = pd.DataFrame({'lcat': [lcat], 'along': [i], 'x': [newX], 'y': [newY], \
                                    'across': [across], 'x1': [x1], 'y1': [y1], \
                                        'cos': [cos], 'sin': [sin], 'culvert': [culvert]})
             newPtsDf = pd.concat((newPtsDf, newRow))
        
-    #newPtsDf.to_csv(tmpFiles + hucPrefix + '_newPtsDf.csv')
+    newPtsDf.to_csv(tmpFiles + hucPrefix + '_newPtsDf.txt', index=False)
     # Now write to a file since we know how many points are in each line
     fLine=open(lineDefFile, 'a')
+    chainDf = pd.read_csv(chainFile)
     
     for lcat in lcats:
         linePts = newPtsDf[newPtsDf['lcat']==lcat].reset_index(drop=True)
+        
+        strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
+        strpChain=strChain.strip('[]')
+        chain = np.array(list(map(int,strpChain.split(', '))))
+        chainPos = np.where(chain==lcat)[0][0]
+        if chainPos + 1 < len(chain):
+            nextSeg = chain[chainPos+1]
+            nextSegPts = newPtsDf[newPtsDf['lcat']==nextSeg]
+            
+            newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
+                               (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
+            if newAlong < 10: 
+                linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
+            else:
+                newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
+                                   (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
+                if newAlong < 10:
+                    linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
+                else:
+                    newAlong = 0
+            
+            linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
+        
+        ### Fill in any start points that were in a culvert
+        earlyCuls = list(linePts.index[(linePts['culvert']==1) & (linePts['along']<=10)])
+        if len(earlyCuls) > 0:
+            # Get the index of the first non-culvert point, edit preceding across values
+            nonCuls = linePts[(linePts['culvert']==0) & (linePts['along']>10)]
+            if len(nonCuls) > 0:
+                earlyCuls += range(earlyCuls[-1]+1, nonCuls.index[0])
+                localAcross = nonCuls['across'].iloc[0]
+                linePts.loc[earlyCuls, 'across']=localAcross
+            
+            # These are just for the start points in a culvert
+            x1s, y1s = linePts['x1'].iloc[earlyCuls], linePts['y1'].iloc[earlyCuls]
+            acrosses = linePts['across'].iloc[earlyCuls]
+            cosinez, sinez = linePts['cos'].iloc[earlyCuls], linePts['sin'].iloc[earlyCuls]
+            
+            # Update shifted x and y values
+            linePts.loc[earlyCuls, 'x'] =  x1s + acrosses*cosinez
+            linePts.loc[earlyCuls, 'y'] =  y1s + acrosses*sinez
+            
         nPts = len(linePts)
         
         fLine.write('L  ' + str(nPts) + ' 1\n')
-        
-        ### Fill in any start points that were in a culvert
-        
-        # Get the index of the first non-culvert point, edit preceding across values
-        nonCuls = linePts.index[linePts['culvert']==False]
-        if len(nonCuls) > 0:
-            nonCul = nonCuls[0]
-            linePts.loc[:(nonCul-1), 'across'] = linePts['across'].iloc[nonCul]
-            
-            # These are just for the start points in a culvert
-            x1s, y1s = linePts['x1'].iloc[:nonCul], linePts['y1'].iloc[:nonCul]
-            acrosses = linePts['across'].iloc[:nonCul]
-            cosinez, sinez = linePts['cos'].iloc[:nonCul], linePts['sin'].iloc[:nonCul]
-            
-            # Update shifted x and y values
-            linePts.loc[:(nonCul-1), 'x'] =  x1s + acrosses*cosinez
-            linePts.loc[:(nonCul-1), 'y'] =  y1s + acrosses*sinez
     
         for i in range(nPts):
             newX, newY = linePts['x'].iloc[i], linePts['y'].iloc[i]
@@ -230,7 +209,7 @@ if not gdb.map_exists(newLine, 'vector'):
     gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=10)
 
 # Later make a mega program that calls all functions, but for now do it here
-removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-                              culvertBuffers, newLine, dem, dem)
+# removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
+#                               culvertBuffers, newLine, dem, dem)
     
     
