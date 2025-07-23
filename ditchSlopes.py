@@ -16,7 +16,7 @@ import numpy as np
 import removeCulverts
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM4'
+hucPrefix = 'testDEM5'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -52,6 +52,9 @@ if not gdb.map_exists(vecLines, 'vector'):
 
     ### Do linear regression and flip vector directions if needed
     for lcat in lcats:
+        
+        #print(lcat)
+        
         chain=[lcat]
     
         thisDitch = df[df['lcat']==lcat]
@@ -117,6 +120,8 @@ if not gdb.map_exists(vecLines, 'vector'):
         for ind in allPeaks:
             unmappedCulverts = pd.concat((unmappedCulverts, \
                                           pd.DataFrame({'x': [x.iloc[ind]], 'y': [y.iloc[ind]]})))
+                
+        #print(lcat,linreg.slope)
             
         if linreg.slope > 0:
             gs.run_command('v.edit', map_=vecLines, tool='flip', cats=lcat)
@@ -138,7 +143,7 @@ unmappedCulverts.to_csv(culvertDefFile, index=False, header=False)
 
 # Create points layer with unmapped culvert locations
 gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
-               separator='comma', columns=['x double precision', 'y double precision'])
+                separator='comma', columns=['x double precision', 'y double precision'])
     
 # Buffer the culvert points
 gs.run_command('v.buffer', input_=culvertPts, type_='point', \
@@ -146,4 +151,4 @@ gs.run_command('v.buffer', input_=culvertPts, type_='point', \
     
 # Later make a mega program that calls all functions, but for now do it here
 removeCulverts.removeCulverts(tmpFiles, hucPrefix + '_v2', hucPrefix, \
-                              culvertBuffers, newLine, demNull, demBurned)
+                              culvertBuffers, vecLines, demNull, demBurned)
