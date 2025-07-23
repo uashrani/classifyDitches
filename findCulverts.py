@@ -58,7 +58,7 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
     layers=[roads, roads2, railroads, bridges, airports]
     suffixs = ['Roads', 'Roads2', 'Railroads', 'Bridges', 'Airports']
     dmaxs = [0, 0, 0, 60, 100]  # max distance between ditches and this layer
-    buffers = [25, 25, 50, 50, 75]  # width of the culvert
+    buffers = [25, 25, 50, 25, 75]  # width of the culvert
     
     for (i, layer) in enumerate(layers):
         dmax, buffer, suffix = dmaxs[i], buffers[i], suffixs[i]
@@ -68,7 +68,7 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
         # Temporary: drop table because overwrite doesn't work
         if dmax > 0:
             gs.run_command('db.droptable', flags='f', table=tabName)
-            gs.run_command('v.distance', flags='a', from_=layer, to=ditches, upload=['to_x', 'to_y', 'dist'], \
+            gs.run_command('v.distance', from_=layer, to=ditches, upload=['to_x', 'to_y', 'dist'], \
                            dmax=dmax, table=tabName)
             gs.run_command('db.select', table=tabName, separator='comma', output=fileName, overwrite=True) 
         else:
@@ -79,11 +79,11 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
             gs.run_command('v.db.select', map_=tabName, format_='csv', file=fileName, overwrite=True)
         
         df = pd.read_csv(fileName)
-        if suffix=='Bridges':
-            df['buffer']=buffer + df['dist']
-            df.loc[df['buffer']>100, 'buffer']=100
-        else:
-            df['buffer']=buffer
+        # if suffix=='Bridges':
+        #     df['buffer']=buffer + df['dist']
+        #     df.loc[df['buffer']>100, 'buffer']=100
+        # else:
+        df['buffer']=buffer
         
         if i==0:
             intersectDf = df
