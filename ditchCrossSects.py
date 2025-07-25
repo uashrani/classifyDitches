@@ -209,7 +209,7 @@ if not gdb.map_exists(newLine, 'vector'):
     gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=10)
 
 # Later make a mega program that calls all functions, but for now do it here
-# removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-#                               culvertBuffers, newLine, dem, dem)
+removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
+                              culvertBuffers, newLine, dem, dem)
     
     
