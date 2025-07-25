@@ -8,27 +8,23 @@ import grass.script as gs
 import grass.grassdb.data as gdb
 import pandas as pd
 import networkx as nx
-import numpy as np
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM5'
+hucPrefix = 'testDEM2'
 ditchPrefix='BRR'
 
 vecLines = hucPrefix + '_lines_final'
-chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
+
+# This is just to tell us what lcats are in the region
+newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 #%% To be created
 
 startNodes = hucPrefix + '_starts'
 endNodes = hucPrefix + '_ends'
 
-connectTable = hucPrefix + '_flowConnections'
-duplicTable = hucPrefix + '_duplicateStarts'
-connectFile=tmpFiles + 'mergeLines.txt'
-duplicFile=tmpFiles + 'maybeDuplicates.txt'
-
-sparseProfilePts = hucPrefix + '_sparseProfile'
-sparseFile = tmpFiles + hucPrefix + '_sparsePts.txt'
+connectTable = hucPrefix + '_endsToStarts'
+connectFile = tmpFiles + connectTable + '.txt'
 
 linesFile = 'ditchLines.txt'
 
@@ -68,72 +64,19 @@ def findOrder(lcat, ditchLines):
         
         return(order, ditchLines)
 
-#%%  Create new start and end point layers from correct flow direction
-if not gdb.map_exists(sparseProfilePts, 'vector'): 
+#%% Find stream orders
+# Find where the end of one segment flows into the start of another
+if not gdb.map_exists(endNodes, 'vector'):
     gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
     gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
     
-    # But also find where the start points of two segments are nearby
-    gs.run_command('db.droptable', flags='f', table=duplicTable)
-    gs.run_command('v.distance', flags='a', from_=startNodes, to=startNodes, from_layer=1, to_layer=1, \
-                    dmax=1, upload='cat', table= duplicTable, overwrite=True)
-    gs.run_command('db.select', table=duplicTable, separator='comma', output=duplicFile, overwrite=True)
-    
-    # Also maybe get sparse profile points along ditch (corrected flow dir)
-    # just to compare for duplicates
-    gs.run_command('v.to.points', flags='p', input_=vecLines, output=sparseProfilePts, dmax=10)
-    gs.run_command('v.to.db', map_=sparseProfilePts, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=sparseProfilePts, layer=2, format_='csv', file=sparseFile, overwrite=True)
+    #gs.run_command('db.droptable', flags='f', table=connectTable)
+    gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
+                    dmax=0.1, upload='cat', table= connectTable, overwrite=True)
+    gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
 
-#%% Delete duplicates to make stream orders correct
-
-sameStarts = pd.read_csv(duplicFile)
-sameStarts = sameStarts[sameStarts['from_cat']!=sameStarts['cat']]
-
-chainDf = pd.read_csv(chainFile)
-
-# # Each row is being double-counted, so delete half
-origLen = len(sameStarts)
-i=0
-while len(sameStarts) > origLen/2:
-    f_cat, t_cat = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
-    sameStarts = sameStarts[(sameStarts['from_cat']!=t_cat) | (sameStarts['cat']!=f_cat)]
-    i += 1
-sameStarts.reset_index(drop=True, inplace=True)
-
-# The starts are the same, but check points along the entire profile
-profDf = pd.read_csv(sparseFile)   
-
-for i in range(len(sameStarts)):
-    cat1, cat2 = sameStarts['from_cat'].iloc[i], sameStarts['cat'].iloc[i]
-    prof1, prof2 = profDf[profDf['lcat']==cat1], profDf[profDf['lcat']==cat2]
-    
-    x1, y1 = prof1['x'], prof1['y']
-    x2, y2 = prof2['x'], prof2['y']
-    
-    dists = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-    
-    if np.mean(dists) < 1:
-        chain1 = chainDf['chain'][chainDf['root']==cat1].iloc[0]
-        chain2 = chainDf['chain'][chainDf['root']==cat2].iloc[0]
-        len1, len2 = prof1['along'].iloc[-1], prof2['along'].iloc[-1]
-        
-        # Delete the one that is an isolate, or the shorter one
-        toDel=cat1
-        if (chain1 == '[]' and chain2 != '[]') or len2 < len1:
-            toDel=cat2
-        
-        for layer in [vecLines, startNodes, endNodes]:
-            gs.run_command('v.edit', map_=layer, tool='delete', cats=toDel)
-
-#%% Find stream orders
-# Find where the end of one segment flows into the start of another
-gs.run_command('db.droptable', flags='f', table=connectTable)
-gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
-                dmax=10, upload='cat', table= connectTable, overwrite=True)
-gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
-
-lcats=sorted(set(profDf['lcat']))
+p = pd.read_csv(newElevFile)
+lcats=sorted(set(p['lcat']))
 
 connectDf = pd.read_csv(connectFile)
 connectDf = connectDf[connectDf['from_cat']!=connectDf['cat']]
@@ -141,7 +84,7 @@ connectDf = connectDf[connectDf['from_cat']!=connectDf['cat']]
 graph = nx.from_pandas_edgelist(connectDf, source='from_cat', target='cat', create_using=nx.DiGraph)
 
 # Go through all lines for upstream neighbors & stream order
-orderDf = pd.DataFrame({'cat': chainDf['root']})
+orderDf = pd.DataFrame({'cat': lcats})
 
 orderDf['parents']=''
 orderDf['order']=0
@@ -152,14 +95,7 @@ for i in range(len(orderDf)):
     
     # Find upstream neighbors/parents
     if graph.has_node(lcat):
-        prelimParents = list(graph.predecessors(lcat))
-        parents=[]
-        # A short ditch segment is not really a parent, probably a mapping error
-        for parent in prelimParents:
-            parentLen = chainDf['us_len'][chainDf['root']==parent].iloc[0]
-            if parentLen > 10:
-                parents += [parent]
-        parents=str(parents)
+        parents = str(list(graph.predecessors(lcat)))
     else:
         parents = '[]'
     
