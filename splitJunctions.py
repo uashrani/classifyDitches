@@ -185,7 +185,7 @@ if not gdb.map_exists(vecLines5, 'vector'):
     gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-0.1], type_='line')
     # Now we can break lines at intersections
     gs.run_command('v.edit', map_=vecLines1, tool='break', ids='1-1000')
-    gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-0.1], type_='line')
+    gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-1], type_='line')
     
     # Update category numbers
     gs.run_command('v.category', flags='t', input_=vecLines1, output=vecLines4, option='del', cat=-1, overwrite=True)
