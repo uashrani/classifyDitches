@@ -14,7 +14,7 @@ import numpy as np
 import math
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM5'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
