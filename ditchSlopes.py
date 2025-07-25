@@ -67,13 +67,13 @@ if not gdb.map_exists(vecLines, 'vector'):
             r2=linreg.rvalue**2
         
         # Concatenate segments for linreg if r2 is too low
-        if len(along) < 2 or r2 < 0.4: 
+        if len(along) < 25 or r2 < 0.4: 
             ## Chain some lines together based on the definitions in the file
             strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
             strpChain=strChain.strip('[]')
             chain = list(map(int,strpChain.split(', ')))
             
-            print('Ditch ' + str(lcat) + ' has r2 < 0.4. Concatenating with ' + \
+            print('Ditch ' + str(lcat) + ' is < 25m or has r2 < 0.4. Concatenating with ' + \
                   strpChain)
                 
             for (j, segment) in enumerate(chain):
@@ -117,9 +117,18 @@ if not gdb.map_exists(vecLines, 'vector'):
         peakInds, props = sp.signal.find_peaks(elev, prominence=prom, width=[1,50])
             
         allPeaks = pd.concat((pd.Series(peakInds), pd.Series(peakIndsEP))).reset_index(drop=True)
+        dropInds = []
+        
         for ind in allPeaks:
             unmappedCulverts = pd.concat((unmappedCulverts, \
                                           pd.DataFrame({'x': [x.iloc[ind]], 'y': [y.iloc[ind]]})))
+            dropInds += range(ind-25,ind+26)
+            
+        filtElev=elev.drop(elev.index[dropInds])
+        filtAlong=along.drop(along.index[dropInds])
+        
+        linreg = sp.stats.linregress(filtAlong, filtElev)
+        r2 = linreg.rvalue**2
                 
         #print(lcat,linreg.slope)
             
