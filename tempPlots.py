@@ -14,7 +14,7 @@ import numpy as np
 import math
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -31,7 +31,7 @@ lcats=sorted(set(df['lcat']))
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 ### Make plots and do linear regression
-fig,axs=plt.subplots(4, 5, figsize=(16, 10))
+fig,axs=plt.subplots(6, 7, figsize=(16, 10))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
