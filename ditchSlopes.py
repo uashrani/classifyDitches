@@ -16,7 +16,7 @@ import numpy as np
 import removeCulverts
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM5'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -124,6 +124,9 @@ if not gdb.map_exists(vecLines, 'vector'):
                                           pd.DataFrame({'x': [x.iloc[ind]], 'y': [y.iloc[ind]]})))
             dropInds += range(ind-25,ind+26)
             
+        dropInds=pd.Series(dropInds)
+        dropInds = dropInds[dropInds < len(elev)]
+            
         filtElev=elev.drop(elev.index[dropInds])
         filtAlong=along.drop(along.index[dropInds])
         
@@ -136,27 +139,20 @@ if not gdb.map_exists(vecLines, 'vector'):
             gs.run_command('v.edit', map_=vecLines, tool='flip', cats=lcat)
             chain = chain[::-1]
             newRoot = chain[0]
-            #newChainDf.loc[lcat-1, 'chain']='[]'
             newChainDf.loc[lcat-1, 'chain']=str(chain)
         if r2 < 0.4:
             print('Warning: Ditch ' + str(lcat) + ' still has r2 < 0.4 even after concatenating profiles.')
-                
-            # for (i,segment) in enumerate(chain):
-            #     us_chain = chain[:i+1]
-            #     us_len = sum(lens[:i+1])
-            #     newChainDf.loc[segment-1, 'us_chain']=str(us_chain)
-            #     newChainDf.loc[segment-1, 'us_len']=us_len          
 
-newChainDf.to_csv(chainFile, index=False)
-unmappedCulverts.to_csv(culvertDefFile, index=False, header=False)
-
-# Create points layer with unmapped culvert locations
-gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
-                separator='comma', columns=['x double precision', 'y double precision'])
+    newChainDf.to_csv(chainFile, index=False)
+    unmappedCulverts.to_csv(culvertDefFile, index=False, header=False)
     
-# Buffer the culvert points
-gs.run_command('v.buffer', input_=culvertPts, type_='point', \
-                output=culvertBuffers, distance=25)
+    # Create points layer with unmapped culvert locations
+    gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
+                    separator='comma', columns=['x double precision', 'y double precision'])
+        
+    # Buffer the culvert points
+    gs.run_command('v.buffer', input_=culvertPts, type_='point', \
+                    output=culvertBuffers, distance=25)
     
 # Later make a mega program that calls all functions, but for now do it here
 removeCulverts.removeCulverts(tmpFiles, hucPrefix + '_v2', hucPrefix, \
