@@ -15,7 +15,7 @@ import numpy as np
 import removeCulverts
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM5'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -206,10 +206,11 @@ if not gdb.map_exists(newLine, 'vector'):
             
     gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', input_=lineDefFile)
     
-    gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=10)
+    gs.run_command('v.edit', map_=definedLine, type_='line', tool='snap', threshold=5, cats=1-1000)
+    #gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=10)
 
 # Later make a mega program that calls all functions, but for now do it here
-removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-                              culvertBuffers, newLine, dem, dem)
+#removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
+#                             culvertBuffers, definedLine, dem, dem)
     
     
