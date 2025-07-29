@@ -11,7 +11,7 @@ import numpy as np
 import networkx as nx
 
 vecLines0='drainage_centerlines'   # name of ditch layer in Grass, already imported
-tmpFiles = 'tempFiles2/'
+tmpFiles = 'tempFiles/'
 
 ditchPrefix='BRR'
 
@@ -36,8 +36,9 @@ duplicFile1 = tmpFiles + duplicTable1 + '.txt'
 duplicTable2 = ditchPrefix + '_endsToStarts'
 duplicFile2 = tmpFiles + duplicTable2 + '.txt'
 sparsePts = ditchPrefix + '_sparseProfile'
-sparseFile = tmpFiles + sparsePts + '.txt'
 sparsePts2 = ditchPrefix + '_sparseProfile2'
+sparsePts3 = ditchPrefix + '_sparseProfile3'
+sparseFile = tmpFiles + sparsePts + '.txt'
 
 # Final start and 
 startNodes2 = ditchPrefix + '_startsTemp2'
@@ -139,10 +140,13 @@ def findDuplics(vecLines, profPts, duplicFile1, duplicFile2):
 
 gs.run_command('g.region', vector=vecLines0)
 
+#for tb in [duplicTable1, duplicTable2]:
+#    gs.run_command('db.droptable', flags='f', table=tb)
+
 if not gdb.map_exists(vecLines3, 'vector'):
     
     gs.run_command('v.clean', input_=vecLines0, type_='line', output=vecLines1,\
-                   tool='rmdangle', threshold=25)
+                   tool='rmdangle', threshold=25, overwrite=True)
     
     # Very specific but some lines are "doubled up" (like a U-turn), split these midway
     gs.run_command('v.to.points', flags='p', input_=vecLines1, output=allNodes, dmax=51)
@@ -185,6 +189,15 @@ if not gdb.map_exists(vecLines5, 'vector'):
     gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-0.1], type_='line')
     # Now we can break lines at intersections
     gs.run_command('v.edit', map_=vecLines1, tool='break', ids='1-1000')
+    #gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-1], type_='line')
+    
+    gs.run_command('v.to.points', flags='p', input_=vecLines1, output=sparsePts3, dmax=51)
+    gs.run_command('v.to.db', map_=sparsePts3, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.db.select', map_=sparsePts3, layer=2, format_='csv', file=sparseFile, overwrite=True)
+    
+    # v.edit tool=connect created duplicate segments, split at these so we can remove duplicates
+    split_nodesIntersects(sparseFile, vecLines1)
+    
     gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-1], type_='line')
     
     # Update category numbers
@@ -214,20 +227,26 @@ if not gdb.map_exists(vecLines5, 'vector'):
     duplics, dfEnds = findDuplics(vecLines5, sparsePts2, duplicFile1, duplicFile2)
     
     gs.run_command('v.edit', map_=vecLines5, tool='delete', cats=duplics)
+    
+    dfEnds.to_csv('dfEnds.txt', index=False)
+    
+    # Keep track of original category numbers
+    orig_cats = gs.read_command('v.category', input_=vecLines1, option='print')
+    ls_orig_cats = orig_cats.split('\r\n')
+    ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
+    fIDs = np.arange(1, len(ls_orig_cats)+1)
+
+    dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
+    dfOrig.to_csv(tmpFiles + 'origCats.txt', index=False)
+
 
 #%% Find which segments originally connected to each other (even if not actual flow dir)
 
+dfEnds = pd.read_csv('dfEnds.txt')
 dfEnds=dfEnds[dfEnds['from_cat']!=dfEnds['cat']].reset_index(drop=True)
 
-# Keep track of original category numbers
-orig_cats = gs.read_command('v.category', input_=vecLines1, option='print')
-ls_orig_cats = orig_cats.split('\r\n')
-ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
-fIDs = np.arange(1, len(ls_orig_cats)+1)
-
-dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
-dfOrig.to_csv(tmpFiles + 'origCats.txt', index=False)
-
+dfOrig = pd.read_csv(tmpFiles+'origCats.txt')
+fIDs=dfOrig['cat']
 ### We have a table showing all connections, 
 ### but we narrow this down to connections b/w segments that had same original cat
 from_cats, to_cats=[], []
@@ -293,12 +312,12 @@ chainDf['us_chain']=''
 chainDf['us_len']=np.nan
 chainDf.to_csv(chainFile, index=False)
 
-### Get points spaced 1m apart along the new lines
-### Will be used to take cross-sectional profiles
-if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
-    gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+# ### Get points spaced 1m apart along the new lines
+# ### Will be used to take cross-sectional profiles
+# if not gdb.map_exists(profilePts, 'vector'):
+#     gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
+#     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
+#     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
 
 
