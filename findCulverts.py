@@ -12,7 +12,7 @@ import grass.grassdb.data as gdb
 import pandas as pd
 
 # Folder names
-tmpFiles = 'tempFiles2/'
+tmpFiles = 'tempFiles/'
 
 ditchPrefix='BRR' # use for operations involving the entire ditch layer
 
