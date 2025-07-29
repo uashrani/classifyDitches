@@ -11,11 +11,12 @@ import grass.script as gs
 import grass.grassdb.data as gdb
 import pandas as pd
 import numpy as np
+import os
 
 import removeCulverts
 
-tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM3'
+tmpFiles = 'tempFiles/'
+hucPrefix = 'HUC10'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -31,7 +32,7 @@ halfDist = 10
 
 #%% Layers/files that will be created automatically
 
-lineDefFile= tmpFiles + hucPrefix + '_shiftedLineDefs.txt'
+lineDefFile= tmpFiles + 'shiftedLineDef.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines
@@ -143,10 +144,14 @@ if not gdb.map_exists(newLine, 'vector'):
        
     newPtsDf.to_csv(tmpFiles + hucPrefix + '_newPtsDf.txt', index=False)
     # Now write to a file since we know how many points are in each line
-    fLine=open(lineDefFile, 'a')
+    #fLine=open(lineDefFile, 'a')
     chainDf = pd.read_csv(chainFile)
     
     for lcat in lcats:
+        if os.path.exists(lineDefFile):
+            os.remove(lineDefFile)
+        fLine=open(lineDefFile, 'a')
+        
         linePts = newPtsDf[newPtsDf['lcat']==lcat].reset_index(drop=True)
         
         strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
@@ -198,16 +203,14 @@ if not gdb.map_exists(newLine, 'vector'):
             newX, newY = linePts['x'].iloc[i], linePts['y'].iloc[i]
             fLine.write(' ' + str(newX) + ' ' + str(newY) + '\n')
         fLine.write(' 1 ' + str(lcat))
-        
-        if lcat!=lcats[-1]:
-            fLine.write('\n')
             
-    fLine.close()
+        fLine.close()
             
-    gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', input_=lineDefFile)
+        gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
+                       input_=lineDefFile, snap='node', threshold=10)
     
-    gs.run_command('v.edit', map_=definedLine, type_='line', tool='snap', threshold=5, cats=1-1000)
-    #gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=10)
+    #gs.run_command('v.edit', map_=definedLine, type_='line', tool='snap', threshold=5, cats=1-1000)
+    gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=2)
 
 # Later make a mega program that calls all functions, but for now do it here
 #removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \

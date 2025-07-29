@@ -15,7 +15,7 @@ import os
 
 #import removeCulverts
 
-tmpFiles = 'tempFiles2/'
+tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
@@ -51,6 +51,7 @@ lcats=sorted(set(newPtsDf['lcat']))
 # Now write to a file since we know how many points are in each line
 
 chainDf = pd.read_csv(chainFile)
+gs.run_command('v.edit', map_=definedLine, type_='line', tool='create', overwrite=True)
 
 for lcat in lcats:
     if os.path.exists(lineDefFile):
@@ -67,19 +68,21 @@ for lcat in lcats:
         nextSeg = chain[chainPos+1]
         nextSegPts = newPtsDf[newPtsDf['lcat']==nextSeg]
         
-        newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
-                           (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
-        if newAlong < 10: 
-            linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
-        else:
-            newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
-                               (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
-            if newAlong < 10:
-                linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
-            else:
-                newAlong = 0
+        if len(nextSegPts) > 0:
         
-        linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
+            newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
+                               (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
+            if newAlong < 10: 
+                linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
+            else:
+                newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
+                                   (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
+                if newAlong < 10:
+                    linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
+                else:
+                    newAlong = 0
+            
+            linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
     
     ### Fill in any start points that were in a culvert
     earlyCuls = list(linePts.index[(linePts['culvert']==1) & (linePts['along']<=10)])
@@ -109,11 +112,14 @@ for lcat in lcats:
         fLine.write(' ' + str(newX) + ' ' + str(newY) + '\n')
     fLine.write(' 1 ' + str(lcat))
         
-fLine.close()
+    fLine.close()
         
-gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', input_=lineDefFile)
+    gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
+                   input_=lineDefFile, snap='node', threshold=10)
+        
+gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=2.5)
 
-gs.run_command('v.edit', map_=definedLine, type_='line', tool='snap', threshold=5, cats=1-1000)
+#gs.run_command('v.edit', map_=definedLine, type_='line', tool='snap', threshold=5, cats=1-1000)
     #gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=10)
 
 # Later make a mega program that calls all functions, but for now do it here
