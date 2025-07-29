@@ -74,7 +74,7 @@ def split_nodesIntersects(nodeFile, linesLayer):
         x,y=nodes['x'].iloc[i],nodes['y'].iloc[i] #,breakDf['thresh'].iloc[i]
         dists = np.sqrt((haveSplit['x']-x)**2 + (haveSplit['y']-y)**2)
 
-        if i==0 or len(np.where(dists < 1)[0]) == 0:
+        if len(haveSplit)==0 or len(np.where(dists < 1)[0]) == 0:
             gs.run_command('v.edit', map_=linesLayer, tool='break', coords=[x,y], threshold=1)
             haveSplit = pd.concat((haveSplit,pd.DataFrame({'x': [x], 'y': [y]})), ignore_index=True)
             
@@ -145,6 +145,7 @@ gs.run_command('g.region', vector=vecLines0)
 
 if not gdb.map_exists(vecLines3, 'vector'):
     
+    # Remove dangles < 25m (short segments not connected to any other line)
     gs.run_command('v.clean', input_=vecLines0, type_='line', output=vecLines1,\
                    tool='rmdangle', threshold=25, overwrite=True)
     
@@ -153,6 +154,7 @@ if not gdb.map_exists(vecLines3, 'vector'):
     gs.run_command('v.to.db', map_=allNodes, layer=2, option='coor', columns=['x', 'y'])
     gs.run_command('v.db.select', map_=allNodes, layer=2, format_='csv', file=sparseFile, overwrite=True)
     
+    # Also split at nodes
     split_nodesIntersects(sparseFile, vecLines1)
     
     # Update category numbers temporarily (will update a second time)
@@ -191,9 +193,9 @@ if not gdb.map_exists(vecLines5, 'vector'):
     gs.run_command('v.edit', map_=vecLines1, tool='break', ids='1-1000')
     #gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-1], type_='line')
     
-    gs.run_command('v.to.points', flags='p', input_=vecLines1, output=sparsePts3, dmax=51)
-    gs.run_command('v.to.db', map_=sparsePts3, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=sparsePts3, layer=2, format_='csv', file=sparseFile, overwrite=True)
+    gs.run_command('v.to.points', flags='p', input_=vecLines1, output=sparsePts2, dmax=51)
+    gs.run_command('v.to.db', map_=sparsePts2, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.db.select', map_=sparsePts2, layer=2, format_='csv', file=sparseFile, overwrite=True)
     
     # v.edit tool=connect created duplicate segments, split at these so we can remove duplicates
     split_nodesIntersects(sparseFile, vecLines1)
@@ -224,7 +226,7 @@ if not gdb.map_exists(vecLines5, 'vector'):
                     dmax=1, upload='cat', table=duplicTable2, overwrite=True)
     gs.run_command('db.select', table=duplicTable2, separator='comma', output=duplicFile2, overwrite=True)
     
-    duplics, dfEnds = findDuplics(vecLines5, sparsePts2, duplicFile1, duplicFile2)
+    duplics, dfEnds = findDuplics(vecLines5, sparsePts3, duplicFile1, duplicFile2)
     
     gs.run_command('v.edit', map_=vecLines5, tool='delete', cats=duplics)
     
