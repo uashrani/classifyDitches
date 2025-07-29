@@ -312,12 +312,12 @@ chainDf['us_chain']=''
 chainDf['us_len']=np.nan
 chainDf.to_csv(chainFile, index=False)
 
-# ### Get points spaced 1m apart along the new lines
-# ### Will be used to take cross-sectional profiles
-# if not gdb.map_exists(profilePts, 'vector'):
-#     gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
-#     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-#     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+### Get points spaced 1m apart along the new lines
+### Will be used to take cross-sectional profiles
+if not gdb.map_exists(profilePts, 'vector'):
+    gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
+    gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
 
 
