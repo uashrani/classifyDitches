@@ -13,7 +13,7 @@ import scipy as sp
 import numpy as np
 import math
 
-tmpFiles = 'tempFiles2/'
+tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
