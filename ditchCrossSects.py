@@ -16,19 +16,24 @@ import os
 import removeCulverts
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'HUC10'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
 
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  
 
-culvertDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 #snapDefFile = tmpFiles + ditchPrefix + '_whereToSnap.txt'
 
 # How far to take the profile on each side, in m
 halfDist = 10   
+# Longitudinal spacing between cross-sections
+profSpacing = 10
+
+# Need to know where culverts are
+culvertDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'
+culvertBuffers = ditchPrefix + '_culvertBuffers'
 
 #%% Layers/files that will be created automatically
 
@@ -39,8 +44,7 @@ tmpFile = tmpFiles + 'tmpProfile.txt'
 definedLine = hucPrefix + '_shiftedDitches_notCleaned'
 newLine = hucPrefix + '_shiftedDitches'
 
-# Stuff needed to remove culverts
-culvertBuffers = ditchPrefix + '_culvertBuffers'
+# Stuff created after identifying culverts
 demNull = hucPrefix + '_wNulls'
 demBurned = hucPrefix + '_burned'
 #%% Actual code
@@ -96,7 +100,9 @@ if not gdb.map_exists(newLine, 'vector'):
         trY2 = y_ms + halfDist*sines
         
         ncoords = len(x_ms)
-        coordsToAdd = list(range(0,ncoords,10))+[ncoords-1]  # go every 10m but include end
+        coordsToAdd = list(range(10)) + list(range(10,ncoords-10,profSpacing)) + \
+            list(range(ncoords-10,ncoords))
+        #list(range(0,ncoords,10))+[ncoords-1]  # go every 10m but include end
         
         prevAcross = halfDist
         
@@ -144,7 +150,6 @@ if not gdb.map_exists(newLine, 'vector'):
        
     newPtsDf.to_csv(tmpFiles + hucPrefix + '_newPtsDf.txt', index=False)
     # Now write to a file since we know how many points are in each line
-    #fLine=open(lineDefFile, 'a')
     chainDf = pd.read_csv(chainFile)
     
     for lcat in lcats:
@@ -162,19 +167,20 @@ if not gdb.map_exists(newLine, 'vector'):
             nextSeg = chain[chainPos+1]
             nextSegPts = newPtsDf[newPtsDf['lcat']==nextSeg]
             
-            newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
-                               (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
-            if newAlong < 10: 
-                linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
-            else:
-                newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
-                                   (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
-                if newAlong < 10:
-                    linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
+            if len(nextSegPts) > 0:
+                newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
+                                   (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
+                if newAlong < 10: 
+                    linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
                 else:
-                    newAlong = 0
-            
-            linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
+                    newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
+                                       (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
+                    if newAlong < 10:
+                        linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
+                    else:
+                        newAlong = 0
+                
+                linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
         
         ### Fill in any start points that were in a culvert
         earlyCuls = list(linePts.index[(linePts['culvert']==1) & (linePts['along']<=10)])
@@ -209,11 +215,10 @@ if not gdb.map_exists(newLine, 'vector'):
         gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
                        input_=lineDefFile, snap='node', threshold=10)
     
-    #gs.run_command('v.edit', map_=definedLine, type_='line', tool='snap', threshold=5, cats=1-1000)
-    gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=2)
+    gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=3)
 
 # Later make a mega program that calls all functions, but for now do it here
-#removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-#                             culvertBuffers, definedLine, dem, dem)
+removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
+                            culvertBuffers, newLine, dem, dem)
     
     
