@@ -28,7 +28,7 @@ demNull = hucPrefix + '_wNulls'
 demBurned = hucPrefix + '_burned'
 
 #%% To be created
-vecLines = hucPrefix + '_lines_final'
+vecLines6 = hucPrefix + '_lines_flowDir'
 
 culvertDefFile = tmpFiles + hucPrefix + '_culvertPtDefs.txt'   # file that GRASS will read from 
 
@@ -47,8 +47,8 @@ unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 newChainDf = chainDf.copy()
 
-if not gdb.map_exists(vecLines, 'vector'):
-    gs.run_command('g.copy', vector=[newLine, vecLines])
+if not gdb.map_exists(vecLines6, 'vector'):
+    gs.run_command('g.copy', vector=[newLine, vecLines6])
 
     ### Do linear regression and flip vector directions if needed
     for lcat in lcats:
@@ -136,7 +136,7 @@ if not gdb.map_exists(vecLines, 'vector'):
         #print(lcat,linreg.slope)
             
         if linreg.slope > 0:
-            gs.run_command('v.edit', map_=vecLines, tool='flip', cats=lcat)
+            gs.run_command('v.edit', map_=vecLines6, tool='flip', cats=lcat)
             chain = chain[::-1]
             newRoot = chain[0]
             newChainDf.loc[lcat-1, 'chain']=str(chain)
@@ -156,4 +156,4 @@ if not gdb.map_exists(vecLines, 'vector'):
     
 # Later make a mega program that calls all functions, but for now do it here
 removeCulverts.removeCulverts(tmpFiles, hucPrefix + '_v2', hucPrefix, \
-                              culvertBuffers, vecLines, demNull, demBurned)
+                              culvertBuffers, vecLines6, demNull, demBurned)
