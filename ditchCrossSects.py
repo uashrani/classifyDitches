@@ -63,9 +63,6 @@ if not gdb.map_exists(newLine, 'vector'):
     
     # Get all points whose coordinates are in the DEM region
     dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
-    
-    # Temporary: also filter out the ones that are <1m 
-    dfInRegion = dfInRegion[dfInRegion['along']>=1]
     lcats=sorted(set(dfInRegion['lcat']))
     
     # Open the culvert definition file so we can check which points are near culvert
@@ -100,9 +97,13 @@ if not gdb.map_exists(newLine, 'vector'):
         trY2 = y_ms + halfDist*sines
         
         ncoords = len(x_ms)
-        coordsToAdd = list(range(10)) + list(range(10,ncoords-10,profSpacing)) + \
-            list(range(ncoords-10,ncoords))
-        #list(range(0,ncoords,10))+[ncoords-1]  # go every 10m but include end
+        if ncoords < 20:
+            # Take a cross section every 1m if the segment is short
+            coordsToAdd = list(range(0,ncoords,2)) + [ncoords-1]
+        else:
+            # Otherwise, go every 1m near the endpoints but space out the cross sections in between
+            coordsToAdd = list(range(0,10,2)) + list(range(10,ncoords-10,profSpacing)) + \
+                list(range(ncoords-10,ncoords,2))
         
         prevAcross = halfDist
         
@@ -159,28 +160,29 @@ if not gdb.map_exists(newLine, 'vector'):
         
         linePts = newPtsDf[newPtsDf['lcat']==lcat].reset_index(drop=True)
         
-        strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
-        strpChain=strChain.strip('[]')
-        chain = np.array(list(map(int,strpChain.split(', '))))
-        chainPos = np.where(chain==lcat)[0][0]
-        if chainPos + 1 < len(chain):
-            nextSeg = chain[chainPos+1]
-            nextSegPts = newPtsDf[newPtsDf['lcat']==nextSeg]
-            
-            if len(nextSegPts) > 0:
-                newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
-                                   (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
-                if newAlong < 10: 
-                    linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
-                else:
-                    newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
-                                       (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
-                    if newAlong < 10:
-                        linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
-                    else:
-                        newAlong = 0
+        if max(linePts['along']) < 10: 
+            strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
+            strpChain=strChain.strip('[]')
+            chain = np.array(list(map(int,strpChain.split(', '))))
+            chainPos = np.where(chain==lcat)[0][0]
+            if chainPos + 1 < len(chain):
+                nextSeg = chain[chainPos+1]
+                nextSegPts = newPtsDf[newPtsDf['lcat']==nextSeg]
                 
-                linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
+                if len(nextSegPts) > 0:
+                    newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
+                                       (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
+                    if newAlong < 10: 
+                        linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
+                    else:
+                        newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
+                                           (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
+                        if newAlong < 10:
+                            linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
+                        else:
+                            newAlong = 0
+                    
+                    linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
         
         ### Fill in any start points that were in a culvert
         earlyCuls = list(linePts.index[(linePts['culvert']==1) & (linePts['along']<=10)])
@@ -215,10 +217,11 @@ if not gdb.map_exists(newLine, 'vector'):
         gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
                        input_=lineDefFile, snap='node', threshold=10)
     
-    gs.run_command('v.clean', input_=definedLine, output=newLine, tool='snap', threshold=3)
+    gs.run_command('v.clean', input_=definedLine, output=newLine, tool=['snap','rmdupl'], threshold=[3,0])
+    
 
 # Later make a mega program that calls all functions, but for now do it here
-removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-                            culvertBuffers, newLine, dem, dem)
+# removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
+#                             culvertBuffers, newLine, dem, dem)
     
     
