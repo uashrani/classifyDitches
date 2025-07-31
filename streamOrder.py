@@ -9,8 +9,8 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import networkx as nx
 
-tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM2'
+tmpFiles = 'tempFiles/'
+hucPrefix = 'testDEM3'
 ditchPrefix='BRR'
 
 vecLines = hucPrefix + '_lines_final'
@@ -30,8 +30,8 @@ linesFile = 'ditchLines.txt'
 
 #%% 
 
-def findOrder(lcat, ditchLines):
-    thisRow = ditchLines[ditchLines['cat']==lcat].iloc[0]
+def findOrder(lcat, orderDf):
+    thisRow = orderDf[orderDf['cat']==lcat].iloc[0]
     order = thisRow['order']
     strParents = thisRow['parents']
     strpParents=strParents.strip('[]')
@@ -41,28 +41,43 @@ def findOrder(lcat, ditchLines):
         parents=[]
     
     if order > 0:
-        return(order, ditchLines)
+        return(order, orderDf)
     else:
         parentOrders = []
+        parentBraids = []
         for parent in parents:
             #if parent in list(ditchLines['cat']):
-            parentOrder, ditchLines = findOrder(parent, ditchLines)
-            parentOrders += [parentOrder]            
+            parentOrder, orderDf = findOrder(parent, orderDf)
+            parentOrders += [parentOrder]   
+            parentBraid = orderDf['braid'][orderDf['cat']==parent].iloc[0]
+            parentBraids += [parentBraid]
             
-        parentOrders = pd.Series(parentOrders)
+        parentDf1 = pd.DataFrame({'cat': parents, 'order': parentOrders, \
+                                 'braid': parentBraids})
         
-        # Get the max stream order of the parents 
-        maxOrder = max(parentOrders)
-        nmax = len(parentOrders[parentOrders==maxOrder])
+        parentDf = parentDf1.copy()
         
-        if nmax > 1:
+        # Make sure this is not a braided stream with the same origin
+        for i in range(len(parentDf1)):
+            braid = parentDf1['braid'].iloc[i]
+            if braid != '':
+                matchBraid = parentDf1.index[parentDf1['braid']==braid]
+                parentDf.drop(index=matchBraid[matchBraid < i], inplace=True)
+        
+        maxOrder = max(parentDf['order'])
+        nmax = len(parentDf[parentDf['order']==maxOrder])
+
+        # If it has a non-empty value for braided, it shares the exact same parents with another segment
+        if nmax > 1 and thisRow['braid']=='':
             order = maxOrder + 1 
         else:
             order = maxOrder
+            if len(parentDf) == 1 and parentDf['braid'].iloc[0] != '':
+                orderDf.loc[orderDf['cat']==lcat, 'braid'] = parentDf['braid'].iloc[0]
         
-        ditchLines.loc[ditchLines['cat']==lcat, 'order'] = order
+        orderDf.loc[orderDf['cat']==lcat, 'order'] = order
         
-        return(order, ditchLines)
+        return(order, orderDf)
 
 #%% Find stream orders
 # Find where the end of one segment flows into the start of another
@@ -81,13 +96,19 @@ lcats=sorted(set(p['lcat']))
 connectDf = pd.read_csv(connectFile)
 connectDf = connectDf[connectDf['from_cat']!=connectDf['cat']]
 
-graph = nx.from_pandas_edgelist(connectDf, source='from_cat', target='cat', create_using=nx.DiGraph)
+# d1 = pd.DataFrame({'from':[1,1,2,3], 'to':[2,3,4,4]})
+# d2 = pd.DataFrame({'from':[1,1,2,3,4,5], 'to':[2,3,4,5,6,6]})
+d3 = pd.DataFrame({'from':[1,1,2,2,3,4,5,6,7,8], 'to':[3,4,5,6,7,7,8,8,9,9]})
+graph = nx.from_pandas_edgelist(d3, source='from', target='to', create_using=nx.DiGraph)
+
+#graph = nx.from_pandas_edgelist(connectDf, source='from_cat', target='cat', create_using=nx.DiGraph)
 
 # Go through all lines for upstream neighbors & stream order
 orderDf = pd.DataFrame({'cat': lcats})
 
 orderDf['parents']=''
 orderDf['order']=0
+orderDf['braid']=''
 
 # First pass: note parents of each ditch
 for i in range(len(orderDf)):
@@ -96,9 +117,14 @@ for i in range(len(orderDf)):
     # Find upstream neighbors/parents
     if graph.has_node(lcat):
         parents = str(list(graph.predecessors(lcat)))
+        
+        sameParents = orderDf.index[orderDf['parents']==parents]
+        if len(sameParents) > 0 and parents != '[]':
+            orderDf.loc[i, 'braid'] = parents
+            orderDf.loc[sameParents, 'braid'] = parents
     else:
         parents = '[]'
-    
+        
     orderDf.loc[i, 'parents'] = parents
     
 orderDf.loc[orderDf['parents'] == '[]', 'order'] = 1
