@@ -9,16 +9,20 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import networkx as nx
 
+import findStreamChains
+
 tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM3'
 ditchPrefix='BRR'
 
-vecLines = hucPrefix + '_lines_final'
+vecLines6 = hucPrefix + '_lines_flowDir'
 
 # This is just to tell us what lcats are in the region
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 #%% To be created
+
+vecLines = hucPrefix + '_lines_final'
 
 startNodes = hucPrefix + '_starts'
 endNodes = hucPrefix + '_ends'
@@ -82,6 +86,10 @@ def findOrder(lcat, orderDf):
 #%% Find stream orders
 # Find where the end of one segment flows into the start of another
 if not gdb.map_exists(endNodes, 'vector'):
+    gs.run_command('v.build.polylines', input_=vecLines6, output=vecLines, cats='first', type_='line')
+    gs.run_command('v.db.droptable', flags='f', map_=vecLines)
+    gs.run_command('v.db.addtable', map_=vecLines)
+    
     gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
     gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
     
@@ -98,10 +106,10 @@ connectDf = connectDf[connectDf['from_cat']!=connectDf['cat']]
 
 # d1 = pd.DataFrame({'from':[1,1,2,3], 'to':[2,3,4,4]})
 # d2 = pd.DataFrame({'from':[1,1,2,3,4,5], 'to':[2,3,4,5,6,6]})
-d3 = pd.DataFrame({'from':[1,1,2,2,3,4,5,6,7,8], 'to':[3,4,5,6,7,7,8,8,9,9]})
-graph = nx.from_pandas_edgelist(d3, source='from', target='to', create_using=nx.DiGraph)
+# d3 = pd.DataFrame({'from':[1,1,2,2,3,4,5,6,7,8], 'to':[3,4,5,6,7,7,8,8,9,9]})
+#graph = nx.from_pandas_edgelist(d3, source='from', target='to', create_using=nx.DiGraph)
 
-#graph = nx.from_pandas_edgelist(connectDf, source='from_cat', target='cat', create_using=nx.DiGraph)
+graph = nx.from_pandas_edgelist(connectDf, source='from_cat', target='cat', create_using=nx.DiGraph)
 
 # Go through all lines for upstream neighbors & stream order
 orderDf = pd.DataFrame({'cat': lcats})
@@ -141,8 +149,10 @@ for lcat in lcats:
     order, orderDf = findOrder(lcat, orderDf)
     mapName = ditchPrefix + '_order' + str(order)
     print(lcat, order)
-    gs.run_command('v.edit', map_=mapName, tool='copy', bgmap=vecLines, cat=lcat)
+    #gs.run_command('v.edit', map_=mapName, tool='copy', bgmap=vecLines, cat=lcat)
     
     #gs.run_command('v.db.update', map_=vecLines, column='order', value=order, where="cat = "+str(lcat))
 
 #ditchCombs.to_csv('final_' + combFile, index=False, sep='\t', float_format='%.3f')
+
+
