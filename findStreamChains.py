@@ -47,7 +47,7 @@ def findStreamChains(graph, lcats):
                             nextLcat=nextLcats[0]
         
             for segment in chain:
-                chainDf.loc[segment-1, 'chain']=str(chain)
+                chainDf.loc[chainDf['root']==segment, 'chain']=str(chain)
         
     return chainDf
     
