@@ -10,6 +10,8 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 
+import findStreamChains
+
 vecLines0='drainage_centerlines'   # name of ditch layer in Grass, already imported
 tmpFiles = 'tempFiles/'
 
@@ -272,46 +274,7 @@ for i in range(len(dfEnds)):
 mergedLines=pd.DataFrame({'from':from_cats, 'to':to_cats})
 graph = nx.from_pandas_edgelist(mergedLines, source='from', target='to', create_using=nx.DiGraph)  
 
-### We will construct chains of segments, and keep track of the first in the chain
-### Chains should have 1 segment feeding into 1, & shouldn't have forks/branches
-chainDf = pd.DataFrame({'root': fIDs})
-chainDf['chain']=''
-
-for lcat in fIDs:
-    # If a segment isn't in the directed graph, it forms its own chain
-    if graph.has_node(lcat)==False: 
-        chain=[int(lcat)]
-    else:
-        prevLcats = list(graph.predecessors(lcat))
-        
-        # If it has exactly one predecessor and no siblings, it's part of another chain
-        # If it has 0 or 2+ predecessors, start a new chain
-        if len(prevLcats) != 1 or (len(prevLcats)==1 and len(list(graph.successors(prevLcats[0])))!=1):
-            chain=[int(lcat)]
-            
-            nextLcats=list(graph.successors(lcat))
-            
-            # If a segment has 0 or 2+ successors, end the chain here
-            if len(nextLcats) != 1:
-                nextLcat=0 
-            else:
-                nextLcat=nextLcats[0]
-            
-            # Check to make sure the successor isn't receiving flow from another segment
-            while nextLcat != 0 and len(list(graph.predecessors(nextLcat)))==1:
-                chain+=[int(nextLcat)]
-                
-                nextLcats = list(graph.successors(nextLcat))
-                if len(nextLcats) != 1:
-                    nextLcat=0
-                else:
-                    nextLcat=nextLcats[0]
-    
-    for segment in chain:
-        chainDf.loc[segment-1, 'chain']=str(chain)
-    
-chainDf['us_chain']=''
-chainDf['us_len']=np.nan
+chainDf = findStreamChains.findStreamChains(graph, fIDs)
 chainDf.to_csv(chainFile, index=False)
 
 ### Get points spaced 1m apart along the new lines
