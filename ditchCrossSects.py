@@ -14,7 +14,7 @@ import numpy as np
 import os
 
 import removeCulverts
-import tangentSlope
+import transect
 
 tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM2'
@@ -75,7 +75,7 @@ if not gdb.map_exists(newLine, 'vector'):
     gs.run_command('v.edit', map_=definedLine, type_='line', tool='create', overwrite=True)
     
     for lcat in lcats:
-        trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines = tangentSlope.tangentSlope(df, lcat, halfDist)
+        trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines = transect.transect(df, lcat, halfDist)
         
         ncoords = len(x_ms)
         if ncoords < 20:
