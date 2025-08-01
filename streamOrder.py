@@ -9,8 +9,6 @@ import grass.grassdb.data as gdb
 import pandas as pd
 import networkx as nx
 
-import findStreamChains
-
 tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM3'
 ditchPrefix='BRR'
@@ -29,8 +27,6 @@ endNodes = hucPrefix + '_ends'
 
 connectTable = hucPrefix + '_endsToStarts'
 connectFile = tmpFiles + connectTable + '.txt'
-
-linesFile = 'ditchLines.txt'
 
 #%% 
 
@@ -84,12 +80,11 @@ def findOrder(lcat, orderDf):
         return(order, orderDf)
 
 #%% Find stream orders
-# Find where the end of one segment flows into the start of another
+### Build polylines and find where end of one segment flows into start of another
 if not gdb.map_exists(endNodes, 'vector'):
     gs.run_command('v.build.polylines', input_=vecLines6, output=vecLines, cats='first', type_='line')
     gs.run_command('v.db.droptable', flags='f', map_=vecLines)
     gs.run_command('v.db.addtable', map_=vecLines)
-    
     gs.run_command('v.to.points', input_=vecLines, output=startNodes, use='start', overwrite=True)
     gs.run_command('v.to.points', input_=vecLines, output=endNodes, use='end', overwrite=True)
     
@@ -103,11 +98,6 @@ lcats=sorted(set(p['lcat']))
 
 connectDf = pd.read_csv(connectFile)
 connectDf = connectDf[connectDf['from_cat']!=connectDf['cat']]
-
-# d1 = pd.DataFrame({'from':[1,1,2,3], 'to':[2,3,4,4]})
-# d2 = pd.DataFrame({'from':[1,1,2,3,4,5], 'to':[2,3,4,5,6,6]})
-# d3 = pd.DataFrame({'from':[1,1,2,2,3,4,5,6,7,8], 'to':[3,4,5,6,7,7,8,8,9,9]})
-#graph = nx.from_pandas_edgelist(d3, source='from', target='to', create_using=nx.DiGraph)
 
 graph = nx.from_pandas_edgelist(connectDf, source='from_cat', target='cat', create_using=nx.DiGraph)
 
@@ -149,7 +139,7 @@ for lcat in lcats:
     order, orderDf = findOrder(lcat, orderDf)
     mapName = ditchPrefix + '_order' + str(order)
     print(lcat, order)
-    #gs.run_command('v.edit', map_=mapName, tool='copy', bgmap=vecLines, cat=lcat)
+    gs.run_command('v.edit', map_=mapName, tool='copy', bgmap=vecLines, cat=lcat)
     
     #gs.run_command('v.db.update', map_=vecLines, column='order', value=order, where="cat = "+str(lcat))
 
