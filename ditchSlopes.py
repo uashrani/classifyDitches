@@ -16,7 +16,7 @@ import numpy as np
 import removeCulverts
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM3'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
