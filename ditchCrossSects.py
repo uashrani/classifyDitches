@@ -16,8 +16,8 @@ import os
 import removeCulverts
 import transect
 
-tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM2'
+tmpFiles = 'tempFiles2/'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -64,7 +64,8 @@ if not gdb.map_exists(newLine, 'vector'):
     
     # Get all points whose coordinates are in the DEM region
     dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
-    lcats=sorted(set(dfInRegion['lcat']))
+    #lcats=sorted(set(dfInRegion['lcat']))
+    lcats=[166,167,168,169]
     
     # Open the culvert definition file so we can check which points are near culvert
     culvertPts = pd.read_csv(culvertDefFile, names=['x', 'y', 'buffer'])
@@ -134,10 +135,11 @@ if not gdb.map_exists(newLine, 'vector'):
     # Now write to a file since we know how many points are in each line
     chainDf = pd.read_csv(chainFile)
     
+    fLine=open(lineDefFile, 'a')
+    
     for lcat in lcats:
-        if os.path.exists(lineDefFile):
-            os.remove(lineDefFile)
-        fLine=open(lineDefFile, 'a')
+        #if os.path.exists(lineDefFile):
+        #    os.remove(lineDefFile)
         
         linePts = newPtsDf[newPtsDf['lcat']==lcat].reset_index(drop=True)
         
@@ -192,17 +194,19 @@ if not gdb.map_exists(newLine, 'vector'):
             newX, newY = linePts['x'].iloc[i], linePts['y'].iloc[i]
             fLine.write(' ' + str(newX) + ' ' + str(newY) + '\n')
         fLine.write(' 1 ' + str(lcat))
+        if lcat != lcats[-1]:
+            fLine.write('\n')
             
-        fLine.close()
+    fLine.close()
             
-        gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
-                       input_=lineDefFile, snap='node', threshold=10)
+    gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
+                       input_=lineDefFile) #, snap='node', threshold=10)
     
-    gs.run_command('v.clean', input_=definedLine, output=newLine, tool=['snap','rmdupl'], threshold=[3,0])
+    gs.run_command('v.clean', input_=definedLine, output=newLine, tool=['snap','rmdupl'], threshold=[10,0])
     
 
 # Later make a mega program that calls all functions, but for now do it here
-removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-                            culvertBuffers, newLine, dem, dem)
+# removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
+#                             culvertBuffers, newLine, dem, dem)
     
     
