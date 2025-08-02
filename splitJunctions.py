@@ -13,7 +13,7 @@ import networkx as nx
 import findStreamChains
 
 vecLines0='drainage_centerlines'   # name of ditch layer in Grass, already imported
-tmpFiles = 'tempFiles/'
+tmpFiles = 'tempFiles2/'
 
 ditchPrefix='BRR'
 
@@ -24,6 +24,9 @@ vecLines2 = ditchPrefix + '_lines_namelessTemp'
 vecLines3 = ditchPrefix + '_lines_renamedTemp'
 vecLines4 = ditchPrefix + '_lines_nameless'
 vecLines5 = ditchPrefix + '_lines_renamed'
+vecLines6 = ditchPrefix + '_lines_cleaned'
+vecLines7 = ditchPrefix + '_lines_poly'
+vecLines8 = ditchPrefix + '_lines_cats'
 
 # Create before splitting and breaking category numbers
 allNodes = ditchPrefix + '_nodesTemp'
@@ -190,7 +193,7 @@ if not gdb.map_exists(vecLines5, 'vector'):
     gs.run_command('v.edit', map_=vecLines1, tool='delete', ids=duplics)
     gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-0.1], type_='line')
     gs.run_command('v.edit', map_=vecLines1, tool='connect', threshold=10, ids='1-1000')
-    gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-0.1], type_='line')
+    gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-0], type_='line')
     # Now we can break lines at intersections
     gs.run_command('v.edit', map_=vecLines1, tool='break', ids='1-1000')
     #gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-1], type_='line')
@@ -202,7 +205,7 @@ if not gdb.map_exists(vecLines5, 'vector'):
     # v.edit tool=connect created duplicate segments, split at these so we can remove duplicates
     split_nodesIntersects(sparseFile, vecLines1)
     
-    gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-1], type_='line')
+    gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,0], type_='line')
     
     # Update category numbers
     gs.run_command('v.category', flags='t', input_=vecLines1, output=vecLines4, option='del', cat=-1, overwrite=True)
@@ -232,50 +235,59 @@ if not gdb.map_exists(vecLines5, 'vector'):
     
     gs.run_command('v.edit', map_=vecLines5, tool='delete', cats=duplics)
     
-    dfEnds.to_csv('dfEnds.txt', index=False)
+    ### Build polylines
+    gs.run_command('v.clean', flags='c', input_=vecLines5, output_=vecLines6, \
+                   tool='snap', threshold=3)
+    gs.run_command('v.build.polylines', input_=vecLines6, output_=vecLines7, \
+                   type_='line', cats='no')
+    gs.run_command('v.category', input_=vecLines7, option='add', output_=vecLines8)
     
-    # Keep track of original category numbers
-    orig_cats = gs.read_command('v.category', input_=vecLines1, option='print')
-    ls_orig_cats = orig_cats.split('\r\n')
-    ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
-    fIDs = np.arange(1, len(ls_orig_cats)+1)
-
-    dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
-    dfOrig.to_csv(tmpFiles + 'origCats.txt', index=False)
-
-
-#%% Find which segments originally connected to each other (even if not actual flow dir)
-
-dfEnds = pd.read_csv('dfEnds.txt')
-dfEnds=dfEnds[dfEnds['from_cat']!=dfEnds['cat']].reset_index(drop=True)
-
-dfOrig = pd.read_csv(tmpFiles+'origCats.txt')
-fIDs=dfOrig['cat']
-### We have a table showing all connections, 
-### but we narrow this down to connections b/w segments that had same original cat
-from_cats, to_cats=[], []
-
-for i in range(len(dfEnds)):
-    row=dfEnds.iloc[i]
+    #gs.run_command('v.build.polylines', )
     
-    # These are their cat numbers in the split layer
-    f_cat, t_cat=row['from_cat'], row['cat']
+#     dfEnds.to_csv('dfEnds.txt', index=False)
     
-    # These are their cat numbers from the original layer (unbroken)
-    f_orig=dfOrig['orig_cat'][dfOrig['cat']==f_cat].iloc[0]
-    t_orig=dfOrig['orig_cat'][dfOrig['cat']==t_cat].iloc[0]
+#     # Keep track of original category numbers
+#     orig_cats = gs.read_command('v.category', input_=vecLines1, option='print')
+#     ls_orig_cats = orig_cats.split('\r\n')
+#     ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
+#     fIDs = np.arange(1, len(ls_orig_cats)+1)
+
+#     dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
+#     dfOrig.to_csv(tmpFiles + 'origCats.txt', index=False)
+
+
+# #%% Find which segments originally connected to each other (even if not actual flow dir)
+
+# dfEnds = pd.read_csv('dfEnds.txt')
+# dfEnds=dfEnds[dfEnds['from_cat']!=dfEnds['cat']].reset_index(drop=True)
+
+# dfOrig = pd.read_csv(tmpFiles+'origCats.txt')
+# fIDs=dfOrig['cat']
+# ### We have a table showing all connections, 
+# ### but we narrow this down to connections b/w segments that had same original cat
+# from_cats, to_cats=[], []
+
+# for i in range(len(dfEnds)):
+#     row=dfEnds.iloc[i]
     
-    # If they came from the same original cat, add them to the to/from columns
-    if f_orig==t_orig: 
-        from_cats+=[f_cat]
-        to_cats+=[t_cat]
+#     # These are their cat numbers in the split layer
+#     f_cat, t_cat=row['from_cat'], row['cat']
+    
+#     # These are their cat numbers from the original layer (unbroken)
+#     f_orig=dfOrig['orig_cat'][dfOrig['cat']==f_cat].iloc[0]
+#     t_orig=dfOrig['orig_cat'][dfOrig['cat']==t_cat].iloc[0]
+    
+#     # If they came from the same original cat, add them to the to/from columns
+#     if f_orig==t_orig: 
+#         from_cats+=[f_cat]
+#         to_cats+=[t_cat]
         
-# Create a directed graph of segments that came from the same original lines
-mergedLines=pd.DataFrame({'from':from_cats, 'to':to_cats})
-graph = nx.from_pandas_edgelist(mergedLines, source='from', target='to', create_using=nx.DiGraph)  
+# # Create a directed graph of segments that came from the same original lines
+# mergedLines=pd.DataFrame({'from':from_cats, 'to':to_cats})
+# graph = nx.from_pandas_edgelist(mergedLines, source='from', target='to', create_using=nx.DiGraph)  
 
-chainDf = findStreamChains.findStreamChains(graph, fIDs)
-chainDf.to_csv(chainFile, index=False)
+# chainDf = findStreamChains.findStreamChains(graph, fIDs)
+# chainDf.to_csv(chainFile, index=False)
 
 ### Get points spaced 1m apart along the new lines
 ### Will be used to take cross-sectional profiles
