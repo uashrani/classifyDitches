@@ -20,11 +20,15 @@ ditchPrefix='BRR'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 vecLines = hucPrefix + '_lines_final'
 
+toFill = [245,246]
+
 #%% To be created
 transectFile = tmpFiles + hucPrefix + '_downstreamTransects.txt'
 dsPoints = hucPrefix + '_downstreamPts'
 dsFile = tmpFiles + dsPoints + '.txt'
 dsTransects = hucPrefix + '_downstreamTransects'
+
+dsBuffers = hucPrefix + '_downstreamBuffers'
 
 #%% 
 ### Create transects near downstream ends of ditches for infilling location
@@ -36,7 +40,8 @@ if not gdb.map_exists(dsPoints, 'vector'):
     ptID = 1
     for lcat in lcats:
         # Start with two points along the line, and get slope between them
-        for dsLen in [-24.5, -25.5]:
+        fillLoc = -50
+        for dsLen in [fillLoc+0.5, fillLoc-0.5]:
             f.write('P ' + str(ptID) + ' ' + str(lcat) + ' ' + str(dsLen) + '\n')
             ptID += 1
     f.close()
@@ -72,4 +77,12 @@ if not gdb.map_exists(dsTransects, 'vector'):
     gs.run_command('v.edit', map_=dsTransects, type_='line', tool='create', overwrite=True)
     gs.run_command('v.edit', flags='n', map_=dsTransects, tool='add', \
                    input_=transectFile)
+
+# Create a new layer that buffers the transects only for the selected ditches
+gs.run_command('v.buffer', flags='c', input_=dsTransects, cats=toFill, type_='line', \
+               output=dsBuffers, distance=10)
+    
+
+        
+
         
