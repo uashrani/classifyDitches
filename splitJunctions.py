@@ -117,7 +117,8 @@ def findStreamChains(graph, lcats):
 
 gs.run_command('g.region', vector=vecLines0)
 
-if not gdb.map_exists(vecLines3, 'vector'):
+### Build network (make sure it's cleaned, connected, etc.)
+if not gdb.map_exists(vecLines6, 'vector'):
     
     # Remove dangles < 25m (short segments not connected to any other line)
     gs.run_command('v.clean', input_=vecLines0, type_='line', output=vecLines1,\
@@ -167,6 +168,13 @@ if not gdb.map_exists(vecLines3, 'vector'):
                          dmax=1, upload='cat', table=flowTable, overwrite=True)
     gs.run_command('db.select', table=flowTable, separator='comma', output=flowFile, overwrite=True)             
 
+### Get points spaced 1m apart along the new lines
+### Will be used to take cross-sectional profiles
+if not gdb.map_exists(profilePts, 'vector'):
+    gs.run_command('v.to.points', input_=vecLines6, output=profilePts, dmax=1)
+    gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+
 #%% Find which segments originally connected to each other (even if not actual flow dir)
 
 dfEnds = pd.read_csv(flowFile)
@@ -199,13 +207,6 @@ graph = nx.from_pandas_edgelist(mergedLines, source='from', target='to', create_
 
 chainDf = findStreamChains(graph, fIDs)
 chainDf.to_csv(chainFile, index=False)
-
-### Get points spaced 1m apart along the new lines
-### Will be used to take cross-sectional profiles
-# if not gdb.map_exists(profilePts, 'vector'):
-#     gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
-#     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-#     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
 
 
