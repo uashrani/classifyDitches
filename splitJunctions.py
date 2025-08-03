@@ -198,12 +198,12 @@ if not gdb.map_exists(vecLines5, 'vector'):
     gs.run_command('v.edit', map_=vecLines1, tool='break', ids='1-1000')
     #gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-1], type_='line')
     
-    gs.run_command('v.to.points', flags='p', input_=vecLines1, output=sparsePts2, dmax=51)
-    gs.run_command('v.to.db', map_=sparsePts2, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=sparsePts2, layer=2, format_='csv', file=sparseFile, overwrite=True)
+    # gs.run_command('v.to.points', flags='p', input_=vecLines1, output=sparsePts2, dmax=51)
+    # gs.run_command('v.to.db', map_=sparsePts2, layer=2, option='coor', columns=['x', 'y'])
+    # gs.run_command('v.db.select', map_=sparsePts2, layer=2, format_='csv', file=sparseFile, overwrite=True)
     
     # v.edit tool=connect created duplicate segments, split at these so we can remove duplicates
-    split_nodesIntersects(sparseFile, vecLines1)
+    #split_nodesIntersects(sparseFile, vecLines1)
     
     gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,0], type_='line')
     
@@ -216,24 +216,24 @@ if not gdb.map_exists(vecLines5, 'vector'):
     gs.run_command('v.db.addtable', map_=vecLines5)
     
     ### Ok now drop any new duplicates that were missed (like they partially overlapped before but now fully overlap)
-    gs.run_command('v.to.points', input_=vecLines5, output=startNodes2, use='start', overwrite=True)
-    gs.run_command('v.to.points', input_=vecLines5, output=endNodes2, use='end', overwrite=True)
+    # gs.run_command('v.to.points', input_=vecLines5, output=startNodes2, use='start', overwrite=True)
+    # gs.run_command('v.to.points', input_=vecLines5, output=endNodes2, use='end', overwrite=True)
     
-    # starts-->starts
-    gs.run_command('db.droptable', flags='f', table=duplicTable1)
-    gs.run_command('v.distance', flags='a', from_=startNodes2, to=startNodes2, from_layer=1, to_layer=1, \
-                    dmax=1, upload='cat', table= duplicTable1, overwrite=True)
-    gs.run_command('db.select', table=duplicTable1, separator='comma', output=duplicFile1, overwrite=True)
+    # # starts-->starts
+    # gs.run_command('db.droptable', flags='f', table=duplicTable1)
+    # gs.run_command('v.distance', flags='a', from_=startNodes2, to=startNodes2, from_layer=1, to_layer=1, \
+    #                 dmax=1, upload='cat', table= duplicTable1, overwrite=True)
+    # gs.run_command('db.select', table=duplicTable1, separator='comma', output=duplicFile1, overwrite=True)
     
-    # Ends-->starts (also used for finding stream chains later)
-    gs.run_command('db.droptable', flags='f', table=duplicTable2)
-    gs.run_command('v.distance', flags='a', from_=endNodes2, to=startNodes2, from_layer=1, to_layer=1, \
-                    dmax=1, upload='cat', table=duplicTable2, overwrite=True)
-    gs.run_command('db.select', table=duplicTable2, separator='comma', output=duplicFile2, overwrite=True)
+    # # Ends-->starts (also used for finding stream chains later)
+    # gs.run_command('db.droptable', flags='f', table=duplicTable2)
+    # gs.run_command('v.distance', flags='a', from_=endNodes2, to=startNodes2, from_layer=1, to_layer=1, \
+    #                 dmax=1, upload='cat', table=duplicTable2, overwrite=True)
+    # gs.run_command('db.select', table=duplicTable2, separator='comma', output=duplicFile2, overwrite=True)
     
-    duplics, dfEnds = findDuplics(vecLines5, sparsePts3, duplicFile1, duplicFile2)
+    # duplics, dfEnds = findDuplics(vecLines5, sparsePts3, duplicFile1, duplicFile2)
     
-    gs.run_command('v.edit', map_=vecLines5, tool='delete', cats=duplics)
+    # gs.run_command('v.edit', map_=vecLines5, tool='delete', cats=duplics)
     
     ### Build polylines
     gs.run_command('v.clean', flags='c', input_=vecLines5, output_=vecLines6, \
@@ -291,10 +291,10 @@ if not gdb.map_exists(vecLines5, 'vector'):
 
 ### Get points spaced 1m apart along the new lines
 ### Will be used to take cross-sectional profiles
-if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
-    gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
-    gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
+# if not gdb.map_exists(profilePts, 'vector'):
+#     gs.run_command('v.to.points', input_=vecLines5, output=profilePts, dmax=1)
+#     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
+#     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
 
 
