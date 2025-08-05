@@ -22,7 +22,7 @@ ctyRoads = ['roads_beckerCounty', 'roads_clayCounty', 'roads_wilkinCounty']     
 railroads = 'rail_lines'
 bridges = 'Bridge_locations_in_Minnesota'
 airports = 'Airport_Runways_in_Minnesota'
-ditches = ditchPrefix + '_lines_cats'
+ditches = ditchPrefix + '_lines_renamed'
 
 #%% Layers/files that will be created automatically
 
