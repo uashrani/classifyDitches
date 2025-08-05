@@ -15,8 +15,8 @@ import os
 
 #import removeCulverts
 
-tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM3'
+tmpFiles = 'tempFiles2/'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -37,13 +37,13 @@ lineDefFile = tmpFiles + 'shiftedLineDef.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines
-definedLine = hucPrefix + '_shiftedDitches_notCleaned'
-newLine = hucPrefix + '_shiftedDitches'
+definedLine = hucPrefix + '_sd_nc'
+newLine = hucPrefix + '_sd'
 
 # Stuff needed to remove culverts
-culvertBuffers = ditchPrefix + '_culvertBuffers'
-demNull = hucPrefix + '_wNulls'
-demBurned = hucPrefix + '_burned'
+# culvertBuffers = ditchPrefix + '_culvertBuffers'
+# demNull = hucPrefix + '_wNulls'
+# demBurned = hucPrefix + '_burned'
 #%% Actual code
        
 newPtsDf = pd.read_csv(tmpFiles + hucPrefix + '_newPtsDf.txt')

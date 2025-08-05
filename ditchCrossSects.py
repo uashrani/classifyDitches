@@ -17,14 +17,14 @@ import removeCulverts
 import transect
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM3'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
 
 alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  
 
-chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
+#chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 #snapDefFile = tmpFiles + ditchPrefix + '_whereToSnap.txt'
 
 # How far to take the profile on each side, in m
@@ -42,7 +42,7 @@ lineDefFile= tmpFiles + 'shiftedLineDef.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines
-definedLine = hucPrefix + '_shiftedDitches_notCleaned'
+definedLine = hucPrefix + '_junction'
 newLine = hucPrefix + '_shiftedDitches'
 
 # Stuff created after identifying culverts
@@ -50,7 +50,7 @@ demNull = hucPrefix + '_wNulls'
 demBurned = hucPrefix + '_burned'
 #%% Actual code
 
-if not gdb.map_exists(newLine, 'vector'):
+if not gdb.map_exists(definedLine, 'vector'):
     region = gs.read_command('g.region', flags='gp', raster=dem)
     rgn = region.split('\r\n')
     rgnDict = {}
@@ -64,8 +64,8 @@ if not gdb.map_exists(newLine, 'vector'):
     
     # Get all points whose coordinates are in the DEM region
     dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
-    #lcats=sorted(set(dfInRegion['lcat']))
-    lcats=[166,167,168,169]
+    lcats=sorted(set(dfInRegion['lcat']))
+    lcats=[60,127,198]
     
     # Open the culvert definition file so we can check which points are near culvert
     culvertPts = pd.read_csv(culvertDefFile, names=['x', 'y', 'buffer'])
@@ -73,19 +73,20 @@ if not gdb.map_exists(newLine, 'vector'):
     # Create empty vector map for new lines, and empty file to add coords
     newPtsDf = pd.DataFrame({'lcat': [], 'x': [], 'y': [], 'across': [], \
                              'x1': [], 'y1': [], 'cos': [], 'sin': [], 'culvert': []})
-    gs.run_command('v.edit', map_=definedLine, type_='line', tool='create', overwrite=True)
+    gs.run_command('v.edit', map_=definedLine, type_='line', tool='create') #, overwrite=True)
     
     for lcat in lcats:
         trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines = transect.transect(df, lcat, halfDist)
         
         ncoords = len(x_ms)
-        if ncoords < 20:
-            # Take a cross section every 1m if the segment is short
-            coordsToAdd = list(range(0,ncoords,2)) + [ncoords-1]
-        else:
-            # Otherwise, go every 1m near the endpoints but space out the cross sections in between
-            coordsToAdd = list(range(0,10,2)) + list(range(10,ncoords-10,profSpacing)) + \
-                list(range(ncoords-10,ncoords,2))
+        #coordsToAdd = list(range(0,ncoords,profSpacing)) + [ncoords-1]
+        # if ncoords < 20:
+        #     # Take a cross section every 1m if the segment is short
+        #     coordsToAdd = list(range(0,ncoords,2)) + [ncoords-1]
+        # else:
+        #     # Otherwise, go every 1m near the endpoints but space out the cross sections in between
+        coordsToAdd = list(range(0,10,5)) + list(range(10,ncoords-10,profSpacing)) + \
+                list(range(ncoords-10,ncoords,5)) + [ncoords-1]
         
         prevAcross = halfDist
         
@@ -132,40 +133,11 @@ if not gdb.map_exists(newLine, 'vector'):
             newPtsDf = pd.concat((newPtsDf, newRow))
        
     newPtsDf.to_csv(tmpFiles + hucPrefix + '_newPtsDf.txt', index=False)
-    # Now write to a file since we know how many points are in each line
-    chainDf = pd.read_csv(chainFile)
-    
-    fLine=open(lineDefFile, 'a')
+    newPtsDf2 = pd.DataFrame()
     
     for lcat in lcats:
-        #if os.path.exists(lineDefFile):
-        #    os.remove(lineDefFile)
-        
+
         linePts = newPtsDf[newPtsDf['lcat']==lcat].reset_index(drop=True)
-        
-        if max(linePts['along']) < 10: 
-            strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
-            strpChain=strChain.strip('[]')
-            chain = np.array(list(map(int,strpChain.split(', '))))
-            chainPos = np.where(chain==lcat)[0][0]
-            if chainPos + 1 < len(chain):
-                nextSeg = chain[chainPos+1]
-                nextSegPts = newPtsDf[newPtsDf['lcat']==nextSeg]
-                
-                if len(nextSegPts) > 0:
-                    newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[0])**2 + \
-                                       (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[0])**2)
-                    if newAlong < 10: 
-                        linePts = pd.concat((linePts, nextSegPts.iloc[0:1])).reset_index(drop=True)
-                    else:
-                        newAlong = np.sqrt((linePts['x'].iloc[-1] - nextSegPts['x'].iloc[-1])**2 + \
-                                           (linePts['y'].iloc[-1] - nextSegPts['y'].iloc[-1])**2)
-                        if newAlong < 10:
-                            linePts = pd.concat((linePts, nextSegPts.iloc[-1:])).reset_index(drop=True)
-                        else:
-                            newAlong = 0
-                    
-                    linePts.loc[len(linePts)-1, 'along'] = linePts['along'].iloc[-2]+newAlong
         
         ### Fill in any start points that were in a culvert
         earlyCuls = list(linePts.index[(linePts['culvert']==1) & (linePts['along']<=10)])
@@ -186,6 +158,40 @@ if not gdb.map_exists(newLine, 'vector'):
             linePts.loc[earlyCuls, 'x'] =  x1s + acrosses*cosinez
             linePts.loc[earlyCuls, 'y'] =  y1s + acrosses*sinez
             
+        if lcat==lcats[0]:
+            newPtsDf2 = linePts
+        else:
+            newPtsDf2 = pd.concat((newPtsDf2,linePts),ignore_index=True)
+        
+    newPtsDf = newPtsDf2
+    newPtsDf['snapped'] = 0
+    nodeInds=pd.Series(newPtsDf.index[newPtsDf['along']==0])
+    nodes=newPtsDf.iloc[pd.concat((nodeInds,nodeInds-1))]
+    nodes=nodes[['lcat','x','y','along']] 
+    
+    if os.path.exists(lineDefFile):
+        os.remove(lineDefFile)
+    fLine=open(lineDefFile, 'a')
+
+    # Manually snap to nearby nodes
+    for lcat in lcats:
+        linePts = newPtsDf[newPtsDf['lcat']==lcat].reset_index(drop=True)
+        
+        startX, startY = linePts['x'].iloc[0], linePts['y'].iloc[0]
+        endX, endY = linePts['x'].iloc[-1], linePts['y'].iloc[-1]
+        
+        nodes.loc[:,'startDist'] = np.sqrt((nodes['x']-startX)**2+(nodes['y']-startY)**2)
+        nodes.loc[:,'endDist'] = np.sqrt((nodes['x']-endX)**2+(nodes['y']-endY)**2)
+        
+        nearStart=nodes[nodes['startDist']<10]
+        nearEnd=nodes[nodes['endDist']<10]
+        
+        avgStartX,avgStartY = np.mean(nearStart['x']), np.mean(nearStart['y'])
+        avgEndX,avgEndY = np.mean(nearEnd['x']), np.mean(nearEnd['y'])
+        
+        linePts.loc[0,'x']=avgStartX; linePts.loc[0,'y']=avgStartY
+        linePts.loc[len(linePts)-1,'x']=avgEndX; linePts.loc[len(linePts)-1,'y']=avgEndY
+            
         nPts = len(linePts)
         
         fLine.write('L  ' + str(nPts) + ' 1\n')
@@ -202,11 +208,11 @@ if not gdb.map_exists(newLine, 'vector'):
     gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
                        input_=lineDefFile) #, snap='node', threshold=10)
     
-    gs.run_command('v.clean', input_=definedLine, output=newLine, tool=['snap','rmdupl'], threshold=[10,0])
+   # gs.run_command('v.clean', input_=definedLine, output=newLine, tool=['snap','rmdupl'], threshold=[10,0])
     
 
 # Later make a mega program that calls all functions, but for now do it here
 # removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-#                             culvertBuffers, newLine, dem, dem)
+#                             culvertBuffers, definedLine, dem, dem)
     
     
