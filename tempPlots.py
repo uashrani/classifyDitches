@@ -13,7 +13,7 @@ import scipy as sp
 import numpy as np
 import math
 
-tmpFiles = 'tempFiles/'
+tmpFiles = 'tempFiles2/'
 hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
@@ -31,7 +31,7 @@ lcats=sorted(set(df['lcat']))
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 ### Make plots and do linear regression
-fig,axs=plt.subplots(6, 7, figsize=(16, 10))
+fig,axs=plt.subplots(6, 6, figsize=(20, 14))
 plt.subplots_adjust(hspace=0.3)
 ax = axs.flat
 
@@ -41,7 +41,7 @@ for lcat in lcats: #[32:48]:
     
     strpChain = ''
     
-    thisDitch = df[df['lcat']==lcat]
+    thisDitch = df[(df['lcat']==lcat) & (np.isnan(df['elev'])==False)]
     filtProfile = thisDitch[np.isnan(thisDitch['elev'])==False]
     along, elev = filtProfile['along'], filtProfile['elev']
     
@@ -68,8 +68,8 @@ for lcat in lcats: #[32:48]:
         filtProfile = concatDf[np.isnan(concatDf['elev'])==False]
         along, elev = filtProfile['along'], filtProfile['elev']
         
-        if len(along) == 0:
-            continue
+        # if len(along) == 0:
+        #     continue
         linreg = sp.stats.linregress(along, elev)
         
     x, y = filtProfile['x'], filtProfile['y']
@@ -121,11 +121,51 @@ for lcat in lcats: #[32:48]:
     filtAlong=along.drop(along.index[allPeaks])
     
     linreg = sp.stats.linregress(filtAlong, filtElev)
+    r2 = linreg.rvalue**2
+    
+    if r2 < 0.4:
+        # Maybe this line should be two lines with opposite flow directions
+        a,b,c = np.polyfit(filtAlong,filtElev,2)
+        polyMin = -b / (2*a)
         
-    ax[i].plot(along, elev, 'lightsteelblue', ls='', marker='.') 
+        # Check if splitting actually makes it better
+        if polyMin > 0 and polyMin < np.max(filtAlong):
+            filtDf = pd.DataFrame({'along': filtAlong, 'elev':filtElev})
+            ditch1 = filtDf[filtDf['along'] <= polyMin]
+            ditch2 = filtDf[filtDf['along'] > polyMin]
+            
+            linreg1 = sp.stats.linregress(ditch1['along'], ditch1['elev'])
+            linreg2 = sp.stats.linregress(ditch2['along'], ditch2['elev'])
+        
+            rsq1=linreg1.rvalue**2
+            rsq2=linreg2.rvalue**2
+            
+            print(lcat,rsq1,rsq2)
+        
+        
+    #print(lcat,polyfit)
+    
+    #ax[i].plot(filtAlong.iloc[:-1], deriv, 'darkgray', ls='', marker='.')
+    
+    #ax[i].plot(filtAlong, [0]*len(filtAlong))
+        
+    # ax[i].plot(filtAlong.iloc[:-1], deriv, 'darkgray', ls='', marker='.')
+    # ax[i].plot(filtAlong, 10*derivReg.slope*filtAlong+derivReg.intercept, 'k')
+    # ax[i].plot(filtAlong, [0]*len(filtAlong))
+    # ax[i].plot(along, elev, 'lightsteelblue', ls='', marker='.') 
     ax[i].plot(filtAlong, filtElev, 'xkcd:purplish brown', ls='', marker='.') 
-    ax[i].plot(along, linElev, 'k')
-    ax[i].plot(along.iloc[peakIndsEP], elev.iloc[peakIndsEP], 'r', ls='', marker='x', markersize=10, mew=4)
+    # ax[i].plot(along, linElev, 'k')
+    # ax[i].plot(along.iloc[peakIndsEP], elev.iloc[peakIndsEP], 'r', ls='', marker='x', markersize=10, mew=4)
+    
+    # ax[i].plot(filtAlong, a*filtAlong**2+b*filtAlong+c, 'k')
+    # ax[i].plot([polyMin,polyMin],[np.min(filtElev),np.max(filtElev)])
+    
+    # deriv = np.diff(filtElev) / np.diff(filtAlong)
+    # derivReg = sp.stats.linregress(filtAlong[:-1], deriv)
+    
+    # xIntercept = -derivReg.intercept/derivReg.slope
+    
+    # ax[i].plot([xIntercept,xIntercept], [np.min(filtElev),np.max(filtElev)])
         
     ax[i].set_title('Ditch ' + str(lcat) + ' (' + strpChain + ')')
     
