@@ -15,8 +15,8 @@ import numpy as np
 
 import removeCulverts
 
-tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM5'
+tmpFiles = 'tempFiles/'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -43,13 +43,14 @@ culvertBuffers = hucPrefix + '_culvertBuffers'  # vector layer containing circle
 tempSplit1 = hucPrefix + '_tempSplit1'
 splitPts = hucPrefix + '_splitPts'
 
-vecLines8 = hucPrefix + 'lines_flowDir'
+vecLines8 = hucPrefix + '_lines_flowDir'
 
 #%% Actual code   
 gs.run_command('g.region', vector=definedLine)
 
 chainDf = pd.read_csv(chainFile)   
 df = pd.read_csv(newElevFile)
+df2 = df
 
 lcats=sorted(set(df['lcat']))
 
@@ -67,6 +68,8 @@ if not gdb.map_exists(vecLines7, 'vector'):
         
         chain=[lcat]
     
+        thisDitch_index = df.index[df['lcat']==lcat]
+        thisDitch_wnans = df[df['lcat']==lcat]
         thisDitch = df[(df['lcat']==lcat) & (np.isnan(df['elev'])==False)]
         along, elev = thisDitch['along'], thisDitch['elev']
         
@@ -146,7 +149,8 @@ if not gdb.map_exists(vecLines7, 'vector'):
         #print(lcat,linreg.slope)
             
         if r2 >= 0.4 and linreg.slope > 0:
-            gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
+           # gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
+            df2=pd.concat((df2.iloc[:thisDitch_index[0]], thisDitch_wnans.iloc[::-1], df2.iloc[thisDitch_index[-1]+1:]), ignore_index=True)
         if r2 < 0.4:
             a,b,c = np.polyfit(filtAlong,filtElev,2)
             polyMin = -b / (2*a)
@@ -214,6 +218,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
     gs.run_command('v.category', input_=tempSplit1, option='add', output=vecLines8)
     
     unmappedCulverts.to_csv(culvertDefFile, index=False, header=False)
+    df2.to_csv(newElevFile, index=False)
     
     # Create points layer with unmapped culvert locations
     # gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
