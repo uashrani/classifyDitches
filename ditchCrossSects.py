@@ -17,7 +17,7 @@ import removeCulverts
 import transect
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -65,7 +65,7 @@ if not gdb.map_exists(definedLine, 'vector'):
     # Get all points whose coordinates are in the DEM region
     dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
     lcats=sorted(set(dfInRegion['lcat']))
-    lcats=[60,127,198]
+    lcats= [168,169,180,181] #[60,127,198]  #[37,101,102,103]
     
     # Open the culvert definition file so we can check which points are near culvert
     culvertPts = pd.read_csv(culvertDefFile, names=['x', 'y', 'buffer'])
@@ -85,8 +85,8 @@ if not gdb.map_exists(definedLine, 'vector'):
         #     coordsToAdd = list(range(0,ncoords,2)) + [ncoords-1]
         # else:
         #     # Otherwise, go every 1m near the endpoints but space out the cross sections in between
-        coordsToAdd = list(range(0,10,5)) + list(range(10,ncoords-10,profSpacing)) + \
-                list(range(ncoords-10,ncoords,5)) + [ncoords-1]
+        coordsToAdd = [0,1] + list(range(10,ncoords-10,profSpacing)) + \
+                [ncoords-2,ncoords-1]
         
         prevAcross = halfDist
         
