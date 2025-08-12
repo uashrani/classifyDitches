@@ -14,19 +14,19 @@ import transect
 import interpSurface
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM3'
+hucPrefix = 'testDEM1'
 ditchPrefix='BRR'
 
 # This is just to tell us what lcats are in the region
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
-dem=hucPrefix + '_v2_burned'
+dem=hucPrefix + '_v2_interpDEM'
 
-toFill = [247,298]
-layerPrefix = hucPrefix + '_combo4'
+toFill = [266,267]
+layerPrefix = hucPrefix + '_combo1'
 
 #%% To be created
-dsTransects = hucPrefix + '_perpendicular'
+dsTransects = hucPrefix + '_plugLoc'
 transectFile = tmpFiles + dsTransects + '.txt'
 
 #%% 
@@ -59,58 +59,8 @@ if not gdb.map_exists(dsTransects, 'vector'):
     gs.run_command('v.edit', flags='n', map_=dsTransects, tool='add', \
                input_=transectFile)
         
-interpSurface.interpSurface(tmpFiles, layerPrefix, dsTransects, 10, dem, cats=toFill)
-
-        
-    # # Create a new layer that buffers the transects only for the selected ditches
-    # gs.run_command('v.buffer', flags='c', input_=dsTransects, type_='line', \
-    #                 output=dsBuffers, distance=10, cats=toFill, layer=1)
-    # gs.run_command('v.type', input_=dsBuffers, output=dsBoundaries, \
-    #                from_type='boundary', to_type='line')
-        
-    # gs.run_command('v.to.points', input_=dsBoundaries, output=polyCorners, use='vertex', \
-    #                layer=-1)
-    # gs.run_command('v.to.db', map_=polyCorners, option='coor', columns=['x', 'y'], layer=2)
-    # gs.run_command('v.db.select', map_=polyCorners, layer=2, format_='csv', \
-    #                file=cornerFile, overwrite=True)
-
-    # cornerDf = pd.read_csv(cornerFile)
-    # cornerDf = cornerDf[cornerDf['along']!=0]
-    
-    # for i in range(len(cornerDf)):
-    #     x,y=cornerDf['x'].iloc[i],cornerDf['y'].iloc[i]
-    #     gs.run_command('v.edit', map_=dsBoundaries, type_='line', tool='break', \
-    #                    coords=[x,y])
-            
-    # # Segments running parallel to ditch are 20m, perpendicular are 30m
-    # # gs.run_command('v.edit', map_=dsBoundaries, tool='delete', \
-    # #                type_='line', query='length', threshold=[-1,0,29])
-    # gs.run_command('v.edit', map_=dsBoundaries, tool='delete', \
-    #                 type_='line', query='length', threshold=[-1,0,-0.1])
-    # gs.run_command('v.category', input_=dsBoundaries, output_=dsBdryCats, \
-    #                type_='line', option='add')
-    # gs.run_command('v.db.addtable', map_=dsBdryCats)
-    # gs.run_command('v.db.addcolumn', map_=dsBdryCats, columns='to_cat int')
-    # gs.run_command('v.distance', from_=dsBdryCats, to=dsTransects, dmax=0.01, \
-    #                upload='cat', column='to_cat')
-        
-        
-    # gs.run_command('v.to.points', input_=dsBoundaries, type_='line', \
-    #                 output=bankPts, dmax=1, layer=-1)
-        
-    # gs.run_command('v.what.rast', map_=bankPts, raster=dem, column='elev', \
-    #                 layer=2)
-    # gs.run_command('r.mask', vector=dsBuffers)
-    # gs.run_command('v.surf.idw', input_=bankPts, layer=2, column='elev', \
-    #                 output=pluggedSurf)
-        
-    # # Kind of dangerous maybe but deleting r.mask doesn't work
-    # path=gs.read_command('g.gisenv', get=['GISDBASE','LOCATION_NAME','MAPSET'],\
-    #                       sep='/').replace('\\', '/')
-    # os.remove(path.strip()+'/cell_misc/MASK')
-    
-    # gs.run_command('r.mask', flags='r')
-    # gs.run_command('r.patch', input_=[pluggedSurf,dem], output=pluggedDEM)
+pluggedDEM, filler = interpSurface.interpSurface(tmpFiles, layerPrefix, \
+                                                 dsTransects, 10, dem, cats=toFill)
     
 
     
