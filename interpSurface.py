@@ -110,9 +110,13 @@ def interpSurface(tmpFiles, layerPrefix, lineSegments, bufferWidth, demForBurn, 
      
     if demForNull != '' and not gdb.map_exists(demNull, 'raster'):
         ### Create null regions where the culvert regions are
+        gs.run_command('v.to.rast', input_=linesBuffered, type_='area', \
+                       output=linesBuffered, use='value')
         expr=demNull + '=if(isnull('+linesBuffered+ '),' + demForNull + ', 0)'
         gs.run_command('r.mapcalc', expression=expr)
         gs.run_command('r.null', map_=demNull, setnull=0)
+        
+    return(demBurned,demNull)
 
  
 
