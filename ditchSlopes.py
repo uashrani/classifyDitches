@@ -13,10 +13,10 @@ import pandas as pd
 import scipy as sp
 import numpy as np
 
-import removeCulverts
+import interpSurface
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM3'
+hucPrefix = 'testDEM1'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -24,8 +24,7 @@ newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 definedLine = hucPrefix + '_shiftedDitches_notCleaned'
 
-demNull = hucPrefix + '_wNulls'
-demBurned = hucPrefix + '_burned'
+demBurned = hucPrefix + '_interpDEM'
 
 # For splitting lines with differing slopes
 vecLines3 = ditchPrefix + '_lines_rmdupl2'
@@ -44,6 +43,9 @@ tempSplit1 = hucPrefix + '_tempSplit1'
 splitPts = hucPrefix + '_splitPts'
 
 vecLines8 = hucPrefix + '_lines_flowDir'
+
+# Culvert removal
+culvertLines = hucPrefix + '_v2_culvertLines'
 
 #%% Actual code   
 gs.run_command('g.region', vector=definedLine)
@@ -221,12 +223,20 @@ if not gdb.map_exists(vecLines7, 'vector'):
     df2.to_csv(newElevFile, index=False)
     
     # Create points layer with unmapped culvert locations
-    # gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
-    #                 separator='comma', columns=['x double precision', 'y double precision'])
+    gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
+                    separator='comma', columns=['x double precision', 'y double precision'])
         
-    # # Buffer the culvert points
-    # gs.run_command('v.buffer', input_=culvertPts, type_='point', \
-    #                 output=culvertBuffers, distance=25)
+    # Buffer the culvert points
+    gs.run_command('v.buffer', input_=culvertPts, type_='point', \
+                    output=culvertBuffers, distance=25)
+        
+if not gdb.map_exists(culvertLines, 'raster'):
+    # Find segments of ditches that pass through culverts
+    gs.run_command('v.overlay', ainput=vecLines8, atype='line', binput=culvertBuffers, \
+                    operator='and', output=culvertLines)
+        
+    demBurned2, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix+'_v2', \
+                                                  culvertLines, 3, demBurned)
     
 # Later make a mega program that calls all functions, but for now do it here
 # removeCulverts.removeCulverts(tmpFiles, hucPrefix + '_v2', hucPrefix, \

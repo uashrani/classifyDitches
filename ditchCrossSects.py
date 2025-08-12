@@ -13,11 +13,12 @@ import pandas as pd
 import numpy as np
 import os
 
-import removeCulverts
+#import removeCulverts
+import interpSurface
 import transect
 
-tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM3'
+tmpFiles = 'tempFiles/'
+hucPrefix = 'testDEM1'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -42,12 +43,15 @@ lineDefFile= tmpFiles + 'shiftedLineDef.txt'
 tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines
-definedLine = hucPrefix + '_junction'
+definedLine = hucPrefix + '_shiftedDitches_notCleaned'
 newLine = hucPrefix + '_shiftedDitches'
 
 # Stuff created after identifying culverts
-demNull = hucPrefix + '_wNulls'
-demBurned = hucPrefix + '_burned'
+culvertLines = hucPrefix + '_culvertLines'
+newPts = hucPrefix + '_shiftedVertices'
+newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
+# demNull = hucPrefix + '_wNulls'
+# demBurned = hucPrefix + '_burned'
 #%% Actual code
 
 if not gdb.map_exists(definedLine, 'vector'):
@@ -65,7 +69,7 @@ if not gdb.map_exists(definedLine, 'vector'):
     # Get all points whose coordinates are in the DEM region
     dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
     lcats=sorted(set(dfInRegion['lcat']))
-    lcats= [168,169,180,181] #[60,127,198]  #[37,101,102,103]
+    #lcats= [168,169,180,181] #[60,127,198]  #[37,101,102,103]
     
     # Open the culvert definition file so we can check which points are near culvert
     culvertPts = pd.read_csv(culvertDefFile, names=['x', 'y', 'buffer'])
@@ -209,10 +213,18 @@ if not gdb.map_exists(definedLine, 'vector'):
                        input_=lineDefFile) #, snap='node', threshold=10)
     
    # gs.run_command('v.clean', input_=definedLine, output=newLine, tool=['snap','rmdupl'], threshold=[10,0])
-    
 
-# Later make a mega program that calls all functions, but for now do it here
-# removeCulverts.removeCulverts(tmpFiles, hucPrefix, hucPrefix, \
-#                             culvertBuffers, definedLine, dem, dem)
+if not gdb.map_exists(newPts, 'vector'):
+    gs.run_command('v.overlay', ainput=definedLine, atype='line', binput=culvertBuffers, \
+                    operator='and', output=culvertLines)
+        
+    filler, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix, culvertLines, 3, dem, \
+                                demForNull=dem)
+    
+    gs.run_command('v.to.points', input_=definedLine, dmax=1, output=newPts)
+    gs.run_command('v.to.db', map_=newPts, layer=2, option='coor', columns=['x', 'y'])
+    
+    gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
+    gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
     
     
