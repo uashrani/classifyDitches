@@ -11,13 +11,9 @@ def transect(df, lcat, halfDist):
     profilePts = df[df['lcat']==lcat]
     
     x, y = profilePts['x'], profilePts['y']
-    
-    tangentSlopes=np.diff(y) / np.diff(x)  
-    normalSlopes = - 1 / tangentSlopes
-    
-    # we just calculated the normal line's y/x change, aka the tangent
-    # which angle is associated with this tangent?
-    angles=np.arctan(normalSlopes)
+
+    # Find the angle of the line perpendicular to the ditch at each point
+    angles=np.arctan2(-np.diff(x),np.diff(y))
     sines=np.sin(angles)
     cosines=np.cos(angles)
     
@@ -30,5 +26,5 @@ def transect(df, lcat, halfDist):
     trY1 = y_ms - halfDist*sines
     trY2 = y_ms + halfDist*sines
     
-    return trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines
+    return trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines, angles
 
