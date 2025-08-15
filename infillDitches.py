@@ -40,7 +40,7 @@ if not gdb.map_exists(dsTransects, 'vector'):
     lcats=sorted(set(profilePts['lcat']))
     
     for lcat in lcats:
-        x1,x2,y1,y2,f1,f2,f3,f4 = transect.transect(profilePts, lcat, 15)
+        x1,x2,y1,y2,f1,f2,f3,f4,f5 = transect.transect(profilePts, lcat, 15)
         fillLoc = 50
         
         if len(x1) > fillLoc:
