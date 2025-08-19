@@ -17,7 +17,7 @@ import interpSurface
 import transect
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM2'
+hucPrefix = 'testDEM3'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -30,8 +30,8 @@ halfDist = 10
 profSpacing = 10
 # What is considered a sharp angle along a line
 sharpAngle = 20
-snapAngles = [45,135]
-snapThresh = 3
+# Maximum perpendicular distance that line should be shifted
+snapPerp = 2.5
 
 # Need to know where culverts are
 culvertDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'
@@ -68,7 +68,7 @@ if not gdb.map_exists(definedLine, 'vector'):
     # Get all points whose coordinates are in the DEM region
     dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
     lcats=sorted(set(dfInRegion['lcat']))
-    lcats= [60,127,198] #[37,101,102,103,168,169,180,181] 
+    lcats= [168,169,180,181] #[37,101,102,103,168,169,180,181] #[60,127,198]
     
     # Open the culvert definition file so we can check which points are near culvert
     culvertPts = pd.read_csv(culvertDefFile, names=['x', 'y', 'buffer'])
@@ -138,6 +138,7 @@ if not gdb.map_exists(definedLine, 'vector'):
             newPtsDf = pd.concat((newPtsDf, newRow))
        
     newPtsDf.to_csv(tmpFiles + hucPrefix + '_newPtsDf.txt', index=False)
+    newPtsDf = pd.read_csv(tmpFiles + hucPrefix + '_newPtsDf.txt')
     newPtsDf2 = pd.DataFrame()
     
     nearDist = 20
@@ -226,7 +227,6 @@ if not gdb.map_exists(definedLine, 'vector'):
         
         avgStartX,avgStartY = np.mean(nearStart['x']), np.mean(nearStart['y'])
         avgEndX,avgEndY = np.mean(nearEnd['x']), np.mean(nearEnd['y'])
-        print(lcat)
         
         # Snapping can create sharp angles, check if we created one
         if len(nearStart)>1:
@@ -235,9 +235,8 @@ if not gdb.map_exists(definedLine, 'vector'):
             if startAngle > 180: startAngle = startAngle - 360
             angleDiff1 = np.abs((startAngle - snapAngle1 + 180) % 360 - 180)
             snapDist1 = np.sqrt((startX-avgStartX)**2+(startY-avgStartY)**2)
-            print(angleDiff1,snapDist1)
             
-            if angleDiff1 > snapAngles[0] and angleDiff1 < snapAngles[1] and snapDist1 > snapThresh:
+            if np.sin(angleDiff1*np.pi/180)*snapDist1 > snapPerp:
                 newCoords = pd.DataFrame({'x': [avgStartX], 'y': [avgStartY], 'lcat': [lcat]})
                 linePts = pd.concat((newCoords, linePts), ignore_index=True) 
             else:
@@ -249,9 +248,8 @@ if not gdb.map_exists(definedLine, 'vector'):
             if endAngle > 180: endAngle = endAngle - 360
             angleDiff2 = np.abs((snapAngle2 - endAngle+180) % 360 - 180)
             snapDist2 = np.sqrt((endX-avgEndX)**2+(endY-avgEndY)**2)
-            print(angleDiff2,snapDist2)
             
-            if angleDiff2 > snapAngles[0] and angleDiff2 < snapAngles[1] and snapDist2 > snapThresh:
+            if np.sin(angleDiff2*np.pi/180)*snapDist2 > snapPerp:
                 newCoords = pd.DataFrame({'x': [avgEndX], 'y': [avgEndY], 'lcat': [lcat]})
                 linePts = pd.concat((linePts,newCoords), ignore_index=True) 
             else:
@@ -260,7 +258,7 @@ if not gdb.map_exists(definedLine, 'vector'):
         nPts = len(linePts)
         
         fLine.write('L  ' + str(nPts) + ' 1\n')
-    
+        
         for i in range(nPts):
             newX, newY = linePts['x'].iloc[i], linePts['y'].iloc[i]
             fLine.write(' ' + str(newX) + ' ' + str(newY) + '\n')
