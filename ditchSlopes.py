@@ -19,6 +19,7 @@ tmpFiles = 'tempFiles/'
 hucPrefix = 'testDEM1'
 ditchPrefix = 'BRR'
 
+origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
@@ -60,7 +61,7 @@ unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 newChainDf = chainDf.copy()
 
-dropFids, dropCats = [], []
+dropFids, origCats = [], []
 
 if not gdb.map_exists(vecLines7, 'vector'):
     gs.run_command('g.copy', vector=[definedLine, vecLines7])
@@ -151,7 +152,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
         #print(lcat,linreg.slope)
             
         if r2 >= 0.4 and linreg.slope > 0:
-           # gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
+            gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
             df2=pd.concat((df2.iloc[:thisDitch_index[0]], thisDitch_wnans.iloc[::-1], df2.iloc[thisDitch_index[-1]+1:]), ignore_index=True)
         if r2 < 0.4:
             a,b,c = np.polyfit(filtAlong,filtElev,2)
@@ -200,6 +201,9 @@ if not gdb.map_exists(vecLines7, 'vector'):
                         nodesDf.loc[:,'dist']=np.sqrt((nodesDf['x']-toSplit['x'])**2+(nodesDf['y']-toSplit['y'])**2)
                         toSplit = nodesDf[nodesDf['dist']==min(nodesDf['dist'])].iloc[0]
                     
+                    # Read file with original category numbers
+                    origDf = pd.read_csv(origCatFile)
+                    
                     gs.run_command('v.edit', map_=vecLines7, tool='break', coords=[toSplit['x'],toSplit['y']], threshold=10)
                     
                     fid1=gs.read_command('v.edit', map_=vecLines7, tool='select', bbox=[x1-0.1,y1-0.1,x1+0.1,y1+0.1])
@@ -211,14 +215,22 @@ if not gdb.map_exists(vecLines7, 'vector'):
                     if slope2 > 0: gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid2)
                     
                     dropFids += [fid1]
-                    dropCats += [lcat]
+                    origCats += [oc1]
+                    
+                    origDf.loc[(origDf['cat']==lcat), 'orig_cat'] = oc2
                     
                 else:
                     print('Warning: Ditch ' + str(lcat) + ' still has r2 < 0.4 even after concatenating profiles.')
 
-    gs.run_command('v.category', input_=vecLines7, cat=dropCats, ids=dropFids, option='del', output=tempSplit1)
-    gs.run_command('v.category', input_=tempSplit1, option='add', output=vecLines8)
+    newCat = max(origDf['cat'])+1
+    gs.run_command('v.category', input_=vecLines7, cat=-1, ids=dropFids, option='del', output=tempSplit1)
+    gs.run_command('v.category', input_=tempSplit1, option='add', output=vecLines8, cat=newCat)
     
+    for (i,thisCat) in enumerate(range(newCat,newCat+len(dropFids))):
+        newRow = pd.DataFrame({'cat':[thisCat], 'orig_cat':[origCats[i]]})
+        origDf = pd.concat((origDf,newRow),ignore_index=True)
+    
+    origDf.to_csv(origCatFile, index=False)
     unmappedCulverts.to_csv(culvertDefFile, index=False, header=False)
     df2.to_csv(newElevFile, index=False)
     
@@ -238,6 +250,3 @@ if not gdb.map_exists(culvertLines, 'raster'):
     demBurned2, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix+'_v2', \
                                                   culvertLines, 3, demBurned)
     
-# Later make a mega program that calls all functions, but for now do it here
-# removeCulverts.removeCulverts(tmpFiles, hucPrefix + '_v2', hucPrefix, \
-#                               culvertBuffers, vecLines7, demNull, demBurned)
