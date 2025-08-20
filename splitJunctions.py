@@ -34,6 +34,7 @@ endNodes = ditchPrefix + '_endsTemp'
 flowTable = ditchPrefix + '_flowConnections'
 flowFile = tmpFiles + flowTable + '.txt'
 
+origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile= tmpFiles + ditchPrefix + '_streamChains.txt'
 
 # Layers/files for the along profile - use it to take cross sections later
@@ -153,7 +154,7 @@ if not gdb.map_exists(vecLines6, 'vector'):
     ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
     fIDs = np.arange(1, len(ls_orig_cats)+1)
     dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
-    dfOrig.to_csv(tmpFiles + 'origCats.txt', index=False)
+    dfOrig.to_csv(origCatFile, index=False)
     
     # Rename categories (some have multiple features)
     gs.run_command('v.category', flags='t', input_=vecLines4, output=vecLines5, option='del', cat=-1, overwrite=True)
@@ -180,7 +181,7 @@ if not gdb.map_exists(profilePts, 'vector'):
 dfEnds = pd.read_csv(flowFile)
 dfEnds=dfEnds[dfEnds['from_cat']!=dfEnds['cat']].reset_index(drop=True)
 
-dfOrig = pd.read_csv(tmpFiles+'origCats.txt')
+dfOrig = pd.read_csv(origCatFile)
 fIDs=dfOrig['cat']
 ### We have a table showing all connections, 
 ### but we narrow this down to connections b/w segments that had same original cat
