@@ -44,7 +44,6 @@ tmpFile = tmpFiles + 'tmpProfile.txt'
 
 # Shifted lines
 definedLine = hucPrefix + '_shiftedDitches_notCleaned'
-definedLine = hucPrefix + '_junction'
 newLine = hucPrefix + '_shiftedDitches'
 
 # Stuff created after identifying culverts
@@ -68,7 +67,6 @@ if not gdb.map_exists(definedLine, 'vector'):
     # Get all points whose coordinates are in the DEM region
     dfInRegion = df[((df['y']>=s)&(df['y']<=n))&((df['x']>=w)&(df['x']<=e))]
     lcats=sorted(set(dfInRegion['lcat']))
-    lcats= [168,169,180,181] #[37,101,102,103,168,169,180,181] #[60,127,198]
     
     # Open the culvert definition file so we can check which points are near culvert
     culvertPts = pd.read_csv(culvertDefFile, names=['x', 'y', 'buffer'])
@@ -201,7 +199,7 @@ if not gdb.map_exists(definedLine, 'vector'):
             linePts.loc[editNodes, 'x'] =  x1s + acrosses*cosinez
             linePts.loc[editNodes, 'y'] =  y1s + acrosses*sinez
             
-            newPtsDf2 = pd.concat((newPtsDf2,linePts),ignore_index=True)
+        newPtsDf2 = pd.concat((newPtsDf2,linePts),ignore_index=True)
         
     newPtsDf = newPtsDf2
     nodeInds=pd.Series(newPtsDf.index[newPtsDf['along']==0])
@@ -270,17 +268,17 @@ if not gdb.map_exists(definedLine, 'vector'):
             
     gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
                         input_=lineDefFile) #, snap='node', threshold=10)
-    
-#    # gs.run_command('v.clean', input_=definedLine, output=newLine, tool=['snap','rmdupl'], threshold=[10,0])
+    gs.run_command('v.build.polylines', input_=definedLine, output=newLine, \
+                   type_='line', cats='first')
 
 # if not gdb.map_exists(newPts, 'vector'):
-#     gs.run_command('v.overlay', ainput=definedLine, atype='line', binput=culvertBuffers, \
+#     gs.run_command('v.overlay', ainput=newLine, atype='line', binput=culvertBuffers, \
 #                     operator='and', output=culvertLines)
         
 #     filler, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix, culvertLines, 3, dem, \
 #                                 demForNull=dem)
     
-#     gs.run_command('v.to.points', input_=definedLine, dmax=1, output=newPts)
+#     gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
 #     gs.run_command('v.to.db', map_=newPts, layer=2, option='coor', columns=['x', 'y'])
     
 #     gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
