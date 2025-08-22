@@ -23,7 +23,7 @@ origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
-definedLine = hucPrefix + '_shiftedDitches_notCleaned'
+newLine = hucPrefix + '_shiftedDitches'
 
 demBurned = hucPrefix + '_interpDEM'
 
@@ -49,7 +49,7 @@ vecLines8 = hucPrefix + '_lines_flowDir'
 culvertLines = hucPrefix + '_v2_culvertLines'
 
 #%% Actual code   
-gs.run_command('g.region', vector=definedLine)
+gs.run_command('g.region', vector=newLine)
 
 chainDf = pd.read_csv(chainFile)   
 df = pd.read_csv(newElevFile)
@@ -64,7 +64,7 @@ newChainDf = chainDf.copy()
 dropFids, origCats = [], []
 
 if not gdb.map_exists(vecLines7, 'vector'):
-    gs.run_command('g.copy', vector=[definedLine, vecLines7])
+    gs.run_command('g.copy', vector=[newLine, vecLines7])
 
     ### Do linear regression and flip vector directions if needed
     for lcat in lcats:
