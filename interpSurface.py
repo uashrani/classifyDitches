@@ -28,12 +28,16 @@ def interpSurface(tmpFiles, layerPrefix, lineSegments, bufferWidth, demForBurn, 
     import os
     import shutil
     
+    import transect
+    
     # Define layer names first, will be created later
-    linesBuffered = lineSegments + '_buffered'
-    boundaries = lineSegments + '_boundaries'
-    vertices = lineSegments + '_vertices'
-    vertexFile = tmpFiles + vertices + '.txt'
-    boundaryCats = boundaries + 'Cats'
+
+    lineEndpts = layerPrefix + '_endpoints'
+    endptFile = tmpFiles + 'endptDef.txt'
+    interpLines = layerPrefix + '_interpLines'
+    interpLineFile = tmpFiles + 'interpLineDef.txt'
+    
+    linesBuffered = layerPrefix + '_buffered'
     
     interpPts = layerPrefix + '_interpPts'
     interpSurf = layerPrefix + '_interpSurf'
@@ -41,56 +45,67 @@ def interpSurface(tmpFiles, layerPrefix, lineSegments, bufferWidth, demForBurn, 
     demNull = layerPrefix + '_wNulls'
     demBurned = layerPrefix + '_interpDEM'
     
-    if not gdb.map_exists(boundaryCats, 'vector'):
-        gs.run_command('g.region', raster=demForBurn)
-        
-        gs.run_command('v.buffer', flags='c', input_=lineSegments, type_='line', output=linesBuffered, \
-                        distance=bufferWidth) 
-        gs.run_command('v.type', input_=linesBuffered, output=boundaries, \
-                       from_type='boundary', to_type='line')
-            
-        gs.run_command('v.to.points', input_=boundaries, output=vertices, use='vertex', \
-                       layer=-1)
-        gs.run_command('v.to.db', map_=vertices, option='coor', columns=['x', 'y'], layer=2)
-        gs.run_command('v.db.select', map_=vertices, layer=2, format_='csv', \
-                       file=vertexFile, overwrite=True)
-
-        cornerDf = pd.read_csv(vertexFile)
-        cornerDf = cornerDf[cornerDf['along']!=0]
-        
-        for i in range(len(cornerDf)):
-            x,y=cornerDf['x'].iloc[i],cornerDf['y'].iloc[i]
-            gs.run_command('v.edit', map_=boundaries, type_='line', tool='break', \
-                           coords=[x,y])
-                
-        gs.run_command('v.edit', map_=boundaries, tool='delete', \
-                        type_='line', query='length', threshold=[-1,0,-0.1])
-        gs.run_command('v.category', input_=boundaries, output_=boundaryCats, \
-                       type_='line', option='add')
-        gs.run_command('v.db.addtable', map_=boundaryCats)
-        gs.run_command('v.db.addcolumn', map_=boundaryCats, columns='to_cat int')
-        gs.run_command('v.distance', from_=boundaryCats, to=lineSegments, dmax=0.1, \
-                       upload='cat', column='to_cat')
-        gs.run_command('v.edit', map_=boundaryCats, tool='delete', \
-                       where='to_cat is null')
-     
-    if cats != [] and not gdb.map_exists(layerPrefix + '_linesBuffered', 'vector'):
-        linesBuffered = layerPrefix + '_linesBuffered'
-        boundaryCats2 = layerPrefix + '_boundariesCats'
-        
-        expr = 'to_cat in ' + str(cats).replace('[','(').replace(']',')')
+    if cats == []:
+        allCats = gs.read_command('v.category', input_=lineSegments, option='print').split('\r\n')
+        cats=list(map(int,allCats[:-1]))
     
-        # We want the polygons and the lines on either side of the surface
-        gs.run_command('v.extract', input_=boundaryCats, where=expr, \
-                       output=boundaryCats2)
+    ### Create lines perpendicular to those inputted, will use for interpolation pts
+    if not gdb.map_exists(linesBuffered, 'vector'):
+        if os.path.exists(endptFile):
+            os.remove(endptFile)
+        f=open(endptFile, 'a')
+        
+        ptID = 1
+        for lcat in cats:
+            # Start with two points along the line, and get slope between them
+            for sign in ['','-']:
+                for dsLen in [0, 0.1]:
+                    f.write('P ' + str(ptID) + ' ' + str(lcat) + ' ' + sign + \
+                            str(dsLen) + '\n')
+                    ptID += 1
+        f.close()
+        
+        # These are points that lie along the line, near the endpoints
+        gs.run_command('v.segment', input_=lineSegments, output=lineEndpts, rules=endptFile)
+        gs.run_command('v.db.addtable', map_=lineEndpts)
+        gs.run_command('v.to.db', map_=lineEndpts, option='coor', columns=['x','y'])
+        gs.run_command('v.db.select', map_=lineEndpts, format_='csv', file=endptFile, overwrite=True)
+        
+        endptDf = pd.read_csv(endptFile)
+        endptDf['lcat']=(endptDf['cat']-1)//2 + 1
+        
+        # Now use the points to get the xy slope of the line, and create perpendicular lines
+        if os.path.exists(interpLineFile):
+            os.remove(interpLineFile)
+        f=open(interpLineFile, 'a')
+        
+        for i in range(1, len(endptDf) // 2 + 1):
+            trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines, angles = transect.transect(endptDf, i, bufferWidth/2)
+    
+            f.write('L  2 1\n')
+            f.write(' ' + str(trX1.iloc[0]) + ' ' + str(trY1.iloc[0]) + '\n')
+            f.write(' ' + str(trX2.iloc[0]) + ' ' + str(trY2.iloc[0]) + '\n')
+            f.write(' 1 ' + str(i))
+            if i != len(endptDf) // 2:
+                f.write('\n')
+                
+        f.close()
+        
+        gs.run_command('v.edit', map_=interpLines, tool='create', \
+                            type_='line')
+        gs.run_command('v.edit', flags='n', map_=interpLines, tool='add', \
+                            input_=interpLineFile)  
+            
+        # Get points along the newly created lines to use for interpolation
+        gs.run_command('v.to.points', input_=interpLines, type_='line', \
+                       output=interpPts, dmax=1)
+     
+        # Now buffer the original lines to create interpolation surfaces
         gs.run_command('v.buffer', flags='c', input_=lineSegments, type_='line', output=linesBuffered, \
                         distance=bufferWidth, cats=cats) 
-        
-        boundaryCats=boundaryCats2
 
+    ### Create the interpolated DEM (either burned or plugged)
     if not gdb.map_exists(demBurned, 'raster'):
-        gs.run_command('v.to.points', input_=boundaryCats, type_='line', \
-                        output=interpPts, dmax=1, layer=-1)
             
         gs.run_command('v.what.rast', map_=interpPts, raster=demForBurn, column='elev', \
                         layer=2)
@@ -111,7 +126,7 @@ def interpSurface(tmpFiles, layerPrefix, lineSegments, bufferWidth, demForBurn, 
     if demForNull != '' and not gdb.map_exists(demNull, 'raster'):
         ### Create null regions where the culvert regions are
         gs.run_command('v.to.rast', input_=linesBuffered, type_='area', \
-                       output=linesBuffered, use='value')
+                        output=linesBuffered, use='value')
         expr=demNull + '=if(isnull('+linesBuffered+ '),' + demForNull + ', 0)'
         gs.run_command('r.mapcalc', expression=expr)
         gs.run_command('r.null', map_=demNull, setnull=0)
