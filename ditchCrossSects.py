@@ -17,7 +17,7 @@ import interpSurface
 import transect
 
 tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM3'
+hucPrefix = 'testDEM2'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix
@@ -52,8 +52,9 @@ newPts = hucPrefix + '_shiftedVertices'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 #%% Actual code
 
+region = gs.read_command('g.region', flags='gp', raster=dem)
+
 if not gdb.map_exists(definedLine, 'vector'):
-    region = gs.read_command('g.region', flags='gp', raster=dem)
     rgn = region.split('\r\n')
     rgnDict = {}
     for entry in rgn[:-1]: 
@@ -271,17 +272,17 @@ if not gdb.map_exists(definedLine, 'vector'):
     gs.run_command('v.build.polylines', input_=definedLine, output=newLine, \
                    type_='line', cats='first')
 
-# if not gdb.map_exists(newPts, 'vector'):
-#     gs.run_command('v.overlay', ainput=newLine, atype='line', binput=culvertBuffers, \
-#                     operator='and', output=culvertLines)
+if not gdb.map_exists(newPts, 'vector'):
+    gs.run_command('v.overlay', ainput=newLine, atype='line', binput=culvertBuffers, \
+                    operator='and', output=culvertLines)
         
-#     filler, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix, culvertLines, 3, dem, \
-#                                 demForNull=dem)
+    filler, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix, culvertLines, 3, dem, \
+                                demForNull=dem)
     
-#     gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
-#     gs.run_command('v.to.db', map_=newPts, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.to.points', input_=newLine, dmax=1, output=newPts)
+    gs.run_command('v.to.db', map_=newPts, layer=2, option='coor', columns=['x', 'y'])
     
-#     gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
-#     gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
+    gs.run_command('v.what.rast', map_=newPts, raster=demNull, column='elev', layer=2)
+    gs.run_command('v.db.select', map_=newPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
     
     
