@@ -31,6 +31,10 @@ demBurned = hucPrefix + '_interpDEM'
 vecLines3 = ditchPrefix + '_lines_rmdupl2'
 nodesFile = tmpFiles + ditchPrefix + '_nodesTemp.txt'
 
+peakThresh = 1      # What counts as a peak in the elevation profile
+burnWidth = 3
+unmappedBuffer = 25
+
 #%% To be created
 vecLines7 = hucPrefix + '_lines_flowDirTemp'
 
@@ -59,8 +63,6 @@ lcats=sorted(set(df['lcat']))
 
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
-newChainDf = chainDf.copy()
-
 dropFids, origCats = [], []
 
 if not gdb.map_exists(vecLines7, 'vector'):
@@ -83,7 +85,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
         
         # Concatenate segments for linreg if r2 is too low
         if len(along) < 25 or r2 < 0.4: 
-            ## Chain some lines together based on the definitions in the file
+            ## Chain some lines together based on the chain file
             strChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
             strpChain=strChain.strip('[]')
             chain = list(map(int,strpChain.split(', ')))
@@ -98,20 +100,22 @@ if not gdb.map_exists(vecLines7, 'vector'):
                 else:
                     if len(concatDf) > 0: chainDitch.loc[:, 'along']=chainDitch['along'] + concatDf['along'].iloc[-1]
                     concatDf = pd.concat((concatDf, chainDitch)).reset_index(drop=True)
-                    
+                 
             thisDitch = concatDf
             along, elev = thisDitch['along'], thisDitch['elev']
             
+            # Take elevation profile of concatenated lines
             linreg = sp.stats.linregress(along, elev)
             r2 = linreg.rvalue**2
-            
+          
+        ### Now find whether there are any unmapped culverts along the profile
         x, y = thisDitch['x'], thisDitch['y']
         linElev = linreg.slope * along + linreg.intercept  
         
-        # Calculate the absolute value of error 
-        absErr = np.absolute(elev - linElev)
+        # First define what counts as a significant peak in the profile
+        # using RMSE (or just 1m if RMSE is high)
         rmse = np.sqrt(np.mean((elev - linElev)**2))
-        prom=min([1,rmse*4])
+        prom=min([peakThresh,rmse*4])
         
         # scipy find_peaks doesn't catch peaks at the endpoints
         # Check where slope is different from rest of profile?
@@ -132,14 +136,17 @@ if not gdb.map_exists(vecLines7, 'vector'):
                 
         peakInds, props = sp.signal.find_peaks(elev, prominence=prom, width=[1,50])
             
+        # Now have index positions of all peaks in the elev profile
         allPeaks = pd.concat((pd.Series(peakInds), pd.Series(peakIndsEP))).reset_index(drop=True)
         dropInds = []
         
+        # Get the xy coordinates of the unmapped culverts
         for ind in allPeaks:
             unmappedCulverts = pd.concat((unmappedCulverts, \
                                           pd.DataFrame({'x': [x.iloc[ind]], 'y': [y.iloc[ind]]})))
             dropInds += range(ind-25,ind+26)
             
+        # Also drop the peaks from the profile and redo the linear regression
         dropInds=pd.Series(dropInds)
         dropInds = dropInds[dropInds < len(elev)]
         
@@ -148,8 +155,6 @@ if not gdb.map_exists(vecLines7, 'vector'):
         
         linreg = sp.stats.linregress(filtAlong, filtElev)
         r2 = linreg.rvalue**2
-                
-        #print(lcat,linreg.slope)
             
         if r2 >= 0.4 and linreg.slope > 0:
             gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
@@ -159,7 +164,6 @@ if not gdb.map_exists(vecLines7, 'vector'):
             polyMin = -b / (2*a)
             
             if polyMin > 0 and polyMin < np.max(filtAlong):
-                #filtDf = pd.DataFrame({'along': filtAlong, 'elev':filtElev})
                 ditch1 = filtDf[filtDf['along'] <= polyMin]
                 ditch2 = filtDf[filtDf['along'] > polyMin]
                 
@@ -240,7 +244,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
         
     # Buffer the culvert points
     gs.run_command('v.buffer', input_=culvertPts, type_='point', \
-                    output=culvertBuffers, distance=25)
+                    output=culvertBuffers, distance=unmappedBuffer)
         
 if not gdb.map_exists(culvertLines, 'raster'):
     # Find segments of ditches that pass through culverts
@@ -248,5 +252,5 @@ if not gdb.map_exists(culvertLines, 'raster'):
                     operator='and', output=culvertLines)
         
     demBurned2, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix+'_v2', \
-                                                  culvertLines, 3, demBurned)
+                                                  culvertLines, burnWidth, demBurned)
     

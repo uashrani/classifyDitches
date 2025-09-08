@@ -79,10 +79,6 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
             gs.run_command('v.db.select', map_=tabName, format_='csv', file=fileName, overwrite=True)
         
         df = pd.read_csv(fileName)
-        # if suffix=='Bridges':
-        #     df['buffer']=buffer + df['dist']
-        #     df.loc[df['buffer']>100, 'buffer']=100
-        # else:
         df['buffer']=buffer
         
         if i==0:

@@ -15,8 +15,11 @@ tmpFiles = 'tempFiles2/'
 
 ditchPrefix='BRR'
 
-#%% Layers/files that will be created automatically
+duplThresh = 3      # lines that are near-duplicates (within 3m of each other)
+dangleThresh = 25   # remove dangles less than this length
+connectThresh = 10  # connect endpoints within this distance of each other
 
+#%% Layers/files that will be created automatically
 vecLines1 = ditchPrefix + '_lines_rmdangle'
 vecLines2 = ditchPrefix + '_lines_rmdupl'
 vecLines3 = ditchPrefix + '_lines_rmdupl2'
@@ -44,7 +47,9 @@ alongFile=tmpFiles + ditchPrefix + '_alongPts.txt'  # output file
 #%% Function definition
 
 def split_nodesIntersects(nodeFile, linesLayer):
-    """ Breaks lines at nodes """
+    """ Breaks lines at nodes; also breaks at midpoints if doubled up 
+    nodeFile: has xy coords of line nodes and midpoints
+    linesLayer: vector layer to split """
     
     nodesDf = pd.read_csv(nodeFile)
     
@@ -54,7 +59,7 @@ def split_nodesIntersects(nodeFile, linesLayer):
     nodes = pd.concat((starts,ends), ignore_index=True)
     dists = np.sqrt((ends['x']-starts['x'])**2 + (ends['y']-starts['y'])**2)
     
-    toSplit = mids[dists<1]
+    toSplit = mids[dists<duplThresh]
     
     # Split at midpoints of doubled-up lines
     for i in range(len(toSplit)):
@@ -71,7 +76,8 @@ def split_nodesIntersects(nodeFile, linesLayer):
             haveSplit = pd.concat((haveSplit,pd.DataFrame({'x': [x], 'y': [y]})), ignore_index=True)
             
 def findStreamChains(graph, lcats):
-    """ Find 'single chains' (ie where 1 segment flows into 1 segment w/o forks/branches)
+    """ Find 'single chains' with same original cats
+    (ie where 1 segment flows into 1 segment w/o forks/branches)
     Takes a networkx directed graph, and a list of lcats """
     
     chainDf = pd.DataFrame({'root': lcats})
@@ -123,7 +129,7 @@ if not gdb.map_exists(vecLines6, 'vector'):
     
     # Remove dangles < 25m (short segments not connected to any other line)
     gs.run_command('v.clean', input_=vecLines0, type_='line', output=vecLines1,\
-                   tool='rmdangle', threshold=25, overwrite=True)
+                   tool='rmdangle', threshold=dangleThresh, overwrite=True)
     
     # Very specific but some lines are "doubled up" (like a U-turn) 
     # these points help determine if they are
@@ -137,13 +143,13 @@ if not gdb.map_exists(vecLines6, 'vector'):
     # We use tool=snap, but this really removes duplicates
     gs.run_command('v.edit', map_=vecLines1, tool='delete', query='length', threshold=[-1,0,-0], type_='line')
     gs.run_command('v.clean', flags='c', input_=vecLines1, output_=vecLines2, \
-                   tool='snap', threshold=3)
+                   tool='snap', threshold=duplThresh)
     
     # Connect all lines within 10m of each other
-    gs.run_command('v.edit', map_=vecLines2, tool='connect', threshold=10, ids='1-1000')
+    gs.run_command('v.edit', map_=vecLines2, tool='connect', threshold=connectThresh, ids='1-1000')
     # Snap lines again to delete any short duplicate segments created by v.edit
     gs.run_command('v.clean', flags='c', input_=vecLines2, output_=vecLines3, \
-                   tool='snap', threshold=3)
+                   tool='snap', threshold=duplThresh)
     
     # Build polylines
     gs.run_command('v.build.polylines', input_=vecLines3, output_=vecLines4, \
@@ -206,6 +212,7 @@ for i in range(len(dfEnds)):
 mergedLines=pd.DataFrame({'from':from_cats, 'to':to_cats})
 graph = nx.from_pandas_edgelist(mergedLines, source='from', target='to', create_using=nx.DiGraph)  
 
+# Find single chains and save to file
 chainDf = findStreamChains(graph, fIDs)
 chainDf.to_csv(chainFile, index=False)
 

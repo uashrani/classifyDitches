@@ -25,6 +25,10 @@ dem=hucPrefix + '_v2_interpDEM'
 toFill = [266,267]
 layerPrefix = hucPrefix + '_combo1'
 
+fillLoc = 50
+fillWidth = 15      # half the width of the plug
+fillLen = 10        # half the length of the plug
+
 #%% To be created
 dsTransects = hucPrefix + '_plugLoc'
 transectFile = tmpFiles + dsTransects + '.txt'
@@ -40,8 +44,7 @@ if not gdb.map_exists(dsTransects, 'vector'):
     lcats=sorted(set(profilePts['lcat']))
     
     for lcat in lcats:
-        x1,x2,y1,y2,f1,f2,f3,f4,f5 = transect.transect(profilePts, lcat, 15)
-        fillLoc = 50
+        x1,x2,y1,y2,f1,f2,f3,f4,f5 = transect.transect(profilePts, lcat, fillWidth)
         
         if len(x1) > fillLoc:
             x1,x2,y1,y2=x1.iloc[-fillLoc],x2.iloc[-fillLoc],\
@@ -60,7 +63,7 @@ if not gdb.map_exists(dsTransects, 'vector'):
                input_=transectFile)
         
 pluggedDEM, filler = interpSurface.interpSurface(tmpFiles, layerPrefix, \
-                                                 dsTransects, 10, dem, cats=toFill)
+                                                 dsTransects, fillLen, dem, cats=toFill)
     
 
     

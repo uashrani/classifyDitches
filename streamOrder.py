@@ -20,8 +20,6 @@ newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 #%% To be created
 
-#vecLines = hucPrefix + '_lines_final'
-
 startNodes = hucPrefix + '_starts'
 endNodes = hucPrefix + '_ends'
 
@@ -82,15 +80,12 @@ def findOrder(lcat, orderDf):
 #%% Find stream orders
 ### Build polylines and find where end of one segment flows into start of another
 if not gdb.map_exists(endNodes, 'vector'):
-    #gs.run_command('v.build.polylines', input_=vecLines6, output=vecLines, cats='first', type_='line')
-    #gs.run_command('v.db.droptable', flags='f', map_=vecLines)
-    #gs.run_command('v.db.addtable', map_=vecLines)
     gs.run_command('v.to.points', input_=vecLines8, output=startNodes, use='start', overwrite=True)
     gs.run_command('v.to.points', input_=vecLines8, output=endNodes, use='end', overwrite=True)
     
     #gs.run_command('db.droptable', flags='f', table=connectTable)
     gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
-                    dmax=10, upload=['cat','dist'], table= connectTable, overwrite=True)
+                    dmax=0.01, upload=['cat','dist'], table= connectTable, overwrite=True)
     gs.run_command('db.select', table=connectTable, separator='comma', output=connectFile, overwrite=True)
 
 p = pd.read_csv(newElevFile)
