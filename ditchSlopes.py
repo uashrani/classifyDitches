@@ -16,12 +16,12 @@ import numpy as np
 import interpSurface
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM1'
+hucPrefix = 'HUC_0902010402'
 ditchPrefix = 'BRR'
 
 origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
-newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
+elevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
 newLine = hucPrefix + '_shiftedDitches'
 
@@ -52,11 +52,14 @@ vecLines8 = hucPrefix + '_lines_flowDir'
 # Culvert removal
 culvertLines = hucPrefix + '_v2_culvertLines'
 
+# Elevation file with accurate ditch directions
+newElevFile = tmpFiles + hucPrefix + '_elevProfile_flippedDitches.txt'
+
 #%% Actual code   
-gs.run_command('g.region', vector=newLine)
+gs.run_command('g.region', raster=demBurned)
 
 chainDf = pd.read_csv(chainFile)   
-df = pd.read_csv(newElevFile)
+df = pd.read_csv(elevFile)
 df2 = df
 
 lcats=sorted(set(df['lcat']))
