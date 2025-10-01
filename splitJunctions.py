@@ -11,7 +11,7 @@ import numpy as np
 import networkx as nx
 
 vecLines0='drainage_centerlines'   # name of ditch layer in Grass, already imported
-tmpFiles = 'tempFiles2/'
+tmpFiles = 'tempFiles/'
 
 ditchPrefix='BRR'
 
