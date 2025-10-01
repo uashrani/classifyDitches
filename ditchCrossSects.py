@@ -16,8 +16,8 @@ import os
 import interpSurface
 import transect
 
-tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM2'
+tmpFiles = 'tempFiles/'
+hucPrefix = 'HUC_0902010402'
 ditchPrefix = 'BRR'
 
 dem = hucPrefix

@@ -14,18 +14,18 @@ import transect
 import interpSurface
 
 tmpFiles = 'tempFiles/'
-hucPrefix = 'testDEM1'
+hucPrefix = 'HUC_0902010402'
 ditchPrefix='BRR'
 
 # This is just to tell us what lcats are in the region
-newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
+newElevFile = tmpFiles + hucPrefix + '_elevProfile_flippedDitches.txt'
 
 dem=hucPrefix + '_v2_interpDEM'
 
-toFill = [266,267]
-layerPrefix = hucPrefix + '_combo1'
+toFill = [201]
+layerPrefix = hucPrefix + '_fill201'
 
-fillLoc = 50
+fillLoc = 50        # downstream location
 fillWidth = 15      # half the width of the plug
 fillLen = 10        # half the length of the plug
 
