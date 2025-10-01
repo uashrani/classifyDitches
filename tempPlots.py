@@ -13,8 +13,8 @@ import scipy as sp
 import numpy as np
 import math
 
-tmpFiles = 'tempFiles2/'
-hucPrefix = 'testDEM3'
+tmpFiles = 'tempFiles/'
+hucPrefix = 'HUC_0902010402'
 ditchPrefix = 'BRR'
 
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -31,12 +31,12 @@ lcats=sorted(set(df['lcat']))
 unmappedCulverts = pd.DataFrame({'x': [], 'y': []})
 
 ### Make plots and do linear regression
-fig,axs=plt.subplots(6, 6, figsize=(20, 14))
-plt.subplots_adjust(hspace=0.3)
-ax = axs.flat
+fig,ax=plt.subplots(figsize=(9,6)) #6, 6, figsize=(20, 14))
+#plt.subplots_adjust(hspace=0.3)
+#ax = axs.flat
 
 i=0
-for lcat in lcats: #[32:48]:
+for lcat in [53]: #lcats: #[32:48]:
     #if lcat==259: continue
     
     strpChain = ''
@@ -152,8 +152,8 @@ for lcat in lcats: #[32:48]:
     # ax[i].plot(filtAlong.iloc[:-1], deriv, 'darkgray', ls='', marker='.')
     # ax[i].plot(filtAlong, 10*derivReg.slope*filtAlong+derivReg.intercept, 'k')
     # ax[i].plot(filtAlong, [0]*len(filtAlong))
-    # ax[i].plot(along, elev, 'lightsteelblue', ls='', marker='.') 
-    ax[i].plot(filtAlong, filtElev, 'xkcd:purplish brown', ls='', marker='.') 
+    ax.plot(along, elev, 'lightsteelblue', ls='', marker='.') 
+    ax.plot(filtAlong, filtElev, 'xkcd:purplish brown', ls='', marker='.') 
     # ax[i].plot(along, linElev, 'k')
     # ax[i].plot(along.iloc[peakIndsEP], elev.iloc[peakIndsEP], 'r', ls='', marker='x', markersize=10, mew=4)
     
@@ -167,7 +167,7 @@ for lcat in lcats: #[32:48]:
     
     # ax[i].plot([xIntercept,xIntercept], [np.min(filtElev),np.max(filtElev)])
         
-    ax[i].set_title('Ditch ' + str(lcat) + ' (' + strpChain + ')')
+    ax.set_title('Ditch ' + str(lcat)) # + ' (' + strpChain + ')')
     
     annotation='m='+str(round(linreg.slope, 6)) + \
         '\nr$^2$='+str(round(linreg.rvalue**2, 3))
@@ -177,14 +177,14 @@ for lcat in lcats: #[32:48]:
     else:
         xy=(.03, .78)
         
-    ax[i].annotate(annotation, xy=xy, xycoords='axes fraction', fontweight='bold', \
-                   bbox={'facecolor': 'xkcd:light mint green', 'alpha': 0.3})
+    #ax.annotate(annotation, xy=xy, xycoords='axes fraction', fontweight='bold', \
+    #               bbox={'facecolor': 'xkcd:light mint green', 'alpha': 0.3})
         
     i += 1    
         
-ax[0].annotate('Along [m]', xy=(0.45, 0.03), xycoords='figure fraction', \
+ax.annotate('Along [m]', xy=(0.45, 0.03), xycoords='figure fraction', \
                fontweight='bold', fontsize=15)
-ax[0].annotate('Elevation [m]', xy=(0.04, 0.4), xycoords='figure fraction', \
+ax.annotate('Elevation [m]', xy=(0.04, 0.4), xycoords='figure fraction', \
                fontweight='bold', fontsize=15, rotation=90)
 fig.suptitle('Ditch Segment Long-Profiles (Shifted Ditches)', y=0.96, fontweight='bold', fontsize=16)        
 
