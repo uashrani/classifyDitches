@@ -85,7 +85,8 @@ if not gdb.map_exists(definedLine, 'vector'):
         angleDiff = np.abs(np.diff(angles))
         sharps = angles[:-1].index[angleDiff > sharpAngle]
         sharps2 = sharps+1
-        moreCoords = list(set(list(sharps)+list(sharps2)))
+        #moreCoords = list(set(list(sharps)+list(sharps2)))
+        moreCoords = list(set(sharps))
         
         # Also take cross-sections at least every 10m (or whatever profSpacing is)
         ncoords = len(x_ms)
@@ -299,7 +300,7 @@ if not gdb.map_exists(definedLine, 'vector'):
                         input_=lineDefFile)
     # Build polylines for any lines that v.edit missed in splitJunctions
     gs.run_command('v.build.polylines', input_=definedLine, output=newLine, \
-                   type_='line', cats='first')
+                    type_='line', cats='first')
 
 if not gdb.map_exists(newPts, 'vector'):
     # Find portion of ditches that pass through culverts
