@@ -60,7 +60,7 @@ gs.run_command('g.region', raster=demBurned)
 
 chainDf = pd.read_csv(chainFile)   
 df = pd.read_csv(elevFile)
-df2 = df
+df2 = pd.DataFrame()
 
 lcats=sorted(set(df['lcat']))
 
@@ -161,31 +161,42 @@ if not gdb.map_exists(vecLines7, 'vector'):
             
         if r2 >= 0.4 and linreg.slope > 0:
             gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
-            df2=pd.concat((df2.iloc[:thisDitch_index[0]], thisDitch_wnans.iloc[::-1], df2.iloc[thisDitch_index[-1]+1:]), ignore_index=True)
+            df2=pd.concat((df2, thisDitch_wnans.iloc[::-1]), ignore_index=True)
+        
+        # If r2 is low, it's possible that there are two segments with opposite flow dirs
         if r2 < 0.4:
+            # Try fitting a quadratic curve
             a,b,c = np.polyfit(filtAlong,filtElev,2)
             polyMin = -b / (2*a)
             
+            # See if the quadratic turning point is within the profile
             if polyMin > 0 and polyMin < np.max(filtAlong):
+                # Split the ditch based on the x position of quadratic min/max
                 ditch1 = filtDf[filtDf['along'] <= polyMin]
                 ditch2 = filtDf[filtDf['along'] > polyMin]
                 
+                # Take linear regression of each segment
                 linreg1 = sp.stats.linregress(ditch1['along'], ditch1['elev'])
                 linreg2 = sp.stats.linregress(ditch2['along'], ditch2['elev'])
-            
-                rsq1, rsq2 =linreg1.rvalue**2, linreg2.rvalue**2
+                rsq1, rsq2 = linreg1.rvalue**2, linreg2.rvalue**2
                 slope1, slope2 = linreg1.slope, linreg2.slope
                 
+                # If r2s of each individual segment are both high, split the ditch
                 if rsq1 >= 0.4 and rsq2 >= 0.4:
                     distFromSplit = np.abs(filtAlong - polyMin)
+                    # This gives xy point on the ditch closest to the quadratic min/max
+                    # Previously we just had 'along'
                     toSplit = filtDf[distFromSplit==min(distFromSplit)].iloc[0]
                     
+                    # We want to see if these were originally two ditches that got incorrectly merged by build.polylines
+                    # Get the midpoint xy of each segment to find original cats
                     midpoint1=ditch1.iloc[len(ditch1)//2]
-                    midpoint2=ditch2.iloc[len(ditch2)//2]
-                    
+                    midpoint2=ditch2.iloc[len(ditch2)//2]   
                     x1, y1 = midpoint1['x'], midpoint1['y']
                     x2, y2 = midpoint2['x'], midpoint2['y']
                     
+                    # Import the midpoints as a points layer, 
+                    # and use v.what.vect to get cats from a previous lines layer
                     midDf = pd.DataFrame({'x':[x1,x2], 'y':[y1,y2]})
                     midDf.to_csv('splitMidpoints.txt', index=False, header=False)
                     gs.run_command('v.in.ascii', input_='splitMidpoints.txt', output=splitPts, \
@@ -197,8 +208,9 @@ if not gdb.map_exists(vecLines7, 'vector'):
                     
                     d=pd.read_csv('split_origcats.txt')
                     oc1, oc2 = d['orig_cat'].iloc[0], d['orig_cat'].iloc[1]
+                    
                     # If this was originally two lines that shouldn't have been merged,
-                    # find the closest original node
+                    # find the closest original node, and use its xy coords as point to split
                     if oc1 != oc2:
                         nodesDf=pd.read_csv(nodesFile)
                         starts, ends = nodesDf.iloc[::3].reset_index(drop=True), \
@@ -208,23 +220,44 @@ if not gdb.map_exists(vecLines7, 'vector'):
                         nodesDf.loc[:,'dist']=np.sqrt((nodesDf['x']-toSplit['x'])**2+(nodesDf['y']-toSplit['y'])**2)
                         toSplit = nodesDf[nodesDf['dist']==min(nodesDf['dist'])].iloc[0]
                     
-                    # Read file with original category numbers
-                    origDf = pd.read_csv(origCatFile)
-                    
+                    # Split line at the xy point
                     gs.run_command('v.edit', map_=vecLines7, tool='break', coords=[toSplit['x'],toSplit['y']], threshold=10)
                     
+                    # Find the feature IDs currently associated with the split ditch
                     fid1=gs.read_command('v.edit', map_=vecLines7, tool='select', bbox=[x1-0.1,y1-0.1,x1+0.1,y1+0.1])
                     fid1 = int(fid1.split('\n')[0])
                     fid2=gs.read_command('v.edit', map_=vecLines7, tool='select', bbox=[x2-0.1,y2-0.1,x2+0.1,y2+0.1])
                     fid2 = int(fid2.split('\n')[0])
                     
-                    if slope1 > 0: gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid1)
-                    if slope2 > 0: gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid2)
-                    
+                    # One of them will need a new category number, but keep track of original cat
                     dropFids += [fid1]
                     origCats += [oc1]
                     
+                    # Update file with original category number for the 2nd segment
+                    origDf = pd.read_csv(origCatFile)
                     origDf.loc[(origDf['cat']==lcat), 'orig_cat'] = oc2
+                    
+                    # Also change the category numbers in the elevation profile
+                    # First re-split ditch based on the xy coord
+                    thisDitch_wnans.reset_index(inplace=True, drop=True)
+                    distFromSplit = np.sqrt((thisDitch_wnans['x']-toSplit['x'])**2 + (thisDitch_wnans['y']-toSplit['y'])**2)
+                    splitInd = thisDitch_wnans.index[distFromSplit==min(distFromSplit)][0]
+                    
+                    ditch1 = thisDitch_wnans.iloc[:splitInd]
+                    ditch2 = thisDitch_wnans.iloc[splitInd:]
+                    
+                    # Flip any segments with a positive slope
+                    if slope1 > 0: 
+                        gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid1)
+                        ditch1 = ditch1.iloc[::-1]
+                    if slope2 > 0: 
+                        gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid2)
+                        ditch2 = ditch2.iloc[::-1]
+                    
+                    newCat = max(pd.concat((origDf['cat'], df2['lcat'])))+1
+                    ditch1.loc[:, 'lcat']=newCat
+                    
+                    df2 = pd.concat((df2, ditch1, ditch2), ignore_index=True)
                     
                 else:
                     print('Warning: Ditch ' + str(lcat) + ' still has r2 < 0.4 even after concatenating profiles.')
