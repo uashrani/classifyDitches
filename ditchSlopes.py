@@ -27,6 +27,8 @@ newLine = hucPrefix + '_shiftedDitches'
 
 demBurned = hucPrefix + '_interpDEM'
 
+lineSep='\n'
+
 # For splitting lines with differing slopes
 vecLines3 = ditchPrefix + '_lines_rmdupl2'
 nodesFile = tmpFiles + ditchPrefix + '_nodesTemp.txt'
@@ -287,6 +289,6 @@ if not gdb.map_exists(culvertLines, 'raster'):
     gs.run_command('v.overlay', ainput=vecLines8, atype='line', binput=culvertBuffers, \
                     operator='and', output=culvertLines)
         
-    demBurned2, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix+'_v2', \
+    demBurned2, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix+'_v2', lineSep, \
                                                   culvertLines, burnWidth, demBurned)
     
