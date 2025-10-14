@@ -35,6 +35,8 @@ snapPerp = 2.5      # maximum perpendicular distance to shift line when snapping
 
 burnWidth = 3
 
+lineSep='\n'
+
 # Need to know where culverts are
 culvertDefFile = tmpFiles + ditchPrefix + '_culvertPtDefs.txt'
 culvertBuffers = ditchPrefix + '_culvertBuffers'
@@ -57,7 +59,7 @@ newElevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 region = gs.read_command('g.region', flags='gp', raster=dem)
 
 if not gdb.map_exists(definedLine, 'vector'):
-    rgn = region.split('\r\n')
+    rgn = region.split(lineSep)
     rgnDict = {}
     for entry in rgn[:-1]: 
         keyVal = entry.split('=')
@@ -308,7 +310,7 @@ if not gdb.map_exists(newPts, 'vector'):
                     operator='and', output=culvertLines)
         
     # Create a burned DEM and one with culvert areas set to null
-    filler, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix, culvertLines, burnWidth, dem, \
+    filler, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix, lineSep, culvertLines, burnWidth, dem, \
                                 demForNull=dem)
     
     # Get elevation profile for shifted ditches

@@ -7,7 +7,7 @@ Created on Wed May 21 11:03:19 2025
 
 # we need the lines, cats, buffer width,  
 
-def interpSurface(tmpFiles, layerPrefix, lineSegments, bufferWidth, demForBurn, \
+def interpSurface(tmpFiles, layerPrefix, lineSep, lineSegments, bufferWidth, demForBurn, \
                    demForNull='', cats=[]):
     """ Prefixes
             - tmpFiles: folder to save temporary files to
@@ -46,7 +46,7 @@ def interpSurface(tmpFiles, layerPrefix, lineSegments, bufferWidth, demForBurn, 
     demBurned = layerPrefix + '_interpDEM'
     
     if cats == []:
-        allCats = gs.read_command('v.category', input_=lineSegments, option='print').split('\r\n')
+        allCats = gs.read_command('v.category', input_=lineSegments, option='print').split(lineSep)
         cats=list(map(int,allCats[:-1]))
     
     ### Create lines perpendicular to those inputted, will use for interpolation pts

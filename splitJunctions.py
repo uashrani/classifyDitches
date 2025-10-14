@@ -19,6 +19,8 @@ duplThresh = 3      # lines that are near-duplicates (within 3m of each other)
 dangleThresh = 25   # remove dangles less than this length
 connectThresh = 10  # connect endpoints within this distance of each other
 
+lineSep = '\n'
+
 #%% Layers/files that will be created automatically
 vecLines1 = ditchPrefix + '_lines_rmdangle'
 vecLines2 = ditchPrefix + '_lines_rmdupl'
@@ -156,7 +158,7 @@ if not gdb.map_exists(vecLines6, 'vector'):
                    type_='line', cats='first')
     # Get the original category of the polylines
     orig_cats = gs.read_command('v.category', input_=vecLines4, option='print')
-    ls_orig_cats = orig_cats.split('\n')
+    ls_orig_cats = orig_cats.split(lineSep)
     ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
     fIDs = np.arange(1, len(ls_orig_cats)+1)
     dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
