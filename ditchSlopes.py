@@ -200,15 +200,15 @@ if not gdb.map_exists(vecLines7, 'vector'):
                     # Import the midpoints as a points layer, 
                     # and use v.what.vect to get cats from a previous lines layer
                     midDf = pd.DataFrame({'x':[x1,x2], 'y':[y1,y2]})
-                    midDf.to_csv('splitMidpoints.txt', index=False, header=False)
-                    gs.run_command('v.in.ascii', input_='splitMidpoints.txt', output=splitPts, \
+                    midDf.to_csv(tmpFiles + 'splitMidpoints.txt', index=False, header=False)
+                    gs.run_command('v.in.ascii', input_=tmpFiles + 'splitMidpoints.txt', output=splitPts, \
                                    separator='comma', columns=['x double precision', 'y double precision'])
                     gs.run_command('v.db.addtable', map_=splitPts)
                     gs.run_command('v.db.addcolumn', map_=splitPts, columns='orig_cat int')
                     gs.run_command('v.what.vect', map_=splitPts, column='orig_cat', query_map=vecLines3, query_column='cat', dmax=10)
-                    gs.run_command('v.db.select', map_=splitPts, format_='csv', file='split_origcats.txt', overwrite=True)
+                    gs.run_command('v.db.select', map_=splitPts, format_='csv', file=tmpFiles + 'split_origcats.txt', overwrite=True)
                     
-                    d=pd.read_csv('split_origcats.txt')
+                    d=pd.read_csv(tmpFiles + 'split_origcats.txt')
                     oc1, oc2 = d['orig_cat'].iloc[0], d['orig_cat'].iloc[1]
                     
                     # If this was originally two lines that shouldn't have been merged,
