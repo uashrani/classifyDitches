@@ -17,17 +17,23 @@ tmpFiles = 'tempFiles/'
 hucPrefix = 'HUC_0902010402'
 ditchPrefix='BRR'
 
+outDir = '/media/uashrani/topobathy-ditch/HUC_0902010402/'
+
 # This is just to tell us what lcats are in the region
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_flippedDitches.txt'
 
 dem=hucPrefix + '_v2_interpDEM'
 
-toFill = [201]
-layerPrefix = hucPrefix + '_fill201'
+
+# 8, 58, 92, 103, 109, 194, 195, 200
+fillCombos = [[103],[109]]
+#layerPrefix = hucPrefix + '_fill102'
 
 fillLoc = 50        # downstream location
-fillWidth = 15      # half the width of the plug
+fillWidth = 12.5      # half the width of the plug
 fillLen = 10        # half the length of the plug
+
+lineSep='\n'
 
 #%% To be created
 dsTransects = hucPrefix + '_plugLoc'
@@ -61,9 +67,26 @@ if not gdb.map_exists(dsTransects, 'vector'):
     gs.run_command('v.edit', map_=dsTransects, type_='line', tool='create', overwrite=True)
     gs.run_command('v.edit', flags='n', map_=dsTransects, tool='add', \
                input_=transectFile)
+
+
+for toFill in fillCombos:
+    layerPrefix = hucPrefix + '_fill' + str(toFill[0])
+    gs.run_command('g.region', raster=dem)
         
-pluggedDEM, filler = interpSurface.interpSurface(tmpFiles, layerPrefix, \
-                                                 dsTransects, fillLen, dem, cats=toFill)
+    pluggedDEM, filler = interpSurface.interpSurface(tmpFiles, layerPrefix, lineSep, \
+                                                    dsTransects, fillLen, dem, cats=toFill)
+
+    intName = pluggedDEM + '_int'
+    # Pseudocode: intName = round((DEM - 100) * 100)
+    expression = intName + ' = ' + 'round((' + pluggedDEM + '-100)*100)'
+    gs.run_command('r.mapcalc', expression=expression, overwrite=True)
+
+    # Grow the region by 1, which creates a buffer of NaNs around the edge
+    gs.run_command('g.region', grow=1)
+
+    # Output the new lake-subtracted DEM for that region
+    gs.run_command('r.out.gdal', flags='f', input=intName, output=outDir + layerPrefix+'.tif', \
+                    format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", type='UInt16', nodata=0)
     
 
     

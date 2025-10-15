@@ -19,6 +19,8 @@ tmpFiles = 'tempFiles/'
 hucPrefix = 'HUC_0902010402'
 ditchPrefix = 'BRR'
 
+outDir = '/media/uashrani/topobathy-ditch/HUC_0902010402/'
+
 origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 elevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
@@ -164,6 +166,8 @@ if not gdb.map_exists(vecLines7, 'vector'):
         if r2 >= 0.4 and linreg.slope > 0:
             gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
             df2=pd.concat((df2, thisDitch_wnans.iloc[::-1]), ignore_index=True)
+        elif r2 >= 0.4 and linreg.slope < 0:
+            df2=pd.concat((df2, thisDitch_wnans), ignore_index=True)
         
         # If r2 is low, it's possible that there are two segments with opposite flow dirs
         if r2 < 0.4:
@@ -291,4 +295,16 @@ if not gdb.map_exists(culvertLines, 'raster'):
         
     demBurned2, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix+'_v2', lineSep, \
                                                   culvertLines, burnWidth, demBurned)
+
+    intName = demBurned2 + '_int'
+    # Pseudocode: intName = round((DEM - 100) * 100)
+    expression = intName + ' = ' + 'round((' + demBurned2 + '-100)*100)'
+    gs.run_command('r.mapcalc', expression=expression, overwrite=True)
+
+    # Grow the region by 1, which creates a buffer of NaNs around the edge
+    gs.run_command('g.region', grow=1)
+
+    # Output the new lake-subtracted DEM for that region
+    gs.run_command('r.out.gdal', flags='f', input=intName, output=outDir + hucPrefix+'.tif', \
+                format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", overwrite=True, type='UInt16', nodata=0)
     
