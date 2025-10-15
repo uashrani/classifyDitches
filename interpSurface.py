@@ -114,11 +114,11 @@ def interpSurface(tmpFiles, layerPrefix, lineSep, lineSegments, bufferWidth, dem
                         output=interpSurf)
             
         # Kind of dangerous maybe but deleting r.mask doesn't work
-        path=gs.read_command('g.gisenv', get=['GISDBASE','LOCATION_NAME','MAPSET'],\
-                              sep='/').replace('\\', '/')
-        path=path.strip()+'/cell_misc/MASK'
-        os.chmod(path,0o777)
-        shutil.rmtree(path)
+        #path=gs.read_command('g.gisenv', get=['GISDBASE','LOCATION_NAME','MAPSET'],\
+        #                      sep='/').replace('\\', '/')
+        #path=path.strip()+'/cell_misc/MASK'
+        #os.chmod(path,0o777)
+        #shutil.rmtree(path)
         
         gs.run_command('r.mask', flags='r')
         gs.run_command('r.patch', input_=[interpSurf,demForBurn], output=demBurned)
