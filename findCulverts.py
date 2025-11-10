@@ -12,17 +12,17 @@ import grass.grassdb.data as gdb
 import pandas as pd
 
 # Folder names
-tmpFiles = 'tempFiles/'
+tmpFiles = 'tempFiles/BlueEarth/'
 
-ditchPrefix='BRR' # use for operations involving the entire ditch layer
+ditchPrefix='BluEr' # use for operations involving the entire ditch layer
 
 # We need roads vector data, ditch vector data, and elevation raster data
 roads = 'gis_osm_roads_free_1'
-ctyRoads = ['roads_beckerCounty', 'roads_clayCounty', 'roads_wilkinCounty']     # list of TIGER county roads
+ctyRoads = ['roads_blueEarth']     # list of TIGER county roads
 railroads = 'rail_lines'
 bridges = 'Bridge_locations_in_Minnesota'
 airports = 'Airport_Runways_in_Minnesota'
-ditches = ditchPrefix + '_lines_renamed'
+ditches = ditchPrefix + '_open'
 
 #%% Layers/files that will be created automatically
 
