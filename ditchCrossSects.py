@@ -16,9 +16,9 @@ import os
 import interpSurface
 import transect
 
-tmpFiles = 'tempFiles/'
-hucPrefix = 'HUC_0902010402'
-ditchPrefix = 'BRR'
+tmpFiles = 'tempFiles/BlueEarth/'
+hucPrefix = 'HUC_0702000709'
+ditchPrefix = 'BluEr'
 
 dem = hucPrefix
 
