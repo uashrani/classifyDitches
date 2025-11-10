@@ -10,14 +10,14 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 
-vecLines0='drainage_centerlines'   # name of ditch layer in Grass, already imported
-tmpFiles = 'tempFiles/'
+vecLines0='drainage_centerlines2'   # name of ditch layer in Grass, already imported
+tmpFiles = 'tempFiles/BlueEarth/'
 
-ditchPrefix='BRR'
+ditchPrefix='BluEr'
 
 duplThresh = 3      # lines that are near-duplicates (within 3m of each other)
 dangleThresh = 25   # remove dangles less than this length
-connectThresh = 10  # connect endpoints within this distance of each other
+connectThresh = 5  # connect endpoints within this distance of each other
 
 lineSep = '\n'
 
@@ -28,10 +28,14 @@ vecLines3 = ditchPrefix + '_lines_rmdupl2'
 vecLines4 = ditchPrefix + '_lines_poly'
 vecLines5 = ditchPrefix + '_lines_nameless'
 vecLines6 = ditchPrefix + '_lines_renamed'
+vecLines7 = ditchPrefix + '_open'
 
 # Use these to split at intersections and (if needed) midpoints
 allNodes = ditchPrefix + '_nodesTemp'
 nodesFile = tmpFiles + allNodes + '.txt'
+
+# Name of original attribute table (used for finding if a ditch was open or tile)
+origAttrTable = tmpFiles + ditchPrefix + '_attr.txt'
 
 # Start and end points
 startNodes = ditchPrefix + '_startsTemp'
@@ -158,8 +162,8 @@ if not gdb.map_exists(vecLines6, 'vector'):
                    type_='line', cats='first')
     # Get the original category of the polylines
     orig_cats = gs.read_command('v.category', input_=vecLines4, option='print')
-    ls_orig_cats = orig_cats.split(lineSep)
-    ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
+    ls_orig_cats = orig_cats.split(lineSep)[:-1]
+    #ls_orig_cats = pd.Series(ls_orig_cats[:-1]).astype('int')
     fIDs = np.arange(1, len(ls_orig_cats)+1)
     dfOrig = pd.DataFrame({'cat': fIDs, 'orig_cat': ls_orig_cats})
     dfOrig.to_csv(origCatFile, index=False)
@@ -175,12 +179,37 @@ if not gdb.map_exists(vecLines6, 'vector'):
     gs.run_command('v.to.points', input_=vecLines6, output=endNodes, use='end', overwrite=True)
     gs.run_command('v.distance', flags='a', from_=endNodes, to=startNodes, from_layer=1, to_layer=1, \
                          dmax=1, upload='cat', table=flowTable, overwrite=True)
-    gs.run_command('db.select', table=flowTable, separator='comma', output=flowFile, overwrite=True)             
+    gs.run_command('db.select', table=flowTable, separator='comma', output=flowFile, overwrite=True)   
+
+    # Only keep the open ditches
+    dfOrig = pd.read_csv(origCatFile)
+    fIDs = dfOrig['cat']
+
+    gs.run_command('v.db.select', map_=vecLines0, format_='csv', file=origAttrTable)
+
+    df_origAttr = pd.read_csv(origAttrTable)
+    openCats = []
+
+    for i in range(len(dfOrig)):
+        orig_cat_s = dfOrig['orig_cat'].iloc[i]
+        orig_cat = pd.Series(orig_cat_s.split('/')).astype('int')
+
+        types=[]
+        for oc in orig_cat:
+            orig_row = df_origAttr[df_origAttr['cat']==oc].iloc[0]
+            orig_type = orig_row['type']
+
+            types+=[orig_type]
+
+            if 'Open' in types:
+                openCats += [i+1]
+
+    gs.run_command('v.extract', input_=vecLines6, cats=openCats, output=vecLines7)
 
 ### Get points spaced 1m apart along the new lines
 ### Will be used to take cross-sectional profiles
 if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.to.points', input_=vecLines6, output=profilePts, dmax=1)
+    gs.run_command('v.to.points', input_=vecLines7, output=profilePts, dmax=1)
     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
