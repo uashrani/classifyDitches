@@ -15,11 +15,11 @@ import numpy as np
 
 import interpSurface
 
-tmpFiles = 'tempFiles/'
-hucPrefix = 'HUC_0902010402'
-ditchPrefix = 'BRR'
+tmpFiles = 'tempFiles/BlueEarth/'
+hucPrefix = 'HUC_0702000709'
+ditchPrefix = 'BluEr'
 
-outDir = '/media/uashrani/topobathy-ditch/HUC_0902010402/'
+outDir = '/media/uashrani/topobathy-ditch/HUC_0702000709/'
 
 origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
@@ -37,7 +37,7 @@ nodesFile = tmpFiles + ditchPrefix + '_nodesTemp.txt'
 
 peakThresh = 1      # What counts as a peak in the elevation profile
 burnWidth = 3
-unmappedBuffer = 25
+unmappedBuffer = 25     # how much to buffer unmapped culverts
 
 #%% To be created
 vecLines7 = hucPrefix + '_lines_flowDirTemp'
@@ -288,7 +288,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
     gs.run_command('v.buffer', input_=culvertPts, type_='point', \
                     output=culvertBuffers, distance=unmappedBuffer)
         
-if not gdb.map_exists(culvertLines, 'raster'):
+""" if not gdb.map_exists(culvertLines, 'raster'):
     # Find segments of ditches that pass through culverts
     gs.run_command('v.overlay', ainput=vecLines8, atype='line', binput=culvertBuffers, \
                     operator='and', output=culvertLines)
@@ -306,5 +306,5 @@ if not gdb.map_exists(culvertLines, 'raster'):
 
     # Output the new lake-subtracted DEM for that region
     gs.run_command('r.out.gdal', flags='f', input=intName, output=outDir + hucPrefix+'.tif', \
-                format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", overwrite=True, type='UInt16', nodata=0)
+                format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", overwrite=True, type='UInt16', nodata=0) """
     
