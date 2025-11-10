@@ -25,7 +25,7 @@ origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 elevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
-newLine = hucPrefix + '_shiftedDitches'
+newLine = hucPrefix + '_shiftedDitches_notCleaned'
 
 demBurned = hucPrefix + '_interpDEM'
 
