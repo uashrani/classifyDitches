@@ -300,6 +300,7 @@ if not gdb.map_exists(definedLine, 'vector'):
             
     gs.run_command('v.edit', flags='n', map_=definedLine, tool='add', \
                         input_=lineDefFile)
+    gs.run_command('v.edit', map_=definedLine, tool='delete', query='length', threshold=[-1,0,-0], type_='line')
     # Build polylines for any lines that v.edit missed in splitJunctions
     gs.run_command('v.build.polylines', input_=definedLine, output=newLine, \
                     type_='line', cats='first')
