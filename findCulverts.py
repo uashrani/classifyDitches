@@ -12,7 +12,7 @@ import grass.grassdb.data as gdb
 import pandas as pd
 
 # Folder names
-tmpFiles = 'tempFiles/BlueEarth/'
+tmpFiles = 'tempFiles/BlueEarth2/'
 
 ditchPrefix='BluEr' # use for operations involving the entire ditch layer
 
@@ -22,7 +22,7 @@ ctyRoads = ['roads_blueEarth']     # list of TIGER county roads
 railroads = 'rail_lines'
 bridges = 'Bridge_locations_in_Minnesota'
 airports = 'Airport_Runways_in_Minnesota'
-ditches = ditchPrefix + '_open'
+ditches = ditchPrefix + '_lines_renamed'
 
 #%% Layers/files that will be created automatically
 
