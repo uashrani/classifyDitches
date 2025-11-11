@@ -25,6 +25,7 @@ lineSep = '\n'
 vecLines1 = ditchPrefix + '_lines_rmdangle'
 vecLines2 = ditchPrefix + '_lines_rmdupl'
 vecLines3 = ditchPrefix + '_lines_rmdupl2'
+vecLines3pt5 = ditchPrefix + '_lines_justOpen'
 vecLines4 = ditchPrefix + '_lines_poly'
 vecLines5 = ditchPrefix + '_lines_nameless'
 vecLines6 = ditchPrefix + '_lines_renamed'
@@ -156,9 +157,12 @@ if not gdb.map_exists(vecLines6, 'vector'):
     # Snap lines again to delete any short duplicate segments created by v.edit
     gs.run_command('v.clean', flags='c', input_=vecLines2, output_=vecLines3, \
                    tool='snap', threshold=duplThresh)
+
+    gs.run_command('v.extract', input_=vecLines3, output=vecLines3pt5, where='type="Open"')
+
     
     # Build polylines
-    gs.run_command('v.build.polylines', input_=vecLines3, output_=vecLines4, \
+    gs.run_command('v.build.polylines', input_=vecLines3pt5, output_=vecLines4, \
                    type_='line', cats='first')
     # Get the original category of the polylines
     orig_cats = gs.read_command('v.category', input_=vecLines4, option='print')
@@ -182,7 +186,7 @@ if not gdb.map_exists(vecLines6, 'vector'):
     gs.run_command('db.select', table=flowTable, separator='comma', output=flowFile, overwrite=True)   
 
     # Only keep the open ditches
-    dfOrig = pd.read_csv(origCatFile)
+"""     dfOrig = pd.read_csv(origCatFile)
     fIDs = dfOrig['cat']
 
     gs.run_command('v.db.select', map_=vecLines0, format_='csv', file=origAttrTable)
@@ -204,12 +208,12 @@ if not gdb.map_exists(vecLines6, 'vector'):
             if 'Open' in types:
                 openCats += [i+1]
 
-    gs.run_command('v.extract', input_=vecLines6, cats=openCats, output=vecLines7)
+    gs.run_command('v.extract', input_=vecLines6, cats=openCats, output=vecLines7) """
 
 ### Get points spaced 1m apart along the new lines
 ### Will be used to take cross-sectional profiles
 if not gdb.map_exists(profilePts, 'vector'):
-    gs.run_command('v.to.points', input_=vecLines7, output=profilePts, dmax=1)
+    gs.run_command('v.to.points', input_=vecLines6, output=profilePts, dmax=1)
     gs.run_command('v.to.db', map_=profilePts, layer=2, option='coor', columns=['x', 'y'])
     gs.run_command('v.db.select', map_=profilePts, layer=2, format_='csv', file=alongFile, overwrite=True)
 
