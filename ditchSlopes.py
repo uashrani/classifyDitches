@@ -15,7 +15,7 @@ import numpy as np
 
 import interpSurface
 
-tmpFiles = 'tempFiles/BlueEarth/'
+tmpFiles = 'tempFiles/BlueEarth2/'
 hucPrefix = 'HUC_0702000709'
 ditchPrefix = 'BluEr'
 
@@ -65,6 +65,8 @@ gs.run_command('g.region', raster=demBurned)
 chainDf = pd.read_csv(chainFile)   
 df = pd.read_csv(elevFile)
 df2 = pd.DataFrame()
+
+origDf = pd.read_csv(origCatFile)
 
 lcats=sorted(set(df['lcat']))
 
@@ -240,7 +242,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
                     origCats += [oc1]
                     
                     # Update file with original category number for the 2nd segment
-                    origDf = pd.read_csv(origCatFile)
+                    
                     origDf.loc[(origDf['cat']==lcat), 'orig_cat'] = oc2
                     
                     # Also change the category numbers in the elevation profile
