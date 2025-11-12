@@ -1,0 +1,463 @@
+Ditch 3
+total null and non-null cells: 440400240
+total null cells: 440400240
+Of the non-null cells:
+----------------------
+n: 0
+minimum: nan
+maximum: -1.79769e+308
+range: nan
+mean: -nan
+mean of absolute values: nan
+standard deviation: -nan
+variance: -nan
+variation coefficient: -nan %
+sum: nan
+
+Ditch 12
+total null and non-null cells: 440400240
+total null cells: 440161221
+Of the non-null cells:
+----------------------
+n: 239019
+minimum: 0.01
+maximum: 0.43
+range: 0.42
+mean: 0.314019
+mean of absolute values: 0.314019
+standard deviation: 0.147417
+variance: 0.0217317
+variation coefficient: 46.9452 %
+sum: 75056.5496306121
+
+Ditch 32
+total null and non-null cells: 440400240
+total null cells: 440242009
+Of the non-null cells:
+----------------------
+n: 158231
+minimum: 0.00999999
+maximum: 2.45
+range: 2.44
+mean: 0.306034
+mean of absolute values: 0.306034
+standard deviation: 0.452958
+variance: 0.205171
+variation coefficient: 148.009 %
+sum: 48424.0701381024
+
+Ditch 38
+total null and non-null cells: 440400240
+total null cells: 440370840
+Of the non-null cells:
+----------------------
+n: 29400
+minimum: 0.01
+maximum: 0.51
+range: 0.5
+mean: 0.331054
+mean of absolute values: 0.331054
+standard deviation: 0.175065
+variance: 0.0306476
+variation coefficient: 52.881 %
+sum: 9732.98002496734
+
+Ditch 40
+total null and non-null cells: 440400240
+total null cells: 440400240
+Of the non-null cells:
+----------------------
+n: 0
+minimum: nan
+maximum: -1.79769e+308
+range: nan
+mean: -nan
+mean of absolute values: nan
+standard deviation: -nan
+variance: -nan
+variation coefficient: -nan %
+sum: nan
+
+Ditch 41
+total null and non-null cells: 440400240
+total null cells: 440379662
+Of the non-null cells:
+----------------------
+n: 20578
+minimum: -0.01
+maximum: 0.48
+range: 0.49
+mean: 0.148624
+mean of absolute values: 0.154946
+standard deviation: 0.191257
+variance: 0.0365793
+variation coefficient: 128.685 %
+sum: 3058.3900298886
+
+Ditch 42
+total null and non-null cells: 440400240
+total null cells: 440395462
+Of the non-null cells:
+----------------------
+n: 4778
+minimum: 0.01
+maximum: 0.44
+range: 0.43
+mean: 0.365797
+mean of absolute values: 0.365797
+standard deviation: 0.126377
+variance: 0.0159712
+variation coefficient: 34.5484 %
+sum: 1747.77999651618
+
+Ditch 43
+total null and non-null cells: 440400240
+total null cells: 440400236
+Of the non-null cells:
+----------------------
+n: 4
+minimum: -0.01
+maximum: 0.01
+range: 0.02
+mean: -0.005
+mean of absolute values: 0.01
+standard deviation: 0.00866025
+variance: 7.5e-05
+variation coefficient: -173.205 %
+sum: -0.0199999995529652
+
+Ditch 44
+total null and non-null cells: 440400240
+total null cells: 440322023
+Of the non-null cells:
+----------------------
+n: 78217
+minimum: -0.12
+maximum: 1.8
+range: 1.92
+mean: 0.321556
+mean of absolute values: 0.456515
+standard deviation: 0.630184
+variance: 0.397132
+variation coefficient: 195.98 %
+sum: 25151.1597918831
+
+Ditch 46
+total null and non-null cells: 440400240
+total null cells: 440308544
+Of the non-null cells:
+----------------------
+n: 91696
+minimum: 0.01
+maximum: 1.94
+range: 1.93
+mean: 0.660351
+mean of absolute values: 0.660351
+standard deviation: 0.435877
+variance: 0.189988
+variation coefficient: 66.0068 %
+sum: 60551.5498294756
+
+Ditch 47
+total null and non-null cells: 440400240
+total null cells: 440387015
+Of the non-null cells:
+----------------------
+n: 13225
+minimum: 0.01
+maximum: 2.82
+range: 2.81
+mean: 0.740039
+mean of absolute values: 0.740039
+standard deviation: 0.72194
+variance: 0.521198
+variation coefficient: 97.5544 %
+sum: 9787.00993845612
+
+Ditch 48
+total null and non-null cells: 440400240
+total null cells: 440227164
+Of the non-null cells:
+----------------------
+n: 173076
+minimum: 0.00999999
+maximum: 1.91
+range: 1.9
+mean: 0.455141
+mean of absolute values: 0.455141
+standard deviation: 0.378514
+variance: 0.143273
+variation coefficient: 83.164 %
+sum: 78774.0202076379
+
+Ditch 67
+total null and non-null cells: 440400240
+total null cells: 440068935
+Of the non-null cells:
+----------------------
+n: 331305
+minimum: 0.00999999
+maximum: 0.51
+range: 0.5
+mean: 0.275054
+mean of absolute values: 0.275054
+standard deviation: 0.160791
+variance: 0.0258536
+variation coefficient: 58.4578 %
+sum: 91126.7697227467
+
+Ditch 68
+total null and non-null cells: 440400240
+total null cells: 440400240
+Of the non-null cells:
+----------------------
+n: 0
+minimum: nan
+maximum: -1.79769e+308
+range: nan
+mean: -nan
+mean of absolute values: nan
+standard deviation: -nan
+variance: -nan
+variation coefficient: -nan %
+sum: nan
+
+Ditch 77
+total null and non-null cells: 440400240
+total null cells: 440378506
+Of the non-null cells:
+----------------------
+n: 21734
+minimum: 0.01
+maximum: 0.04
+range: 0.03
+mean: 0.0393881
+mean of absolute values: 0.0393881
+standard deviation: 0.00369454
+variance: 1.36496e-05
+variation coefficient: 9.37985 %
+sum: 856.060154557228
+
+Ditch 86
+total null and non-null cells: 440400240
+total null cells: 440400240
+Of the non-null cells:
+----------------------
+n: 0
+minimum: nan
+maximum: -1.79769e+308
+range: nan
+mean: -nan
+mean of absolute values: nan
+standard deviation: -nan
+variance: -nan
+variation coefficient: -nan %
+sum: nan
+
+Ditch 90
+total null and non-null cells: 440400240
+total null cells: 440400240
+Of the non-null cells:
+----------------------
+n: 0
+minimum: nan
+maximum: -1.79769e+308
+range: nan
+mean: -nan
+mean of absolute values: nan
+standard deviation: -nan
+variance: -nan
+variation coefficient: -nan %
+sum: nan
+
+Ditch 92
+total null and non-null cells: 440400240
+total null cells: 440379230
+Of the non-null cells:
+----------------------
+n: 21010
+minimum: 0.00999999
+maximum: 0.69
+range: 0.68
+mean: 0.330848
+mean of absolute values: 0.330848
+standard deviation: 0.235388
+variance: 0.0554076
+variation coefficient: 71.1469 %
+sum: 6951.11996358447
+
+Ditch 93
+total null and non-null cells: 440400240
+total null cells: 438912026
+Of the non-null cells:
+----------------------
+n: 1488214
+minimum: 0.00999999
+maximum: 2.23
+range: 2.22
+mean: 0.275063
+mean of absolute values: 0.275063
+standard deviation: 0.338956
+variance: 0.114891
+variation coefficient: 123.228 %
+sum: 409352.660851838
+
+Ditch 94
+total null and non-null cells: 440400240
+total null cells: 440389213
+Of the non-null cells:
+----------------------
+n: 11027
+minimum: 0.01
+maximum: 2.03
+range: 2.02
+mean: 0.297746
+mean of absolute values: 0.297746
+standard deviation: 0.288882
+variance: 0.083453
+variation coefficient: 97.0229 %
+sum: 3283.24999703467
+
+Ditch 96
+total null and non-null cells: 440400240
+total null cells: 440380152
+Of the non-null cells:
+----------------------
+n: 20088
+minimum: 0.01
+maximum: 1.9
+range: 1.89
+mean: 0.649656
+mean of absolute values: 0.649656
+standard deviation: 0.572896
+variance: 0.32821
+variation coefficient: 88.1846 %
+sum: 13050.2900896575
+
+Ditch 103
+total null and non-null cells: 440400240
+total null cells: 440208365
+Of the non-null cells:
+----------------------
+n: 191875
+minimum: 0.01
+maximum: 2.35
+range: 2.34
+mean: 0.251946
+mean of absolute values: 0.251946
+standard deviation: 0.342535
+variance: 0.11733
+variation coefficient: 135.956 %
+sum: 48342.0698123276
+
+Ditch 107
+total null and non-null cells: 440400240
+total null cells: 440395628
+Of the non-null cells:
+----------------------
+n: 4612
+minimum: 0.01
+maximum: 1.72
+range: 1.71
+mean: 0.435134
+mean of absolute values: 0.435134
+standard deviation: 0.585578
+variance: 0.342902
+variation coefficient: 134.574 %
+sum: 2006.83997463807
+
+Ditch 108
+total null and non-null cells: 440400240
+total null cells: 440400240
+Of the non-null cells:
+----------------------
+n: 0
+minimum: nan
+maximum: -1.79769e+308
+range: nan
+mean: -nan
+mean of absolute values: nan
+standard deviation: -nan
+variance: -nan
+variation coefficient: -nan %
+sum: nan
+
+Ditch 113
+total null and non-null cells: 440400240
+total null cells: 440391563
+Of the non-null cells:
+----------------------
+n: 8677
+minimum: 0.01
+maximum: 1.79
+range: 1.78
+mean: 0.890529
+mean of absolute values: 0.890529
+standard deviation: 0.648
+variance: 0.419904
+variation coefficient: 72.7657 %
+sum: 7727.11995178834
+
+Ditch 119
+total null and non-null cells: 440400240
+total null cells: 440374116
+Of the non-null cells:
+----------------------
+n: 26124
+minimum: 0.00999999
+maximum: 1.05
+range: 1.04
+mean: 0.0206393
+mean of absolute values: 0.0206393
+standard deviation: 0.0985454
+variance: 0.0097112
+variation coefficient: 477.466 %
+sum: 539.17999359034
+
+Ditch 132
+total null and non-null cells: 440400240
+total null cells: 440399601
+Of the non-null cells:
+----------------------
+n: 639
+minimum: -0.02
+maximum: 0.53
+range: 0.55
+mean: 0.355383
+mean of absolute values: 0.355602
+standard deviation: 0.162187
+variance: 0.0263047
+variation coefficient: 45.6372 %
+sum: 227.089995868504
+
+Ditch 134
+total null and non-null cells: 440400240
+total null cells: 440400240
+Of the non-null cells:
+----------------------
+n: 0
+minimum: nan
+maximum: -1.79769e+308
+range: nan
+mean: -nan
+mean of absolute values: nan
+standard deviation: -nan
+variance: -nan
+variation coefficient: -nan %
+sum: nan
+
+Ditch 143
+total null and non-null cells: 440400240
+total null cells: 440399787
+Of the non-null cells:
+----------------------
+n: 453
+minimum: 0.01
+maximum: 1.04
+range: 1.03
+mean: 0.708455
+mean of absolute values: 0.708455
+standard deviation: 0.379738
+variance: 0.144201
+variation coefficient: 53.6008 %
+sum: 320.930009830743
