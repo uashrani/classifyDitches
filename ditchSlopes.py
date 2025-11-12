@@ -25,8 +25,9 @@ origCatFile = tmpFiles + ditchPrefix + '_origCats.txt'
 chainFile = tmpFiles + ditchPrefix + '_streamChains.txt'
 elevFile = tmpFiles + hucPrefix + '_elevProfile_shiftedDitches.txt'
 
-newLine = hucPrefix + '_shiftedDitches_notCleaned'
+newLine = hucPrefix + '_shiftedDitches'
 
+demNull = hucPrefix + '_wNulls'
 demBurned = hucPrefix + '_interpDEM'
 
 lineSep='\n'
@@ -35,7 +36,7 @@ lineSep='\n'
 vecLines3 = ditchPrefix + '_lines_rmdupl2'
 nodesFile = tmpFiles + ditchPrefix + '_nodesTemp.txt'
 
-peakThresh = 1      # What counts as a peak in the elevation profile
+peakThresh = 0.5      # What counts as a peak in the elevation profile
 burnWidth = 3
 unmappedBuffer = 25     # how much to buffer unmapped culverts
 
@@ -57,6 +58,7 @@ vecLines8 = hucPrefix + '_lines_flowDir'
 culvertLines = hucPrefix + '_v2_culvertLines'
 
 # Elevation file with accurate ditch directions
+newElevPts = hucPrefix + '_profilePts_flippedDitches'
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_flippedDitches.txt'
 
 #%% Actual code   
@@ -167,12 +169,13 @@ if not gdb.map_exists(vecLines7, 'vector'):
             
         if r2 >= 0.4 and linreg.slope > 0:
             gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
-            df2=pd.concat((df2, thisDitch_wnans.iloc[::-1]), ignore_index=True)
-        elif r2 >= 0.4 and linreg.slope < 0:
-            df2=pd.concat((df2, thisDitch_wnans), ignore_index=True)
+            #df2=pd.concat((df2, thisDitch_wnans.iloc[::-1]), ignore_index=True)
+        #elif r2 >= 0.4 and linreg.slope < 0:
+            #df2=pd.concat((df2, thisDitch_wnans), ignore_index=True)
         
         # If r2 is low, it's possible that there are two segments with opposite flow dirs
         if r2 < 0.4:
+            worked = 0
             # Try fitting a quadratic curve
             a,b,c = np.polyfit(filtAlong,filtElev,2)
             polyMin = -b / (2*a)
@@ -265,22 +268,37 @@ if not gdb.map_exists(vecLines7, 'vector'):
                     newCat = max(pd.concat((origDf['cat'], df2['lcat'])))+1
                     ditch1.loc[:, 'lcat']=newCat
                     
-                    df2 = pd.concat((df2, ditch1, ditch2), ignore_index=True)
+                    #df2 = pd.concat((df2, ditch1, ditch2), ignore_index=True)
+                    worked=1
                     
-                else:
-                    print('Warning: Ditch ' + str(lcat) + ' still has r2 < 0.4 even after concatenating profiles.')
+                
+            print('Warning: Ditch ' + str(lcat) + ' still has r2 < 0.4 even after concatenating profiles.')
 
-    newCat = max(origDf['cat'])+1
-    gs.run_command('v.category', input_=vecLines7, cat=-1, ids=dropFids, option='del', output=tempSplit1)
-    gs.run_command('v.category', input_=tempSplit1, option='add', output=vecLines8, cat=newCat)
-    
-    for (i,thisCat) in enumerate(range(newCat,newCat+len(dropFids))):
-        newRow = pd.DataFrame({'cat':[thisCat], 'orig_cat':[origCats[i]]})
-        origDf = pd.concat((origDf,newRow),ignore_index=True)
-    
-    origDf.to_csv(origCatFile, index=False)
+            if linreg.slope > 0 and worked==0:
+                gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
+
+    if len(dropFids) > 0:
+        newCat = max(origDf['cat'])+1
+        gs.run_command('v.category', input_=vecLines7, cat=-1, ids=dropFids, option='del', output=tempSplit1)
+        gs.run_command('v.category', input_=tempSplit1, option='add', output=vecLines8, cat=newCat)
+        
+        for (i,thisCat) in enumerate(range(newCat,newCat+len(dropFids))):
+            newRow = pd.DataFrame({'cat':[thisCat], 'orig_cat':[origCats[i]]})
+            origDf = pd.concat((origDf,newRow),ignore_index=True)
+        
+        origDf.to_csv(origCatFile, index=False)
+    else:
+        gs.run_command('g.copy', vector=[vecLines7, vecLines8])
+
     unmappedCulverts.to_csv(culvertDefFile, index=False, header=False)
-    df2.to_csv(newElevFile, index=False)
+
+    # Get elevation profile for flipped ditches
+    gs.run_command('v.to.points', input_=vecLines8, dmax=1, output=newElevPts)
+    gs.run_command('v.to.db', map_=newElevPts, layer=2, option='coor', columns=['x', 'y'])
+    gs.run_command('v.what.rast', map_=newElevPts, raster=demNull, column='elev', layer=2)
+    gs.run_command('v.db.select', map_=newElevPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
+
+    #df2.to_csv(newElevFile, index=False)
     
     # Create points layer with unmapped culvert locations
     gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
@@ -290,7 +308,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
     gs.run_command('v.buffer', input_=culvertPts, type_='point', \
                     output=culvertBuffers, distance=unmappedBuffer)
         
-""" if not gdb.map_exists(culvertLines, 'raster'):
+if not gdb.map_exists(culvertLines, 'raster'):
     # Find segments of ditches that pass through culverts
     gs.run_command('v.overlay', ainput=vecLines8, atype='line', binput=culvertBuffers, \
                     operator='and', output=culvertLines)
@@ -308,5 +326,5 @@ if not gdb.map_exists(vecLines7, 'vector'):
 
     # Output the new lake-subtracted DEM for that region
     gs.run_command('r.out.gdal', flags='f', input=intName, output=outDir + hucPrefix+'.tif', \
-                format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", overwrite=True, type='UInt16', nodata=0) """
+                format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", overwrite=True, type='UInt16', nodata=0)
     
