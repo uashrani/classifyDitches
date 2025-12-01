@@ -308,7 +308,7 @@ if not gdb.map_exists(vecLines7, 'vector'):
     gs.run_command('v.buffer', input_=culvertPts, type_='point', \
                     output=culvertBuffers, distance=unmappedBuffer)
         
-if not gdb.map_exists(culvertLines, 'raster'):
+if not gdb.map_exists(culvertLines, 'vector'):
     # Find segments of ditches that pass through culverts
     gs.run_command('v.overlay', ainput=vecLines8, atype='line', binput=culvertBuffers, \
                     operator='and', output=culvertLines)
