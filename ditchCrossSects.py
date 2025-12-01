@@ -30,8 +30,8 @@ profSpacing = 10    # longitudinal spacing between cross-sections
 sharpAngle = 20     # what is considered a sharp angle along a line, in degrees
 
 nearDist = 20       # how far to smooth near intersections, in meters 
-snapThresh = 10     # snapping threshold for intersections, in meters
-snapPerp = 2.5      # maximum perpendicular distance to shift line when snapping
+snapThresh = 12.5     # snapping threshold for intersections, in meters
+snapPerp = 7      # maximum perpendicular distance to shift line when snapping
 
 burnWidth = 3
 
