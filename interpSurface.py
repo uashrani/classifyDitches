@@ -26,7 +26,7 @@ def interpSurface(tmpFiles, layerPrefix, lineSep, lineSegments, bufferWidth, dem
     import grass.grassdb.data as gdb
     import pandas as pd
     import os
-    import shutil
+    #import shutil
     
     import transect
     
@@ -80,7 +80,7 @@ def interpSurface(tmpFiles, layerPrefix, lineSep, lineSegments, bufferWidth, dem
         f=open(interpLineFile, 'a')
         
         for i in range(1, len(endptDf) // 2 + 1):
-            trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines, angles = transect.transect(endptDf, i, bufferWidth/2)
+            trX1, trX2, trY1, trY2, x_ms, y_ms, cosines, sines, angles = transect.transect(endptDf, i, bufferWidth)
     
             f.write('L  2 1\n')
             f.write(' ' + str(trX1.iloc[0]) + ' ' + str(trY1.iloc[0]) + '\n')
@@ -110,15 +110,8 @@ def interpSurface(tmpFiles, layerPrefix, lineSep, lineSegments, bufferWidth, dem
         gs.run_command('v.what.rast', map_=interpPts, raster=demForBurn, column='elev', \
                         layer=2)
         gs.run_command('r.mask', vector=linesBuffered)
-        gs.run_command('v.surf.idw', input_=interpPts, layer=2, column='elev', \
+        gs.run_command('v.surf.idw', flags='n', input_=interpPts, layer=2, column='elev', \
                         output=interpSurf)
-            
-        # Kind of dangerous maybe but deleting r.mask doesn't work
-        #path=gs.read_command('g.gisenv', get=['GISDBASE','LOCATION_NAME','MAPSET'],\
-        #                      sep='/').replace('\\', '/')
-        #path=path.strip()+'/cell_misc/MASK'
-        #os.chmod(path,0o777)
-        #shutil.rmtree(path)
         
         gs.run_command('r.mask', flags='r')
         gs.run_command('r.patch', input_=[interpSurf,demForBurn], output=demBurned)
