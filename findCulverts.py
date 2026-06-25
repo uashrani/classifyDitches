@@ -12,13 +12,15 @@ import grass.grassdb.data as gdb
 import pandas as pd
 
 # Folder names
-tmpFiles = 'tempFiles/BlueEarth2/'
+tmpFiles = 'tempFiles/NFCR_manual/'
 
-ditchPrefix='BluEr' # use for operations involving the entire ditch layer
+ditchPrefix='NFCR_manual' # use for operations involving the entire ditch layer
+
+structuresProvided = True   # some counties provide culvert location data. If it's there, assume it's called structures_[ditchPrefix]
 
 # We need roads vector data, ditch vector data, and elevation raster data
 roads = 'gis_osm_roads_free_1'
-ctyRoads = ['roads_blueEarth']     # list of TIGER county roads
+ctyRoads = ['roads_pope', 'roads_stearns', 'roads_kandiyohi', 'roads_meeker']     # list of TIGER county roads
 railroads = 'rail_lines'
 bridges = 'Bridge_locations_in_Minnesota'
 airports = 'Airport_Runways_in_Minnesota'
@@ -43,7 +45,7 @@ gs.run_command('g.region', vector=ditches)
 
 ### Patch together the county roads into one layer
 if len(ctyRoads) > 1:
-    gs.run_command('v.patch', input_=ctyRoads, output=roads2)
+    gs.run_command('v.patch', input_=ctyRoads, output=roads2, overwrite=True)
 else: 
     roads2 = ctyRoads[0]
 
@@ -53,12 +55,18 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
     ### but v.distance only recognizes this as one intersection.
     ### Use v.overlay in places where dmax=0, then get the center of the line? 
     gs.run_command('v.buffer', input_=ditches, type_='line', \
-                   output=ditchBuffers, distance=0.01)
+                   output=ditchBuffers, distance=0.01, overwrite=True)
     
     layers=[roads, roads2, railroads, bridges, airports]
     suffixs = ['Roads', 'Roads2', 'Railroads', 'Bridges', 'Airports']
     dmaxs = [0, 0, 0, 60, 100]  # max distance between ditches and this layer
     buffers = [25, 25, 50, 25, 75]  # width of the culvert
+
+    if structuresProvided:
+        layers+=['structures_' + ditchPrefix]
+        suffixs+=['Structures']
+        dmaxs+=[5]
+        buffers+=[25]
     
     for (i, layer) in enumerate(layers):
         dmax, buffer, suffix = dmaxs[i], buffers[i], suffixs[i]
@@ -74,8 +82,8 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
         else:
             gs.run_command('db.droptable', flags='f', table=tabName)
             gs.run_command('v.overlay', ainput=layer, atype='line', binput=ditchBuffers, \
-                            operator='and', output=tabName)
-            gs.run_command('v.to.db', map_=tabName, option='start', columns=['to_x', 'to_y'])
+                            operator='and', output=tabName, overwrite=True)
+            gs.run_command('v.to.db', map_=tabName, option='start', columns=['to_x', 'to_y'], overwrite=True)
             gs.run_command('v.db.select', map_=tabName, format_='csv', file=fileName, overwrite=True)
         
         df = pd.read_csv(fileName)
@@ -90,8 +98,8 @@ if not gdb.map_exists(culvertBuffers, 'vector'):
     
     # Create a points layer based on this file
     gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
-                   separator='comma', columns=['x double precision', 'y double precision', 'buffer double precision'])
+                   separator='comma', columns=['x double precision', 'y double precision', 'buffer double precision'], overwrite=True)
     
     # Buffer the culvert points
     gs.run_command('v.buffer', input_=culvertPts, type_='point', \
-                    output=culvertBuffers, column='buffer', layer=1)
+                    output=culvertBuffers, column='buffer', layer=1, overwrite=True)
