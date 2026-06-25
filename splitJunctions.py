@@ -10,18 +10,20 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 
-vecLines0='drainage_centerlines2'   # name of ditch layer in Grass, already imported
-tmpFiles = 'tempFiles/BlueEarth2/'
+vecLines_init='BRR_drainage_centerlines'   # name of ditch layer in Grass, already imported
+tmpFiles = 'tempFiles/BRR/'
 
-ditchPrefix='BluEr'
+ditchPrefix='BRR'
 
 duplThresh = 3      # lines that are near-duplicates (within 3m of each other)
 dangleThresh = 25   # remove dangles less than this length
-connectThresh = 5  # connect endpoints within this distance of each other
+connectThresh = 10  # connect endpoints within this distance of each other
 
 lineSep = '\n'
 
 #%% Layers/files that will be created automatically
+
+vecLines0 = ditchPrefix + '_notAbandoned'
 vecLines1 = ditchPrefix + '_lines_rmdangle'
 vecLines2 = ditchPrefix + '_lines_rmdupl'
 vecLines3 = ditchPrefix + '_lines_rmdupl2'
@@ -29,7 +31,7 @@ vecLines3pt5 = ditchPrefix + '_lines_justOpen'
 vecLines4 = ditchPrefix + '_lines_poly'
 vecLines5 = ditchPrefix + '_lines_nameless'
 vecLines6 = ditchPrefix + '_lines_renamed'
-vecLines7 = ditchPrefix + '_open'
+#vecLines7 = ditchPrefix + '_open'
 
 # Use these to split at intersections and (if needed) midpoints
 allNodes = ditchPrefix + '_nodesTemp'
@@ -93,13 +95,15 @@ def findStreamChains(graph, lcats):
     for lcat in lcats:
         currentChain = chainDf['chain'][chainDf['root']==lcat].iloc[0]
         
+        # Only update the ones that have blank entries, don't overwrite anything
         if currentChain == '':
+            # If it's not in the directed graph, it forms its own chain
             if graph.has_node(lcat)==False: 
                 chain=[int(lcat)] 
             else:
                 prevLcats = list(graph.predecessors(lcat))
                 
-                # If it has exactly one predecessor and no siblings, it's part of another chain
+                # If it has exactly one predecessor and no siblings, it's part of another chain. Wait for that one
                 # If it has 0 or 2+ predecessors, start a new chain
                 if len(prevLcats) != 1 or (len(prevLcats)==1 and len(list(graph.successors(prevLcats[0])))!=1):
                     chain=[int(lcat)]
@@ -121,6 +125,8 @@ def findStreamChains(graph, lcats):
                             nextLcat=0
                         else:
                             nextLcat=nextLcats[0]
+                else:
+                    continue
         
             for segment in chain:
                 chainDf.loc[chainDf['root']==segment, 'chain']=str(chain)
@@ -129,10 +135,14 @@ def findStreamChains(graph, lcats):
 
 #%% Split lines at intersections, and on nodes along line
 
-gs.run_command('g.region', vector=vecLines0)
+gs.run_command('g.region', vector=vecLines_init)
 
 ### Build network (make sure it's cleaned, connected, etc.)
 if not gdb.map_exists(vecLines6, 'vector'):
+
+    # Only keep the ditches/tiles that haven't been abandoned. Eventually build a query that checks all column names for the word Abandoned
+    gs.run_command('v.extract', input_=vecLines_init, output=vecLines0, \
+    where="NOT (segment_na LIKE '%Abandoned%' OR map_label LIKE '%Abandoned%' OR (source LIKE '%Abandoned%' AND source IS NOT NULL) OR (notes LIKE '%Abandoned%' AND notes IS NOT NULL))")
     
     # Remove dangles < 25m (short segments not connected to any other line)
     gs.run_command('v.clean', input_=vecLines0, type_='line', output=vecLines1,\
