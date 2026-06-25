@@ -27,7 +27,7 @@ dem=hucPrefix + '_v2_interpDEM'
 # exclude 15, 100, 104
 #fillCombos = [[15], [32], [38], [40], [41], [42], [43], [44], [46], [47], [48], [67], [68], [77], [86], \
 #[90], [92], [93], [94], [96], [100], [103], [104], [107], [108], [113], [119], [132], [134], [143]]
-fillCombos = [[68], [86]]
+fillCombos = [[67]]
 #layerPrefix = hucPrefix + '_fill102'
 
 fillLoc = 50        # downstream location
@@ -51,6 +51,13 @@ if not gdb.map_exists(dsTransects, 'vector'):
     lcats=sorted(set(profilePts['lcat']))
     
     for lcat in lcats:
+        if lcat==86:
+            fillLoc=250
+        elif lcat==68:
+            fillLoc=200
+        else:
+            fillLoc = 50
+
         x1,x2,y1,y2,f1,f2,f3,f4,f5 = transect.transect(profilePts, lcat, fillWidth)
         
         if len(x1) > fillLoc+fillLen:
