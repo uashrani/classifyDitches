@@ -1,0 +1,15 @@
+cat,a_cat,a_RAILROAD_S,a_MAIN_RR_OP,a_RR_DIVISIO,a_RR_SUBDIVI,a_RR_SECTION,a_COMMENTS,a_Shape_Leng,b_cat,to_x,to_y
+1,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,419823.599195004,4947207.7588489
+2,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,374201.936993524,4932252.92284889
+3,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,422480.787798819,4952001.03218789
+4,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,386015.044412438,4932457.24355355
+5,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,397833.010542319,4933127.1803357
+6,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,412246.300792466,4938277.493751
+7,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,385114.505757556,4932414.50617073
+8,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,392005.982498864,4932748.77611789
+9,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,371540.363433385,4931946.02864491
+10,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,413141.917695823,4938819.63418393
+11,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,422905.534105448,4952767.31153937
+12,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,407092.228551826,4935402.58098591
+13,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,422196.392589676,4951488.3023315
+14,62,346,"MPLI","Minnesota Prairie","Redwood Falls","Norwood - Hanley Falls",,152495.571228,1,374804.806479752,4932327.58076208

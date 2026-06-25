@@ -1,0 +1,5 @@
+cat,a_cat,a_RAILROAD_S,a_MAIN_RR_OP,a_RR_DIVISIO,a_RR_SUBDIVI,a_RR_SECTION,a_COMMENTS,a_Shape_Leng,b_cat,to_x,to_y
+1,315,9,"UP","Twin Cities_UP","Montgomery","Merriam - S of Montgomery",,37589.9347059,1,453747.316823548,4929873.34519542
+2,315,9,"UP","Twin Cities_UP","Montgomery","Merriam - S of Montgomery",,37589.9347059,1,453759.930861372,4929584.4226799
+3,315,9,"UP","Twin Cities_UP","Montgomery","Merriam - S of Montgomery",,37589.9347059,1,453410.22578891,4923520.76125093
+4,315,9,"UP","Twin Cities_UP","Montgomery","Merriam - S of Montgomery",,37589.9347059,1,453995.615424609,4919775.11797892

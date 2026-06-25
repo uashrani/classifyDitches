@@ -1,0 +1,5 @@
+cat,a_cat,a_RAILROAD_S,a_MAIN_RR_OP,a_RR_DIVISIO,a_RR_SUBDIVI,a_RR_SECTION,a_COMMENTS,a_Shape_Leng,b_cat,to_x,to_y
+1,48,372,"SOO","Twin Cities_SOO","Detroit Lakes","West Glenwood - Thief River Falls",,299866.824191,1,276562.669721517,5233194.85712214
+2,291,26,"MNN","Minnesota","P Line","Crookston - Perley",,72072.7142459,1,212509.660433948,5266035.62859704
+3,291,26,"MNN","Minnesota","P Line","Crookston - Perley",,72072.7142459,1,211587.2692995,5247518.25130023
+4,291,26,"MNN","Minnesota","P Line","Crookston - Perley",,72072.7142459,1,212601.157751092,5267650.58846233

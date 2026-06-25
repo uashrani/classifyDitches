@@ -1,0 +1,16 @@
+cat,a_cat,a_RAILROAD_S,a_MAIN_RR_OP,a_RR_DIVISIO,a_RR_SUBDIVI,a_RR_SECTION,a_COMMENTS,a_Shape_Leng,b_cat,to_x,to_y
+1,71,342,"TCWR","Twin Cities & Western","Appleton","Tower E14 - Appleton",,230485.911319,1,270330.48325255,5000560.24002429
+2,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,302582.598053946,4974046.05538513
+3,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,314784.702084955,4981666.98451044
+4,50,352,"BNSF","Twin Cities_BNSF","Morris","CP 98 - East Breckenridge",,183610.363674,1,319713.492285044,5005672.66346042
+5,50,352,"BNSF","Twin Cities_BNSF","Morris","CP 98 - East Breckenridge",,183610.363674,1,322550.921804273,5004161.15259873
+6,50,352,"BNSF","Twin Cities_BNSF","Morris","CP 98 - East Breckenridge",,183610.363674,1,329375.908751743,5001504.12105962
+7,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,318780.543381994,4984199.10926369
+8,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,299386.119663655,4972221.90580121
+9,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,304710.371658841,4975289.94858896
+10,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,313965.437160929,4981153.69843174
+11,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,322324.328881818,4986437.27808446
+12,32,374,"BNSF","Twin Cities_BNSF","Marshall","Willmar - State Line SW of Jaspar",,197437.018968,1,313613.079979,4980925.99575606
+13,50,352,"BNSF","Twin Cities_BNSF","Morris","CP 98 - East Breckenridge",,183610.363674,1,327645.358723877,5002181.25293236
+14,71,342,"TCWR","Twin Cities & Western","Appleton","Tower E14 - Appleton",,230485.911319,1,272022.587077287,4998008.68057405
+15,71,342,"TCWR","Twin Cities & Western","Appleton","Tower E14 - Appleton",,230485.911319,1,270603.433771271,5000245.01378239

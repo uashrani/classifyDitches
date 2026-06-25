@@ -1,0 +1,15 @@
+cat,a_cat,a_RAILROAD_S,a_MAIN_RR_OP,a_RR_DIVISIO,a_RR_SUBDIVI,a_RR_SECTION,a_COMMENTS,a_Shape_Leng,b_cat,to_x,to_y
+1,201,125,"UP","Twin Cities_UP","Fairmont","Butterfield - State Line",,118584.963865,1,426907.268494362,4825343.78409092
+2,107,328,"DME","Minnesota_ICE","Jackson","Ramsey Jct - UP Jct Switch",,129915.532784,1,449304.58007974,4837976.47192018
+3,283,16,"DME","Minnesota_ICE","Minnesota Lake Spur","Wells - Minnesota Lake",,14029.3027579,1,437019.535155449,4849670.0737818
+4,107,328,"DME","Minnesota_ICE","Jackson","Ramsey Jct - UP Jct Switch",,129915.532784,1,417574.514571046,4846462.9065413
+5,201,125,"UP","Twin Cities_UP","Fairmont","Butterfield - State Line",,118584.963865,1,415543.029407624,4829685.23042432
+6,107,328,"DME","Minnesota_ICE","Jackson","Ramsey Jct - UP Jct Switch",,129915.532784,1,423046.559667904,4846490.35876023
+7,283,16,"DME","Minnesota_ICE","Minnesota Lake Spur","Wells - Minnesota Lake",,14029.3027579,1,435970.22588313,4851038.98908747
+8,201,125,"UP","Twin Cities_UP","Fairmont","Butterfield - State Line",,118584.963865,1,437082.62874683,4822510.45156576
+9,107,328,"DME","Minnesota_ICE","Jackson","Ramsey Jct - UP Jct Switch",,129915.532784,1,425504.407329876,4846542.96584131
+10,107,328,"DME","Minnesota_ICE","Jackson","Ramsey Jct - UP Jct Switch",,129915.532784,1,427181.704857627,4846432.86794875
+11,107,328,"DME","Minnesota_ICE","Jackson","Ramsey Jct - UP Jct Switch",,129915.532784,1,422732.225911782,4846460.5697028
+12,283,16,"DME","Minnesota_ICE","Minnesota Lake Spur","Wells - Minnesota Lake",,14029.3027579,1,435802.66254992,4851267.56759634
+13,107,328,"DME","Minnesota_ICE","Jackson","Ramsey Jct - UP Jct Switch",,129915.532784,1,443450.360422924,4842590.5121353
+14,311,4,"UP","Iowa","Rake","Bricelyn - State Line",,9999.91637831,1,429040.249207013,4818032.29924874

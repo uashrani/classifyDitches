@@ -1,0 +1,4 @@
+cat,a_cat,a_RAILROAD_S,a_MAIN_RR_OP,a_RR_DIVISIO,a_RR_SUBDIVI,a_RR_SECTION,a_COMMENTS,a_Shape_Leng,b_cat,to_x,to_y
+1,312,5,"DME","Minnesota_ICE","Owatonna","Owatonna - Comus",,35449.1047664,1,478990.408959698,4895118.04401708
+2,76,335,"UP","Twin Cities_UP","Albert Lea","Comus - State Line",,106645.784417,1,480702.436801598,4896235.06504002
+3,315,9,"UP","Twin Cities_UP","Montgomery","Merriam - S of Montgomery",,37589.9347059,1,453410.002157382,4923519.9783014

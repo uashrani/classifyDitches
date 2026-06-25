@@ -1,0 +1,4 @@
+cat,a_cat,a_RAILROAD_S,a_MAIN_RR_OP,a_RR_DIVISIO,a_RR_SUBDIVI,a_RR_SECTION,a_COMMENTS,a_Shape_Leng,b_cat,to_x,to_y
+1,1,395,"SOO","Twin Cities_SOO","Paynesville","CP University - Glenwood",,194270.51106,1,357788.221532423,5028610.54386333
+2,1,395,"SOO","Twin Cities_SOO","Paynesville","CP University - Glenwood",,194270.51106,1,336991.25092175,5038487.3095206
+3,1,395,"SOO","Twin Cities_SOO","Paynesville","CP University - Glenwood",,194270.51106,1,338432.02868095,5037604.07096744
