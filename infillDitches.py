@@ -14,10 +14,10 @@ import transect
 import interpSurface
 
 tmpFiles = 'tempFiles/BlueEarth2/'
-hucPrefix = 'HUC_0702000709'
+hucPrefix = 'HUC_07010204'
 ditchPrefix='BluEr'
 
-outDir = '/media/uashrani/topobathy-ditch/HUC_0702000709/'
+outDir = '/media/uashrani/topobathy-ditch/HUC_07010204/'
 
 # This is just to tell us what lcats are in the region
 newElevFile = tmpFiles + hucPrefix + '_elevProfile_flippedDitches.txt'
@@ -51,12 +51,12 @@ if not gdb.map_exists(dsTransects, 'vector'):
     lcats=sorted(set(profilePts['lcat']))
     
     for lcat in lcats:
-        if lcat==86:
-            fillLoc=250
-        elif lcat==68:
-            fillLoc=200
-        else:
-            fillLoc = 50
+        # if lcat==86:
+        #     fillLoc=250
+        # elif lcat==68:
+        #     fillLoc=200
+        # else:
+        #     fillLoc = 50
 
         x1,x2,y1,y2,f1,f2,f3,f4,f5 = transect.transect(profilePts, lcat, fillWidth)
         
