@@ -19,9 +19,9 @@ import transect
 project='huc8s'
 
 tmpFilesDir = 'tempFiles/'
-hucPrefix = 'HUC_07010204'
+hucPrefix = 'HUC_07020001'
 
-ditchPrefixes = ['Chippewa', 'McLeod', 'NFCR']
+ditchPrefixes = ['LQPYB', 'Chippewa']
 
 dem = hucPrefix
 
@@ -33,7 +33,7 @@ nearDist = 10       # how far to smooth near intersections, in meters
 snapThresh = 20     # snapping threshold for intersections, in meters
 snapPerp = 2.5      # maximum perpendicular distance to shift line when snapping
 
-burnWidth = 6
+burnWidth = 4
 
 lineSep='\n'
 
@@ -330,6 +330,8 @@ culverts_toPatch = [ditchPrefix + '_culvertBuffers' for ditchPrefix in ditchPref
 
 gs.run_command('v.patch', flags='e', input=ditches_toPatch, output=newLine_huc, overwrite=True)
 gs.run_command('v.patch', input=culverts_toPatch, output=culvertBuffers_huc, overwrite=True)
+
+gs.run_command('v.db.select', map_=newLine_huc, format='csv', separator='comma', file=tmpFilesDir + hucPrefix + '_countyDitches.txt', overwrite=True)
 
 if not gdb.map_exists(newPts, 'vector'):
     # Find portion of ditches that pass through culverts
