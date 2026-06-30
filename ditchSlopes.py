@@ -16,14 +16,14 @@ import numpy as np
 import interpSurface
 
 tmpFilesDir = 'tempFiles/'
-hucPrefix = 'HUC_07010204'
+hucPrefix = 'HUC_07020001'
 hucDir = tmpFilesDir + hucPrefix + '/'
-outDir = '/media/uashrani/topobathy-ditch/HUC_07010204/'
+outDir = '/media/uashrani/topobathy-ditch/HUC_07020001/'
 
 elevFile = hucDir + hucPrefix + '_elevProfile_shiftedDitches.txt'
 countyFile = hucDir + hucPrefix + '_countyDitches.txt'
 
-ditchPrefixes = ['Chippewa', 'McLeod', 'NFCR']
+#ditchPrefixes = ['Chippewa', ]
 
 newLine = hucPrefix + '_shiftedDitches'
 
@@ -32,8 +32,8 @@ demBurned = hucPrefix + '_interpDEM'
 
 lineSep='\n'
 
-peakThresh = 0.5      # What counts as a peak in the elevation profile
-burnWidth = 6
+peakThresh = 5      # What counts as a peak in the elevation profile
+burnWidth = 4
 unmappedBuffer = 25     # how much to buffer unmapped culverts
 
 #%% To be created
@@ -41,8 +41,8 @@ vecLines7 = hucPrefix + '_lines_flowDirTemp'
 
 culvertDefFile = hucDir + hucPrefix + '_culvertPtDefs.txt'   # file that GRASS will read from 
 
-culvertPts = hucPrefix + '_culvertPoints'   # points layer of culvert locations
-culvertBuffers = hucPrefix + '_culvertBuffers'  # vector layer containing circles around the culvert points
+culvertPts = hucPrefix + '_culvertPoints_v2'   # points layer of culvert locations
+culvertBuffers = hucPrefix + '_culvertBuffers_v2'  # vector layer containing circles around the culvert points
 
 # Temp layers if we are splitting 
 tempSplit1 = hucPrefix + '_tempSplit1'
@@ -57,15 +57,15 @@ culvertLines = hucPrefix + '_v2_culvertLines'
 newElevPts = hucPrefix + '_profilePts_flippedDitches'
 newElevFile = hucDir + hucPrefix + '_elevProfile_flippedDitches.txt'
 
-def flowDir(ditchPrefix):
-    #ditchDir = tmpFilesDir + ditchPrefix + '/'
+# def flowDir(ditchPrefix):
+#     #ditchDir = tmpFilesDir + ditchPrefix + '/'
 
-    origCatFile = ditchDir + ditchPrefix + '_origCats.txt'
-    #chainFile = ditchDir + ditchPrefix + '_streamChains.txt'
+#     origCatFile = ditchDir + ditchPrefix + '_origCats.txt'
+#     #chainFile = ditchDir + ditchPrefix + '_streamChains.txt'
 
-    # For splitting lines with differing slopes
-    vecLines3 = ditchPrefix + '_lines_rmdupl2'
-    nodesFile = ditchDir + ditchPrefix + '_nodesTemp.txt'
+#     # For splitting lines with differing slopes
+#     vecLines3 = ditchPrefix + '_lines_rmdupl2'
+#     nodesFile = ditchDir + ditchPrefix + '_nodesTemp.txt'
 
 #%% Actual code   
 gs.run_command('g.region', raster=demBurned)
@@ -94,8 +94,6 @@ if not gdb.map_exists(vecLines7, 'vector'):
         ditchDir = tmpFilesDir + ditchPrefix + '/'
         origCatFile = ditchDir + ditchPrefix + '_origCats.txt'
         chainFile = ditchDir + ditchPrefix + '_streamChains.txt'
-
-        print(lcat)
         
         chain=[lcat]
     
@@ -118,7 +116,14 @@ if not gdb.map_exists(vecLines7, 'vector'):
             strpChain=strChain.strip('[]')
             chain_cty = list(map(int,strpChain.split(', ')))
 
-            chain = [dfCounty[(dfCounty['cat_cty']==cc) & (dfCounty['county']==ditchPrefix)]['cat'].iloc[0] for cc in chain_cty]
+            chain = []
+
+            for cc in chain_cty:
+                c = dfCounty[(dfCounty['cat_cty']==cc) & (dfCounty['county']==ditchPrefix)]['cat']
+                if len(c) > 0:
+                    chain += [c.iloc[0]]
+
+            #chain = [dfCounty[(dfCounty['cat_cty']==cc) & (dfCounty['county']==ditchPrefix)]['cat'].iloc[0] for cc in chain_cty]
             
             print('Ditch ' + str(lcat) + ' is < 25m or has r2 < 0.4. Concatenating with ' + \
                   str(chain))
@@ -173,8 +178,13 @@ if not gdb.map_exists(vecLines7, 'vector'):
             allPeaks = pd.Series(peakInds).reset_index(drop=True)
         elif len(peakIndsEP) > 0:
             allPeaks = pd.Series(peakIndsEP).reset_index(drop=True)
+        else:
+            allPeaks = pd.Series([])
 
         dropInds = []
+
+        #print(allPeaks)
+        #print(x)
         
         # Get the xy coordinates of the unmapped culverts
         for ind in allPeaks:
@@ -200,107 +210,107 @@ if not gdb.map_exists(vecLines7, 'vector'):
         
         # If r2 is low, it's possible that there are two segments with opposite flow dirs
         if r2 < 0.4:
-            # worked = 0
-            # # Try fitting a quadratic curve
-            # a,b,c = np.polyfit(filtAlong,filtElev,2)
-            # polyMin = -b / (2*a)
-            
-            # # See if the quadratic turning point is within the profile
-            # if polyMin > 0 and polyMin < np.max(filtAlong):
-            #     # Split the ditch based on the x position of quadratic min/max
-            #     ditch1 = filtDf[filtDf['along'] <= polyMin]
-            #     ditch2 = filtDf[filtDf['along'] > polyMin]
-                
-            #     # Take linear regression of each segment
-            #     linreg1 = sp.stats.linregress(ditch1['along'], ditch1['elev'])
-            #     linreg2 = sp.stats.linregress(ditch2['along'], ditch2['elev'])
-            #     rsq1, rsq2 = linreg1.rvalue**2, linreg2.rvalue**2
-            #     slope1, slope2 = linreg1.slope, linreg2.slope
-                
-            #     # If r2s of each individual segment are both high, split the ditch
-            #     if rsq1 >= 0.4 and rsq2 >= 0.4:
-            #         distFromSplit = np.abs(filtAlong - polyMin)
-            #         # This gives xy point on the ditch closest to the quadratic min/max
-            #         # Previously we just had 'along'
-            #         toSplit = filtDf[distFromSplit==min(distFromSplit)].iloc[0]
-                    
-            #         # We want to see if these were originally two ditches that got incorrectly merged by build.polylines
-            #         # Get the midpoint xy of each segment to find original cats
-            #         midpoint1=ditch1.iloc[len(ditch1)//2]
-            #         midpoint2=ditch2.iloc[len(ditch2)//2]   
-            #         x1, y1 = midpoint1['x'], midpoint1['y']
-            #         x2, y2 = midpoint2['x'], midpoint2['y']
-                    
-            #         # Import the midpoints as a points layer, 
-            #         # and use v.what.vect to get cats from a previous lines layer
-            #         midDf = pd.DataFrame({'x':[x1,x2], 'y':[y1,y2]})
-            #         midDf.to_csv(tmpFiles + 'splitMidpoints.txt', index=False, header=False)
-            #         gs.run_command('v.in.ascii', input_=tmpFiles + 'splitMidpoints.txt', output=splitPts, \
-            #                        separator='comma', columns=['x double precision', 'y double precision'])
-            #         gs.run_command('v.db.addtable', map_=splitPts)
-            #         gs.run_command('v.db.addcolumn', map_=splitPts, columns='orig_cat int')
-            #         gs.run_command('v.what.vect', map_=splitPts, column='orig_cat', query_map=vecLines3, query_column='cat', dmax=10)
-            #         gs.run_command('v.db.select', map_=splitPts, format_='csv', file=tmpFiles + 'split_origcats.txt', overwrite=True)
-                    
-            #         d=pd.read_csv(tmpFiles + 'split_origcats.txt')
-            #         oc1, oc2 = d['orig_cat'].iloc[0], d['orig_cat'].iloc[1]
-                    
-            #         # If this was originally two lines that shouldn't have been merged,
-            #         # find the closest original node, and use its xy coords as point to split
-            #         if oc1 != oc2:
-            #             nodesDf=pd.read_csv(nodesFile)
-            #             starts, ends = nodesDf.iloc[::3].reset_index(drop=True), \
-            #                 nodesDf.iloc[2::3].reset_index(drop=True)
-            #             nodesDf = pd.concat((starts,ends), ignore_index=True)
-            #             nodesDf=nodesDf[(nodesDf['lcat']==oc1)|(nodesDf['lcat']==oc2)]
-            #             nodesDf.loc[:,'dist']=np.sqrt((nodesDf['x']-toSplit['x'])**2+(nodesDf['y']-toSplit['y'])**2)
-            #             toSplit = nodesDf[nodesDf['dist']==min(nodesDf['dist'])].iloc[0]
-                    
-            #         # Split line at the xy point
-            #         gs.run_command('v.edit', map_=vecLines7, tool='break', coords=[toSplit['x'],toSplit['y']], threshold=10)
-                    
-            #         # Find the feature IDs currently associated with the split ditch
-            #         fid1=gs.read_command('v.edit', map_=vecLines7, tool='select', bbox=[x1-0.1,y1-0.1,x1+0.1,y1+0.1])
-            #         fid1 = int(fid1.split('\n')[0])
-            #         fid2=gs.read_command('v.edit', map_=vecLines7, tool='select', bbox=[x2-0.1,y2-0.1,x2+0.1,y2+0.1])
-            #         fid2 = int(fid2.split('\n')[0])
-                    
-            #         # One of them will need a new category number, but keep track of original cat
-            #         dropFids += [fid1]
-            #         origCats += [oc1]
-                    
-            #         # Update file with original category number for the 2nd segment
-                    
-            #         origDf.loc[(origDf['cat']==lcat), 'orig_cat'] = oc2
-                    
-            #         # Also change the category numbers in the elevation profile
-            #         # First re-split ditch based on the xy coord
-            #         thisDitch_wnans.reset_index(inplace=True, drop=True)
-            #         distFromSplit = np.sqrt((thisDitch_wnans['x']-toSplit['x'])**2 + (thisDitch_wnans['y']-toSplit['y'])**2)
-            #         splitInd = thisDitch_wnans.index[distFromSplit==min(distFromSplit)][0]
-                    
-            #         ditch1 = thisDitch_wnans.iloc[:splitInd]
-            #         ditch2 = thisDitch_wnans.iloc[splitInd:]
-                    
-            #         # Flip any segments with a positive slope
-            #         if slope1 > 0: 
-            #             gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid1)
-            #             ditch1 = ditch1.iloc[::-1]
-            #         if slope2 > 0: 
-            #             gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid2)
-            #             ditch2 = ditch2.iloc[::-1]
-                    
-            #         newCat = max(pd.concat((origDf['cat'], df2['lcat'])))+1
-            #         ditch1.loc[:, 'lcat']=newCat
-                    
-            #         #df2 = pd.concat((df2, ditch1, ditch2), ignore_index=True)
-            #         worked=1
-                    
-                
             print('Warning: Ditch ' + str(lcat) + ' still has r2 < 0.4 even after concatenating profiles.')
+    #         worked = 0
+    #         # Try fitting a quadratic curve
+    #         a,b,c = np.polyfit(filtAlong,filtElev,2)
+    #         polyMin = -b / (2*a)
+            
+    #         # See if the quadratic turning point is within the profile
+    #         if polyMin > 0 and polyMin < np.max(filtAlong):
+    #             # Split the ditch based on the x position of quadratic min/max
+    #             ditch1 = filtDf[filtDf['along'] <= polyMin]
+    #             ditch2 = filtDf[filtDf['along'] > polyMin]
+                
+    #             # Take linear regression of each segment
+    #             linreg1 = sp.stats.linregress(ditch1['along'], ditch1['elev'])
+    #             linreg2 = sp.stats.linregress(ditch2['along'], ditch2['elev'])
+    #             rsq1, rsq2 = linreg1.rvalue**2, linreg2.rvalue**2
+    #             slope1, slope2 = linreg1.slope, linreg2.slope
+                
+    #             # If r2s of each individual segment are both high, split the ditch
+    #             if rsq1 >= 0.4 and rsq2 >= 0.4:
+    #                 origDf = pd.read_csv(origCatFile)
 
-            # if linreg.slope > 0 and worked==0:
-            #     gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
+    #                 distFromSplit = np.abs(filtAlong - polyMin)
+    #                 # This gives xy point on the ditch closest to the quadratic min/max
+    #                 # Previously we just had 'along'
+    #                 toSplit = filtDf[distFromSplit==min(distFromSplit)].iloc[0]
+                    
+    #                 # We want to see if these were originally two ditches that got incorrectly merged by build.polylines
+    #                 # Get the midpoint xy of each segment to find original cats
+    #                 midpoint1=ditch1.iloc[len(ditch1)//2]
+    #                 midpoint2=ditch2.iloc[len(ditch2)//2]   
+    #                 x1, y1 = midpoint1['x'], midpoint1['y']
+    #                 x2, y2 = midpoint2['x'], midpoint2['y']
+                    
+    #                 # Import the midpoints as a points layer, 
+    #                 # and use v.what.vect to get cats from a previous lines layer
+    #                 midDf = pd.DataFrame({'x':[x1,x2], 'y':[y1,y2]})
+    #                 midDf.to_csv(ditchDir+ 'splitMidpoints.txt', index=False, header=False)
+    #                 gs.run_command('v.in.ascii', input_=ditchDir + 'splitMidpoints.txt', output=splitPts, \
+    #                                separator='comma', columns=['x double precision', 'y double precision'])
+    #                 gs.run_command('v.db.addtable', map_=splitPts)
+    #                 gs.run_command('v.db.addcolumn', map_=splitPts, columns='orig_cat int')
+    #                 gs.run_command('v.what.vect', map_=splitPts, column='orig_cat', query_map=vecLines3, query_column='cat', dmax=10)
+    #                 gs.run_command('v.db.select', map_=splitPts, format_='csv', file=ditchDir + 'split_origcats.txt', overwrite=True)
+                    
+    #                 d=pd.read_csv(ditchDir + 'split_origcats.txt')
+    #                 oc1, oc2 = d['orig_cat'].iloc[0], d['orig_cat'].iloc[1]
+                    
+    #                 # If this was originally two lines that shouldn't have been merged,
+    #                 # find the closest original node, and use its xy coords as point to split
+    #                 if oc1 != oc2:
+    #                     nodesDf=pd.read_csv(nodesFile)
+    #                     starts, ends = nodesDf.iloc[::3].reset_index(drop=True), \
+    #                         nodesDf.iloc[2::3].reset_index(drop=True)
+    #                     nodesDf = pd.concat((starts,ends), ignore_index=True)
+    #                     nodesDf=nodesDf[(nodesDf['lcat']==oc1)|(nodesDf['lcat']==oc2)]
+    #                     nodesDf.loc[:,'dist']=np.sqrt((nodesDf['x']-toSplit['x'])**2+(nodesDf['y']-toSplit['y'])**2)
+    #                     toSplit = nodesDf[nodesDf['dist']==min(nodesDf['dist'])].iloc[0]
+                    
+    #                 # Split line at the xy point
+    #                 gs.run_command('v.edit', map_=vecLines7, tool='break', coords=[toSplit['x'],toSplit['y']], threshold=10)
+                    
+    #                 # Find the feature IDs currently associated with the split ditch
+    #                 fid1=gs.read_command('v.edit', map_=vecLines7, tool='select', bbox=[x1-0.1,y1-0.1,x1+0.1,y1+0.1])
+    #                 fid1 = int(fid1.split('\n')[0])
+    #                 fid2=gs.read_command('v.edit', map_=vecLines7, tool='select', bbox=[x2-0.1,y2-0.1,x2+0.1,y2+0.1])
+    #                 fid2 = int(fid2.split('\n')[0])
+                    
+    #                 # One of them will need a new category number, but keep track of original cat
+    #                 dropFids += [fid1]
+    #                 origCats += [oc1]
+                    
+    #                 # Update file with original category number for the 2nd segment
+                    
+    #                 origDf.loc[(origDf['cat']==cat_cty), 'orig_cat'] = oc2
+                    
+    #                 # Also change the category numbers in the elevation profile
+    #                 # First re-split ditch based on the xy coord
+    #                 thisDitch_wnans.reset_index(inplace=True, drop=True)
+    #                 distFromSplit = np.sqrt((thisDitch_wnans['x']-toSplit['x'])**2 + (thisDitch_wnans['y']-toSplit['y'])**2)
+    #                 splitInd = thisDitch_wnans.index[distFromSplit==min(distFromSplit)][0]
+                    
+    #                 ditch1 = thisDitch_wnans.iloc[:splitInd]
+    #                 ditch2 = thisDitch_wnans.iloc[splitInd:]
+                    
+    #                 # Flip any segments with a positive slope
+    #                 if slope1 > 0: 
+    #                     gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid1)
+    #                     ditch1 = ditch1.iloc[::-1]
+    #                 if slope2 > 0: 
+    #                     gs.run_command('v.edit', map_=vecLines7, tool='flip', ids=fid2)
+    #                     ditch2 = ditch2.iloc[::-1]
+                    
+    #                 newCat = max(pd.concat((origDf['cat'], df2['lcat'])))+1
+    #                 ditch1.loc[:, 'lcat']=newCat
+                    
+    #                 #df2 = pd.concat((df2, ditch1, ditch2), ignore_index=True)
+    #                 worked=1
+
+    #         # if linreg.slope > 0 and worked==0:
+    #         #     gs.run_command('v.edit', map_=vecLines7, tool='flip', cats=lcat)
 
     # if len(dropFids) > 0:
     #     newCat = max(origDf['cat'])+1
@@ -315,41 +325,56 @@ if not gdb.map_exists(vecLines7, 'vector'):
     # else:
     #     gs.run_command('g.copy', vector=[vecLines7, vecLines8])
 
+    # Get rid of any culverts near the boundary
+    region = gs.read_command('g.region', flags='gp')
+
+    rgn = region.split(lineSep)
+    rgnDict = {}
+    for entry in rgn[:-1]: 
+        keyVal = entry.split('=')
+        rgnDict[keyVal[0]] = int(keyVal[1])
+    n, s, e, w = rgnDict['n'], rgnDict['s'], rgnDict['e'], rgnDict['w']
+
+    thresh = unmappedBuffer * 1.5
+
+    unmappedCulverts = unmappedCulverts[(unmappedCulverts['x']>w+thresh) & (unmappedCulverts['x']<e-thresh) \
+    & (unmappedCulverts['y']>s+thresh) & (unmappedCulverts['y']<n-thresh)]
+
     unmappedCulverts.to_csv(culvertDefFile, index=False, header=False)
 
-    # Get elevation profile for flipped ditches
-#     gs.run_command('v.to.points', input_=vecLines8, dmax=1, output=newElevPts)
-#     gs.run_command('v.to.db', map_=newElevPts, layer=2, option='coor', columns=['x', 'y'])
-#     gs.run_command('v.what.rast', map_=newElevPts, raster=demNull, column='elev', layer=2)
-#     gs.run_command('v.db.select', map_=newElevPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
+# Get elevation profile for flipped ditches
+# gs.run_command('v.to.points', input_=vecLines8, dmax=1, output=newElevPts, overwrite=True)
+# gs.run_command('v.to.db', map_=newElevPts, layer=2, option='coor', columns=['x', 'y'])
+# gs.run_command('v.what.rast', map_=newElevPts, raster=demNull, column='elev', layer=2)
+# gs.run_command('v.db.select', map_=newElevPts, layer=2, format_='csv', file=newElevFile, overwrite=True)
 
 #     #df2.to_csv(newElevFile, index=False)
     
-    # Create points layer with unmapped culvert locations
-    gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
-                    separator='comma', columns=['x double precision', 'y double precision'])
+# # Create points layer with unmapped culvert locations
+# gs.run_command('v.in.ascii', input_=culvertDefFile, output=culvertPts, \
+#                 separator='comma', columns=['x double precision', 'y double precision'], overwrite=True)
         
-    # Buffer the culvert points
-    gs.run_command('v.buffer', input_=culvertPts, type_='point', \
-                    output=culvertBuffers, distance=unmappedBuffer)
+# # Buffer the culvert points
+# gs.run_command('v.buffer', input_=culvertPts, type_='point', \
+#                 output=culvertBuffers, distance=unmappedBuffer, overwrite=True)
         
 # if not gdb.map_exists(culvertLines, 'vector'):
 #     # Find segments of ditches that pass through culverts
 #     gs.run_command('v.overlay', ainput=vecLines8, atype='line', binput=culvertBuffers, \
 #                     operator='and', output=culvertLines)
         
-#     demBurned2, demNull = interpSurface.interpSurface(tmpFiles, hucPrefix+'_v2', lineSep, \
+#     demBurned2, demNull = interpSurface.interpSurface(hucDir, hucPrefix+'_v2', lineSep, \
 #                                                   culvertLines, burnWidth, demBurned)
 
-#     intName = demBurned2 + '_int'
-#     # Pseudocode: intName = round((DEM - 100) * 100)
-#     expression = intName + ' = ' + 'round((' + demBurned2 + '-100)*100)'
-#     gs.run_command('r.mapcalc', expression=expression, overwrite=True)
+    # intName = demBurned2 + '_int'
+    # # Pseudocode: intName = round((DEM - 100) * 100)
+    # expression = intName + ' = ' + 'round((' + demBurned2 + '-100)*100)'
+    # gs.run_command('r.mapcalc', expression=expression, overwrite=True)
 
-#     # Grow the region by 1, which creates a buffer of NaNs around the edge
-#     gs.run_command('g.region', grow=1)
+    # # Grow the region by 1, which creates a buffer of NaNs around the edge
+    # gs.run_command('g.region', grow=1)
 
-#     # Output the new lake-subtracted DEM for that region
-#     gs.run_command('r.out.gdal', flags='f', input=intName, output=outDir + hucPrefix+'.tif', \
-#                 format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", overwrite=True, type='UInt16', nodata=0)
+    # # Output the new lake-subtracted DEM for that region
+    # gs.run_command('r.out.gdal', flags='f', input=intName, output=outDir + hucPrefix+'.tif', \
+    #             format='GTiff', createopt="COMPRESS=LZW,BIGTIFF=YES", overwrite=True, type='UInt16', nodata=0)
     
